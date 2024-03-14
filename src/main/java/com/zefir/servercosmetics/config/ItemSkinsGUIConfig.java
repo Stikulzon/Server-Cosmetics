@@ -185,14 +185,15 @@ public class ItemSkinsGUIConfig {
         YamlFile yamlFile = new YamlFile(file.toAbsolutePath().toString());
         try {
             yamlFile.load();
-
-            String material = yamlFile.getString("material");
-            if (material == null) {
-                System.out.println("[ERROR] Error loading " + file.getFileName().toString() + ": you do not defined \"material\"");
-                return;
-            }
-            if (!material.contains(":")){
-                material = "minecraft:" + material.toLowerCase();
+            List<String> materials = yamlFile.getStringList("material");
+            if (materials.isEmpty()) {
+                String material = yamlFile.getString("material");
+                if(material != null){
+                    materials.add(material);
+                } else {
+                    System.out.println("[ERROR] Error loading " + file.getFileName().toString() + ": you do not defined \"material\"");
+                    return;
+                }
             }
 
             int customModelData = yamlFile.getInt("custom-model-data");
@@ -220,8 +221,16 @@ public class ItemSkinsGUIConfig {
                 lore = yamlFile.getStringList("available-item.lore").stream().map(ConfigManager::formatDisplayName).toList();
             }
 
-            ItemStack itemStack = ConfigManager.createItemStack(material, customModelData, displayName, file.getFileName().toString().replace(".yml", ""), lore);
-            addItemSkin(material, itemStack, permission, file.getFileName().toString());
+            for (int i = 0; i < materials.size(); i++) {
+                String materialKey = materials.get(i);
+                if (!materialKey.contains(":")) {
+                    materialKey = "minecraft:" + materialKey.toLowerCase();
+                    materials.set(i, materialKey);
+                }
+
+                ItemStack itemStack = ConfigManager.createItemStack(materialKey, customModelData, displayName, file.getFileName().toString().replace(".yml", ""), lore);
+                addItemSkin(materialKey, itemStack, permission, file.getFileName().toString());
+            }
         } catch (IOException e) {
             throw new RuntimeException("Failed to load item skin from file: " + file, e);
         }

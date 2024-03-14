@@ -218,7 +218,7 @@ public class CosmeticsGUI {
         if(viewSwitch.getValue()) {
             is = new ItemStack(Registries.ITEM.get(new Identifier("minecraft", "leather_horse_armor")));
             NbtCompound nbtData = is.getOrCreateNbt();
-            nbtData.putInt("CustomModelData", 8005);
+            nbtData.putInt("CustomModelData", CosmeticsGUIConfig.getPaintItemCMD());
         } else {
             is = hatItemStack;
         }

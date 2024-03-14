@@ -30,6 +30,7 @@ public class CosmeticsGUIConfig {
     private static boolean isPageIndicatorEnabled;
     private static boolean replaceInventory;
     private static String signType;
+    private static int paintItemCMD;
     private static DyeColor signColor;
     private static List<String> textLines;
     private static String successMessage;
@@ -70,6 +71,7 @@ public class CosmeticsGUIConfig {
             colorHexValues = yamlFile.getStringList("colorPicker.hexValues").toArray(new String[0]);
             colorPickerGUIName = yamlFile.getString("colorPicker.name");
             saturationAdjustmentValue = yamlFile.getLong("colorPicker.saturationAdjustmentValue");
+            paintItemCMD = yamlFile.getInt("paintItemCustomModelData");
             guiAccessPermission = yamlFile.getString("permissions.openGui");
             textUnlocked = yamlFile.getString("texts.unlocked");
             textLocked = yamlFile.getString("texts.locked");
@@ -116,6 +118,8 @@ public class CosmeticsGUIConfig {
 
         yamlFile.path("slots.colorOutput")
                 .addDefault(34);
+        yamlFile.path("paintItemCustomModelData")
+                .addDefault(1);
 
         yamlFile.path("slots.color")
                 .addDefault(new int[]{21, 22, 23, 30, 31, 32, 39, 40, 41})
@@ -278,7 +282,9 @@ public class CosmeticsGUIConfig {
     public static Text getSuccessColorChangeMessage() {
         return ConfigManager.formatDisplayName(successMessage);
     }
-
+    public static int getPaintItemCMD(){
+        return paintItemCMD;
+    }
     public static Text getErrorColorChangeMessage() {
         return ConfigManager.formatDisplayName(errorMessage);
     }
