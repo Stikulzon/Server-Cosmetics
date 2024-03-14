@@ -10,3 +10,7 @@ A mod that adds server side cosmetics such as hats and item skins.
 `/is reload` - item skins configs
 
 `/sc reload` - reload all configs
+
+# Currently implemented:
+ - Hats
+ - Item Skins
