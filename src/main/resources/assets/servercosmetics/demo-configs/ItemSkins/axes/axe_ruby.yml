@@ -1,0 +1,7 @@
+material: netherite_axe
+
+custom-model-data: 2
+
+permission: "itemskins.axe.axe_ruby"
+
+display-name: "&dRuby Axe"

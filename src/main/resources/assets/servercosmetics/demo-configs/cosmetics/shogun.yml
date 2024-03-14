@@ -1,0 +1,6 @@
+cosmetic-item:
+  material: PAPER
+  display-name: "&bShogun"
+  customModelData: 103
+
+permission: "cosmetics.helmet.shogun"

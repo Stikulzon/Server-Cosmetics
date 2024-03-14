@@ -1,0 +1,7 @@
+material: netherite_sword
+
+custom-model-data: 4
+
+permission: "itemskins.sword.spear_ruby"
+
+display-name: "&dRuby Spear"

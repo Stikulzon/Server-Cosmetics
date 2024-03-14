@@ -1,0 +1,7 @@
+material: netherite_sword
+
+custom-model-data: 1
+
+permission: "itemskins.sword.spear_dark_queen"
+
+display-name: "&dDark Queen Spear"

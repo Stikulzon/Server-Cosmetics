@@ -1,0 +1,7 @@
+material: netherite_sword
+
+custom-model-data: 6
+
+permission: "itemskins.sword.sword_ruby"
+
+display-name: "&dRuby Sword"

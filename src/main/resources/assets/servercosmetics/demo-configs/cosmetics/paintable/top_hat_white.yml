@@ -1,0 +1,6 @@
+cosmetic-item:
+  material: leather_horse_armor
+  display-name: "&bFancy Paintable Hat"
+  customModelData: 10
+
+permission: "cosmetics.helmet.top_hat_white"

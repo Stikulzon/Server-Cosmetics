@@ -1,0 +1,7 @@
+material: netherite_sword
+
+custom-model-data: 5
+
+permission: "itemskins.sword.staff_ruby"
+
+display-name: "&dRuby Staff"
