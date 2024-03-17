@@ -236,13 +236,13 @@ public class ItemSkinsGUIConfig {
                     String tempName = skinSection.getString("name");
                     Text displayName;
                     if (tempName != null) {
-                        displayName = Utils.miniMessageFormatter(Objects.requireNonNull(tempName));
+                        displayName = Utils.formatDisplayName(Objects.requireNonNull(tempName));
                     } else {
                         System.out.println("[WARN] You do not defined \"display-name\" in " + file.getFileName().toString());
-                        displayName = Utils.miniMessageFormatter("");
+                        displayName = Utils.formatDisplayName("");
                     }
 
-                    List<Text> lore = skinSection.getStringList("lore").stream().map(Utils::miniMessageFormatter).toList();
+                    List<Text> lore = skinSection.getStringList("lore").stream().map(Utils::formatDisplayName).toList();
 
                     for (int i = 0; i < materials.size(); i++) {
                         String materialKey = materials.get(i);

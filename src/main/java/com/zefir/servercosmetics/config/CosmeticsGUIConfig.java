@@ -377,11 +377,11 @@ public class CosmeticsGUIConfig {
             yamlFile.load();
 
             Set<String> keys =  yamlFile.getKeys(false);
-            System.out.println("keys: " + keys);
+//            System.out.println("keys: " + keys);
 
             for(String str : keys){
                 ConfigurationSection section = yamlFile.getConfigurationSection(str);
-                System.out.println("section: " + str);
+//                System.out.println("section: " + str);
 
                 if(Objects.equals(section.getString("slot"), "HELMET")) {
                     String material = section.getString("item.material");
@@ -401,15 +401,15 @@ public class CosmeticsGUIConfig {
 
                     int customModelData = section.getInt("item.model-data");
 
-                    List<Text> lore = section.getStringList("item.lore").stream().map(Utils::miniMessageFormatter).toList();
+                    List<Text> lore = section.getStringList("item.lore").stream().map(Utils::formatDisplayName).toList();
 
                     String tempName = section.getString("item.name");
                     Text displayName;
                     if (tempName != null) {
-                        displayName = Utils.miniMessageFormatter(tempName);
+                        displayName = Utils.formatDisplayName(tempName);
                     } else {
                         System.out.println("[WARN] You do not defined \"display-name\" in " + file.getFileName().toString());
-                        displayName = Utils.miniMessageFormatter("");
+                        displayName = Utils.formatDisplayName("");
                     }
 
                     ItemStack itemStack = ConfigManager.createItemStack(material, customModelData, displayName, null, lore);
@@ -447,7 +447,7 @@ public class CosmeticsGUIConfig {
 
             List<Text> lore = yamlFile.getStringList("lore").stream().map(Utils::formatDisplayName).toList();
 
-            if(ConfigManager.isLegacyMode() && lore.isEmpty()) {
+            if(lore.isEmpty()) {
                 lore = yamlFile.getStringList("cosmetic-item.lore").stream().map(Utils::formatDisplayName).toList();
             }
 

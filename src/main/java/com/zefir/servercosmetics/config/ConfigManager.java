@@ -224,6 +224,7 @@ public class ConfigManager {
                 loreItems.add(NbtString.of(Text.Serializer.toJson(l)));
             }
             display.put("Lore", loreItems);
+            nbtData.put("display", display);
         }
 
         ItemStack itemStack = new ItemStack(Registries.ITEM.get(new Identifier(material)));
