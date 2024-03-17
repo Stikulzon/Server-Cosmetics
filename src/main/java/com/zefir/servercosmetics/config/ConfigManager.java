@@ -3,6 +3,7 @@ package com.zefir.servercosmetics.config;
 import com.mojang.brigadier.context.CommandContext;
 import com.zefir.servercosmetics.gui.CosmeticsGUI;
 import com.zefir.servercosmetics.gui.ItemSkinsGUI;
+import com.zefir.servercosmetics.util.Utils;
 import eu.pb4.sgui.api.GuiHelpers;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -38,6 +39,7 @@ public class ConfigManager {
     private static Text successConfigReloadMessage;
     private static Text errorConfigReloadMessage;
     private static Boolean legacyMode;
+    private static Boolean HMCCosmeticsSupport;
 
     public static void registerConfigs() {
         createAndLoadConfig();
@@ -143,9 +145,10 @@ public class ConfigManager {
             configReloadPermission = yamlFile.getString("permissions.reloadAllConfigs");
             itemSkinsPermission = yamlFile.getString("permissions.reloadItemSkins");
             cosmeticsReloadPermission = yamlFile.getString("permissions.reloadCosmetics");
-            successConfigReloadMessage = formatDisplayName(yamlFile.getString("configReload.message.success"));
-            errorConfigReloadMessage = formatDisplayName(yamlFile.getString("configReload.message.error"));
+            successConfigReloadMessage = Utils.formatDisplayName(yamlFile.getString("configReload.message.success"));
+            errorConfigReloadMessage = Utils.formatDisplayName(yamlFile.getString("configReload.message.error"));
             legacyMode = yamlFile.getBoolean("legacyMode");
+            HMCCosmeticsSupport = yamlFile.getBoolean("HMCCosmeticsSupport");
 
         } catch (IOException e) {
             throw new RuntimeException("Failed to create or load configuration file", e);
@@ -154,6 +157,7 @@ public class ConfigManager {
     public static boolean isLegacyMode() {
         return legacyMode;
     }
+    public static boolean isHMCCosmeticsSupport() {return HMCCosmeticsSupport;}
 
     private static void initializeConfigDefaults(YamlFile yamlFile) {
         yamlFile.setCommentFormat(YamlCommentFormat.PRETTY);
@@ -173,13 +177,8 @@ public class ConfigManager {
         yamlFile.path("permissions").comment("If the mod cannot get permissions from config, the default one will be used");
         yamlFile.addDefault("configReload.message.success", "&aConfig successfully reload!");
         yamlFile.addDefault("configReload.message.error", "&cAn error occurred during configs reload!");
-//        yamlFile.addDefault("mysql.enabled", false);
-//        yamlFile.addDefault("mysql.host", "localhost");
-//        yamlFile.addDefault("mysql.3306", "db_playercosmetics");
-//        yamlFile.addDefault("mysql.user", "root");
-//        yamlFile.addDefault("mysql.password", "password");
-//        yamlFile.addDefault("mysql.useSSL", false);
         yamlFile.path("legacyMode").addDefault(false).commentSide("If you don't know what it is, you want it to be false");
+        yamlFile.path("HMCCosmeticsSupport").addDefault(false).commentSide("Adds HMCCosmetics and HMCSkins folder");
 
         try {
             yamlFile.save();
@@ -202,7 +201,7 @@ public class ConfigManager {
         String basePath = "buttons." + buttonKey;
         int customModelData = yamlFile.isSet(basePath + ".customModelData") ? yamlFile.getInt(basePath + ".customModelData") : -1;
         navigationButtons.put(buttonKey, new NavigationButton(
-                ConfigManager.formatDisplayName(yamlFile.getString(basePath + ".name")),
+                Utils.formatDisplayName(yamlFile.getString(basePath + ".name")),
                 yamlFile.getString(basePath + ".item"),
                 customModelData,
                 yamlFile.getInt(basePath + ".slotIndex"),
@@ -239,23 +238,5 @@ public class ConfigManager {
         } catch (IOException e) {
             throw new RuntimeException("Failed to list files in directory: " + dir, e);
         }
-    }
-
-    public static Text formatDisplayName(String st) {
-        StringBuilder sb = new StringBuilder(st.length());
-
-        for (int i = 0; i < st.length(); i++) {
-            char ch = st.charAt(i);
-            if (ch == '\\' && i < st.length() - 1) {
-                char nextChar = st.charAt(i + 1);
-                if (nextChar == 'u') {
-                    String hex = st.substring(i + 2, i + 6);
-                    ch = (char) Integer.parseInt(hex, 16);
-                    i += 5;
-                }
-            }
-            sb.append(ch);
-        }
-        return Text.of(sb.toString().replace("&", "§"));
     }
 }

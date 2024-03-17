@@ -1,5 +1,6 @@
 package com.zefir.servercosmetics.config;
 
+import com.zefir.servercosmetics.util.Utils;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
@@ -25,6 +26,9 @@ public class ItemSkinsGUIConfig {
     public static void itemSkinsInit(){
         loadConfig();
         loadItemSkins();
+        if(ConfigManager.isHMCCosmeticsSupport()){
+            loadHMCSkins();
+        }
     }
 
     public static void loadConfig() {
@@ -149,7 +153,7 @@ public class ItemSkinsGUIConfig {
         return navigationButtons.get(buttonKey);
     }
     public static Text getItemSkinsGuiName() {
-        return ConfigManager.formatDisplayName(itemSkinsGuiName);
+        return Utils.formatDisplayName(itemSkinsGuiName);
     }
     public static int[] getCosmeticSlots() {
         return cosmeticSlots;
@@ -158,10 +162,10 @@ public class ItemSkinsGUIConfig {
         return permissionOpenGui;
     }
     public static Text getMessageUnlocked() {
-        return ConfigManager.formatDisplayName(messageUnlocked);
+        return Utils.formatDisplayName(messageUnlocked);
     }
     public static Text getMessageLocked() {
-        return ConfigManager.formatDisplayName(messageLocked);
+        return Utils.formatDisplayName(messageLocked);
     }
     public static boolean getIsPageIndicatorEnabled() { return isPageIndicatorEnabled; }
     public static int getItemSlot() { return itemSlot; }
@@ -181,6 +185,82 @@ public class ItemSkinsGUIConfig {
             loadItemSkin(file);
         }
     }
+    public static void loadHMCSkins() {
+        Path itemSkinsDir = ConfigManager.SERVER_COSMETICS_DIR.resolve("HMCSkins");
+        try {
+            Files.createDirectories(itemSkinsDir);
+        } catch (IOException e){
+            throw new RuntimeException("Failed to create HMCSkins folder", e);
+        }
+        List<Path> files = ConfigManager.listFiles(itemSkinsDir);
+
+        for (Path file : files) {
+            loadHMCSkin(file);
+        }
+    }
+    private static void loadHMCSkin(Path file) {
+        YamlFile yamlFile = new YamlFile(file.toAbsolutePath().toString());
+        try {
+            yamlFile.load();
+            ConfigurationSection items = yamlFile.getConfigurationSection("items");
+
+            Set<String> keys = items.getKeys(false);
+            System.out.println("keys: " + keys);
+
+            for(String mat : keys) {
+                ConfigurationSection skins = items.getConfigurationSection(mat + ".wraps");
+                Set<String> skinsKeys = skins.getKeys(false);
+                System.out.println("skinsKeys: " + skinsKeys);
+
+                for(String skin : skinsKeys) {
+                    ConfigurationSection skinSection = skins.getConfigurationSection(skin);
+                    System.out.println("section: " + skinSection);
+
+                    List<String> materials = new ArrayList<>();
+                    if (mat != null) {
+                        materials.add(mat);
+                    } else {
+                        System.out.println("[ERROR] Error loading " + file.getFileName().toString() + ": you do not defined \"material\"");
+                        return;
+                    }
+
+                    int customModelData = skinSection.getInt("id");
+                    String uuid = skinSection.getString("uuid");
+
+                    String permission = skinSection.getString("permission");
+                    if (permission == null) {
+                        System.out.println("[ERROR] Error loading " + file.getFileName().toString() + ": you do not defined \"permission\"");
+                        return;
+                    }
+
+                    String tempName = skinSection.getString("name");
+                    Text displayName;
+                    if (tempName != null) {
+                        displayName = Utils.miniMessageFormatter(Objects.requireNonNull(tempName));
+                    } else {
+                        System.out.println("[WARN] You do not defined \"display-name\" in " + file.getFileName().toString());
+                        displayName = Utils.miniMessageFormatter("");
+                    }
+
+                    List<Text> lore = skinSection.getStringList("lore").stream().map(Utils::miniMessageFormatter).toList();
+
+                    for (int i = 0; i < materials.size(); i++) {
+                        String materialKey = materials.get(i);
+                        if (!materialKey.contains(":")) {
+                            materialKey = "minecraft:" + materialKey.toLowerCase();
+                            materials.set(i, materialKey);
+                        }
+
+                        ItemStack itemStack = ConfigManager.createItemStack(materialKey, customModelData, displayName, file.getFileName().toString().replace(".yml", ""), lore);
+                        addItemSkin(materialKey, itemStack, permission, uuid);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load item skin from file: " + file, e);
+        }
+    }
+
     private static void loadItemSkin(Path file) {
         YamlFile yamlFile = new YamlFile(file.toAbsolutePath().toString());
         try {
@@ -207,18 +287,18 @@ public class ItemSkinsGUIConfig {
             String tempName = yamlFile.getString("display-name");
             Text displayName;
             if(ConfigManager.isLegacyMode() && tempName == null && yamlFile.getString("available-item.display-name") != null) {
-                displayName = ConfigManager.formatDisplayName(yamlFile.getString("available-item.display-name"));
+                displayName = Utils.formatDisplayName(yamlFile.getString("available-item.display-name"));
             } else if (tempName != null) {
-                displayName = ConfigManager.formatDisplayName(Objects.requireNonNull(tempName));
+                displayName = Utils.formatDisplayName(Objects.requireNonNull(tempName));
             } else {
                 System.out.println("[WARN] You do not defined \"display-name\" in " + file.getFileName().toString());
-                displayName = ConfigManager.formatDisplayName("");
+                displayName = Utils.formatDisplayName("");
             }
 
-            List<Text> lore = yamlFile.getStringList("lore").stream().map(ConfigManager::formatDisplayName).toList();
+            List<Text> lore = yamlFile.getStringList("lore").stream().map(Utils::formatDisplayName).toList();
 
             if(ConfigManager.isLegacyMode() && lore.isEmpty()) {
-                lore = yamlFile.getStringList("available-item.lore").stream().map(ConfigManager::formatDisplayName).toList();
+                lore = yamlFile.getStringList("available-item.lore").stream().map(Utils::formatDisplayName).toList();
             }
 
             for (int i = 0; i < materials.size(); i++) {
@@ -235,6 +315,7 @@ public class ItemSkinsGUIConfig {
             throw new RuntimeException("Failed to load item skin from file: " + file, e);
         }
     }
+
     public static Map<Integer, AbstractMap.SimpleEntry<String, AbstractMap.SimpleEntry<String, ItemStack>>> getItemSkinsItems(Item item) {
         return itemSkinsMap.get("minecraft:" + item.toString());
     }

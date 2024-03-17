@@ -1,5 +1,6 @@
 package com.zefir.servercosmetics.config;
 
+import com.zefir.servercosmetics.util.Utils;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.DyeColor;
@@ -40,6 +41,9 @@ public class CosmeticsGUIConfig {
     public static void serverCosmeticsInit(){
         loadConfig();
         loadCosmeticItems();
+        if(ConfigManager.isHMCCosmeticsSupport()){
+            loadHMCCosmetics();
+        }
     }
 
     public static void loadConfig() {
@@ -280,18 +284,18 @@ public class CosmeticsGUIConfig {
     }
 
     public static Text getSuccessColorChangeMessage() {
-        return ConfigManager.formatDisplayName(successMessage);
+        return Utils.formatDisplayName(successMessage);
     }
     public static int getPaintItemCMD(){
         return paintItemCMD;
     }
     public static Text getErrorColorChangeMessage() {
-        return ConfigManager.formatDisplayName(errorMessage);
+        return Utils.formatDisplayName(errorMessage);
     }
     public static float getSaturationAdjustmentValue() { return saturationAdjustmentValue; }
     public static boolean getIsPageIndicatorEnabled() { return isPageIndicatorEnabled; }
     public static Text getCosmeticsGUIName() {
-        return ConfigManager.formatDisplayName(cosmeticsGUIName);
+        return Utils.formatDisplayName(cosmeticsGUIName);
     }
     public static int[] getCosmeticSlots() {
         return cosmeticSlots;
@@ -320,7 +324,7 @@ public class CosmeticsGUIConfig {
     }
 
     public static Text getColorPickerGUIName() {
-        return ConfigManager.formatDisplayName(colorPickerGUIName);
+        return Utils.formatDisplayName(colorPickerGUIName);
     }
 
     public static String getPermissionOpenGui() {
@@ -328,11 +332,11 @@ public class CosmeticsGUIConfig {
     }
 
     public static Text getTextUnlocked() {
-        return ConfigManager.formatDisplayName(textUnlocked);
+        return Utils.formatDisplayName(textUnlocked);
     }
 
     public static Text getTextLocked() {
-        return ConfigManager.formatDisplayName(textLocked);
+        return Utils.formatDisplayName(textLocked);
     }
 
     public static ConfigManager.NavigationButton getButtonConfig(String buttonKey) {
@@ -353,6 +357,71 @@ public class CosmeticsGUIConfig {
             loadCosmeticItem(file);
         }
     }
+
+    public static void loadHMCCosmetics() {
+        Path cosmeticsDir = ConfigManager.SERVER_COSMETICS_DIR.resolve("HMCCosmetics");
+        try {
+            Files.createDirectories(cosmeticsDir);
+        } catch (IOException e){
+            throw new RuntimeException("Failed to create cosmetics folder", e);
+        }
+        List<Path> files = ConfigManager.listFiles(cosmeticsDir);
+
+        for (Path file : files) {
+            loadHMCCosmeticItem(file);
+        }
+    }
+    private static void loadHMCCosmeticItem(Path file) {
+        YamlFile yamlFile = new YamlFile(file.toAbsolutePath().toString());
+        try {
+            yamlFile.load();
+
+            Set<String> keys =  yamlFile.getKeys(false);
+            System.out.println("keys: " + keys);
+
+            for(String str : keys){
+                ConfigurationSection section = yamlFile.getConfigurationSection(str);
+                System.out.println("section: " + str);
+
+                if(Objects.equals(section.getString("slot"), "HELMET")) {
+                    String material = section.getString("item.material");
+                    if (material == null) {
+                        System.out.println("[ERROR] Error loading " + file.getFileName().toString() + ": you do not defined \"material\"");
+                        return;
+                    }
+                    if (!material.contains(":")) {
+                        material = "minecraft:" + material.toLowerCase();
+                    }
+
+                    String permission = section.getString("permission");
+                    if (permission == null) {
+                        System.out.println("[ERROR] Error loading " + file.getFileName().toString() + ": you do not defined \"permission\"");
+                        return;
+                    }
+
+                    int customModelData = section.getInt("item.model-data");
+
+                    List<Text> lore = section.getStringList("item.lore").stream().map(Utils::miniMessageFormatter).toList();
+
+                    String tempName = section.getString("item.name");
+                    Text displayName;
+                    if (tempName != null) {
+                        displayName = Utils.miniMessageFormatter(tempName);
+                    } else {
+                        System.out.println("[WARN] You do not defined \"display-name\" in " + file.getFileName().toString());
+                        displayName = Utils.miniMessageFormatter("");
+                    }
+
+                    ItemStack itemStack = ConfigManager.createItemStack(material, customModelData, displayName, null, lore);
+
+                    addCosmeticItem(itemStack, permission);
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load cosmetic item from file: " + file, e);
+        }
+    }
+
 
     private static void loadCosmeticItem(Path file) {
         YamlFile yamlFile = new YamlFile(file.toAbsolutePath().toString());
@@ -376,19 +445,19 @@ public class CosmeticsGUIConfig {
 
             int customModelData = yamlFile.getInt("cosmetic-item.customModelData");
 
-            List<Text> lore = yamlFile.getStringList("lore").stream().map(ConfigManager::formatDisplayName).toList();
+            List<Text> lore = yamlFile.getStringList("lore").stream().map(Utils::formatDisplayName).toList();
 
             if(ConfigManager.isLegacyMode() && lore.isEmpty()) {
-                lore = yamlFile.getStringList("cosmetic-item.lore").stream().map(ConfigManager::formatDisplayName).toList();
+                lore = yamlFile.getStringList("cosmetic-item.lore").stream().map(Utils::formatDisplayName).toList();
             }
 
             String tempName = yamlFile.getString("cosmetic-item.display-name");
             Text displayName;
             if (tempName != null) {
-                displayName = ConfigManager.formatDisplayName(tempName);
+                displayName = Utils.formatDisplayName(tempName);
             } else {
                 System.out.println("[WARN] You do not defined \"display-name\" in " + file.getFileName().toString());
-                displayName = ConfigManager.formatDisplayName("");
+                displayName = Utils.formatDisplayName("");
             }
 
             ItemStack itemStack = ConfigManager.createItemStack(material, customModelData, displayName, null, lore);

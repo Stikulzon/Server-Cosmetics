@@ -16,7 +16,7 @@ public class GUIUtils {
 
             GuiElementBuilder builder = new GuiElementBuilder(Registries.ITEM.get(new Identifier(itemString)))
                     .setName(buttonConfig.name())
-                    .setLore(buttonConfig.lore().stream().map(ConfigManager::formatDisplayName).toList())
+                    .setLore(buttonConfig.lore().stream().map(Utils::formatDisplayName).toList())
                     .setCallback((index, clickType, actionType) -> callback.run());
 
             if (buttonConfig.customModelData() >= 0) {
