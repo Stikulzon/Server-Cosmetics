@@ -26,9 +26,9 @@ dependencies {
 	include(modImplementation('me.lucko:fabric-permissions-api:0.2-SNAPSHOT'))
 
 	include(implementation 'com.github.Carleslc.Simple-YAML:Simple-Yaml:1.8.4')
-	compileOnly("net.kyori:adventure-api:4.15.0")
-	compileOnly("net.kyori:adventure-text-minimessage:4.15.0")
-	compileOnly("net.kyori:adventure-platform-bukkit:4.3.2")
+	include(implementation "net.kyori:adventure-api:4.16.0")
+	include(implementation "net.kyori:adventure-text-minimessage:4.16.0")
+	include(implementation "net.kyori:adventure-platform-fabric:5.12.0")
 }
 
 processResources {
