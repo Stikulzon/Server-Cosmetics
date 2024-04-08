@@ -13,10 +13,9 @@ public class EntityMixin {
     @Inject(method = "updatePassengerPosition(Lnet/minecraft/entity/Entity;Lnet/minecraft/entity/Entity$PositionUpdater;)V", at = @At("TAIL"), cancellable = true)
     private void modifyPassengerRotation(Entity passenger, Entity.PositionUpdater positionUpdater, CallbackInfo ci) {
         if (passenger instanceof PlayerEntity) {
-            // Allow full 360° rotation for the riding player
             passenger.setYaw(passenger.getYaw() % 360.0f);
             passenger.setPitch(passenger.getPitch() % 360.0f);
-            ci.cancel(); // Prevent default rotation handling
+            ci.cancel();
         }
     }
 }

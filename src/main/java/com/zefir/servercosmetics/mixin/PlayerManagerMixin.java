@@ -23,7 +23,7 @@ public class PlayerManagerMixin {
     void modifyHeadSlotItem (ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
         ScreenHandler handler = player.currentScreenHandler;
         ItemStack itemStack = CosmeticsData.getHeadCosmetics((IEntityDataSaver) player);
-        if(itemStack != ItemStack.EMPTY) {
+        if(itemStack != ItemStack.EMPTY ) {
             ((CosmeticSlotExt) handler).setHeadCosmetics(itemStack);
             player.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(handler.syncId, handler.nextRevision(), 5, itemStack));
         }

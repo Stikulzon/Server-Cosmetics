@@ -23,6 +23,9 @@ public class CosmeticsData {
     public static ItemStack getHeadCosmetics(IEntityDataSaver player){
         NbtCompound nbt = player.getPersistentData();
         String headCosmeticsString = nbt.getString("head_cosmetics");
+        if (Objects.equals(headCosmeticsString, "air") || headCosmeticsString == null) {
+            return ItemStack.EMPTY;
+        }
 
         String[] parts = headCosmeticsString.split(",", 2);
 

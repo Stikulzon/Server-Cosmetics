@@ -61,9 +61,7 @@ public abstract class ServerPlayerEntityBackPackMixin {
         }
 
         if (cosmetic != null) {
-                    ArmorStandEntity armorStand = playersArmorStand;
-
-
+            ArmorStandEntity armorStand = playersArmorStand;
 
             this.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
                     new EntityPositionS2CPacket(armorStand));

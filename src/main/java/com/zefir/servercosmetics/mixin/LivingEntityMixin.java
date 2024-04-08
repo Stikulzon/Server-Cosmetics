@@ -27,7 +27,10 @@ public class LivingEntityMixin {
             if(slot.getEntitySlotId() == 3) {
                 LivingEntity livingEntity = (LivingEntity) (Object) this;
                 PlayerEntity playerEntity = (PlayerEntity) livingEntity;
-                return CosmeticsData.getHeadCosmetics((IEntityDataSaver) playerEntity);
+                ItemStack cosmeticsIS = CosmeticsData.getHeadCosmetics((IEntityDataSaver) playerEntity);
+                if (cosmeticsIS != ItemStack.EMPTY) {
+                    return cosmeticsIS;
+                }
             }
         }
         return instance.copy();
