@@ -1,5 +1,6 @@
 package com.zefir.servercosmetics.config;
 
+import com.zefir.servercosmetics.ServerCosmetics;
 import com.zefir.servercosmetics.util.Utils;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
@@ -47,7 +48,7 @@ public class CosmeticsGUIConfig {
     }
 
     public static void loadConfig() {
-        Path configFile = ConfigManager.SERVER_COSMETICS_DIR.resolve("cosmeticsGUI.yml");
+        Path configFile = ConfigManager.SERVER_COSMETICS_DIR.resolve("CosmeticsGUI.yml");
         YamlFile yamlFile = new YamlFile(configFile.toAbsolutePath().toString());
 
         try {
@@ -87,7 +88,7 @@ public class CosmeticsGUIConfig {
             successMessage = yamlFile.getString("colorInput.messages.success");
             errorMessage = yamlFile.getString("colorInput.messages.error");
         } catch (Exception e) {
-            throw new RuntimeException("Failed to create or load cosmeticsGUI.yml file", e);
+            throw new RuntimeException("Failed to create or load CosmeticsGUI.yml file", e);
         }
     }
 
@@ -344,7 +345,7 @@ public class CosmeticsGUIConfig {
     }
 
     public static void loadCosmeticItems() {
-        Path cosmeticsDir = ConfigManager.SERVER_COSMETICS_DIR.resolve("cosmetics");
+        Path cosmeticsDir = ConfigManager.SERVER_COSMETICS_DIR.resolve("Cosmetics");
         try {
             Files.createDirectories(cosmeticsDir);
         } catch (IOException e){
@@ -386,7 +387,7 @@ public class CosmeticsGUIConfig {
                 if(Objects.equals(section.getString("slot"), "HELMET")) {
                     String material = section.getString("item.material");
                     if (material == null) {
-                        System.out.println("[ERROR] Error loading " + file.getFileName().toString() + ": you do not defined \"material\"");
+                        ServerCosmetics.LOGGER.error("Error loading {}: you do not defined \"material\"", file.getFileName().toString());
                         return;
                     }
                     if (!material.contains(":")) {
@@ -395,7 +396,7 @@ public class CosmeticsGUIConfig {
 
                     String permission = section.getString("permission");
                     if (permission == null) {
-                        System.out.println("[ERROR] Error loading " + file.getFileName().toString() + ": you do not defined \"permission\"");
+                        ServerCosmetics.LOGGER.error("Error loading {}: you do not defined \"permission\"", file.getFileName().toString());
                         return;
                     }
 
@@ -408,7 +409,7 @@ public class CosmeticsGUIConfig {
                     if (tempName != null) {
                         displayName = Utils.formatDisplayName(tempName);
                     } else {
-                        System.out.println("[WARN] You do not defined \"display-name\" in " + file.getFileName().toString());
+                        ServerCosmetics.LOGGER.warn("[WARN] You do not defined \"display-name\" in {}", file.getFileName().toString());
                         displayName = Utils.formatDisplayName("");
                     }
 
@@ -430,7 +431,7 @@ public class CosmeticsGUIConfig {
 
             String material = yamlFile.getString("cosmetic-item.material");
             if (material == null) {
-                System.out.println("[ERROR] Error loading " + file.getFileName().toString() + ": you do not defined \"material\"");
+                ServerCosmetics.LOGGER.error("Error loading {}: you do not defined \"material\"", file.getFileName().toString());
                 return;
             }
             if (!material.contains(":")){
@@ -439,7 +440,7 @@ public class CosmeticsGUIConfig {
 
             String permission = yamlFile.getString("permission");
             if (permission == null) {
-                System.out.println("[ERROR] Error loading " + file.getFileName().toString() + ": you do not defined \"permission\"");
+                ServerCosmetics.LOGGER.error("Error loading {}: you do not defined \"permission\"", file.getFileName().toString());
                 return;
             }
 
@@ -456,7 +457,7 @@ public class CosmeticsGUIConfig {
             if (tempName != null) {
                 displayName = Utils.formatDisplayName(tempName);
             } else {
-                System.out.println("[WARN] You do not defined \"display-name\" in " + file.getFileName().toString());
+                ServerCosmetics.LOGGER.warn("[WARN] You do not defined \"display-name\" in {}", file.getFileName().toString());
                 displayName = Utils.formatDisplayName("");
             }
 

@@ -1,5 +1,6 @@
 package com.zefir.servercosmetics.config;
 
+import com.zefir.servercosmetics.ServerCosmetics;
 import com.zefir.servercosmetics.util.Utils;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -220,7 +221,7 @@ public class ItemSkinsGUIConfig {
                     if (mat != null) {
                         materials.add(mat);
                     } else {
-                        System.out.println("[ERROR] Error loading " + file.getFileName().toString() + ": you do not defined \"material\"");
+                        ServerCosmetics.LOGGER.error("Error loading {}: you do not defined \"material\"", file.getFileName().toString());
                         return;
                     }
 
@@ -229,7 +230,7 @@ public class ItemSkinsGUIConfig {
 
                     String permission = skinSection.getString("permission");
                     if (permission == null) {
-                        System.out.println("[ERROR] Error loading " + file.getFileName().toString() + ": you do not defined \"permission\"");
+                        ServerCosmetics.LOGGER.error("Error loading {}: you do not defined \"permission\"", file.getFileName().toString());
                         return;
                     }
 
@@ -238,7 +239,7 @@ public class ItemSkinsGUIConfig {
                     if (tempName != null) {
                         displayName = Utils.formatDisplayName(Objects.requireNonNull(tempName));
                     } else {
-                        System.out.println("[WARN] You do not defined \"display-name\" in " + file.getFileName().toString());
+                        ServerCosmetics.LOGGER.warn("You do not defined \"display-name\" in {}", file.getFileName().toString());
                         displayName = Utils.formatDisplayName("");
                     }
 
@@ -271,7 +272,7 @@ public class ItemSkinsGUIConfig {
                 if(material != null){
                     materials.add(material);
                 } else {
-                    System.out.println("[ERROR] Error loading " + file.getFileName().toString() + ": you do not defined \"material\"");
+                    ServerCosmetics.LOGGER.error("Error loading {}: you do not defined \"material\"", file.getFileName().toString());
                     return;
                 }
             }
@@ -280,7 +281,7 @@ public class ItemSkinsGUIConfig {
 
             String permission = yamlFile.getString("permission");
             if (permission == null) {
-                System.out.println("[ERROR] Error loading " + file.getFileName().toString() + ": you do not defined \"permission\"");
+                ServerCosmetics.LOGGER.error("Error loading {}: you do not defined \"permission\"", file.getFileName().toString());
                 return;
             }
 
@@ -291,7 +292,7 @@ public class ItemSkinsGUIConfig {
             } else if (tempName != null) {
                 displayName = Utils.formatDisplayName(Objects.requireNonNull(tempName));
             } else {
-                System.out.println("[WARN] You do not defined \"display-name\" in " + file.getFileName().toString());
+                ServerCosmetics.LOGGER.warn("You do not defined \"display-name\" in {}", file.getFileName().toString());
                 displayName = Utils.formatDisplayName("");
             }
 
@@ -317,7 +318,7 @@ public class ItemSkinsGUIConfig {
     }
 
     public static Map<Integer, AbstractMap.SimpleEntry<String, AbstractMap.SimpleEntry<String, ItemStack>>> getItemSkinsItems(Item item) {
-        return itemSkinsMap.get("minecraft:" + item.toString());
+        return itemSkinsMap.get(item.toString());
     }
 
     private static void addItemSkin(String material, ItemStack itemStack, String permission, String fileName) {

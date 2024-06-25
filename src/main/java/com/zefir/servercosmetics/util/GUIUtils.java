@@ -14,7 +14,7 @@ public class GUIUtils {
         if (buttonConfig != null) {
             String itemString = buttonConfig.item().contains(":") ? buttonConfig.item() : "minecraft:" + buttonConfig.item().toLowerCase();
 
-            GuiElementBuilder builder = new GuiElementBuilder(Registries.ITEM.get(new Identifier(itemString)))
+            GuiElementBuilder builder = new GuiElementBuilder(Registries.ITEM.get(Identifier.of(itemString)))
                     .setName(buttonConfig.name())
                     .setLore(buttonConfig.lore().stream().map(Utils::formatDisplayName).toList())
                     .setCallback((index, clickType, actionType) -> callback.run());

@@ -9,8 +9,10 @@ import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.elements.GuiElementInterface;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.CustomModelDataComponent;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.server.command.ServerCommandSource;
@@ -23,7 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Supplier;
 
 public class ItemSkinsGUI {
@@ -61,6 +62,8 @@ public class ItemSkinsGUI {
             if(currentItemStack.getValue() != -1) {
                 Map<Integer, AbstractMap.SimpleEntry<String, AbstractMap.SimpleEntry<String, ItemStack>>> allItemSkinsMap = ItemSkinsGUIConfig.getItemSkinsItems(player.currentScreenHandler.getSlot(currentItemStack.getValue()).getStack().getItem());
 
+                System.out.println("allItemSkinsMap: " + allItemSkinsMap);
+
                 if (allItemSkinsMap != null) {
                     Map<Integer, AbstractMap.SimpleEntry<String, AbstractMap.SimpleEntry<String, ItemStack>>> itemSkinsMap = new HashMap<>();
                     if (filterRegime.getValue() == 0){
@@ -72,6 +75,7 @@ public class ItemSkinsGUI {
                             String skinId = skinEntry.getKey();
                             String permission = skinEntry.getValue().getKey();
                             ItemStack itemStack = skinEntry.getValue().getValue();
+                            System.out.println("itemStack: " + itemStack);
 
                             // Check if the player has permission for this item (unlocked)
                             if (Permissions.check(player, permission)) {
@@ -92,14 +96,10 @@ public class ItemSkinsGUI {
                             gui.setSlot(cosmeticSlots[i], GuiElementBuilder.from(is)
                                     .addLoreLine(ItemSkinsGUIConfig.getMessageUnlocked())
                                     .setCallback((e) -> {
-                                        int customModelData = Objects.requireNonNull(is.copy().getNbt()).getInt("CustomModelData");
                                         String itemSkinsID = finalItemSkinsMap.get(finalI).getKey();
                                         ItemStack playerItemsStack = player.currentScreenHandler.getSlot(currentItemStack.getValue()).getStack();
-                                        NbtCompound nbtData = Objects.requireNonNull(playerItemsStack.getNbt());
-                                        nbtData.putInt("CustomModelData", customModelData);
-                                        nbtData.putString("itemSkinsID", itemSkinsID);
-                                        playerItemsStack.setNbt(nbtData);
-
+                                        playerItemsStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbt -> nbt.putString("itemSkinsID", itemSkinsID)));
+                                        playerItemsStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, is.getOrDefault(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(0)));
                                         player.currentScreenHandler.getSlot(currentItemStack.getValue()).setStack(playerItemsStack);
                                         gui.setSlot(ItemSkinsGUIConfig.getItemSlot(), GuiElementBuilder.from(playerItemsStack));
                                     })
@@ -127,14 +127,9 @@ public class ItemSkinsGUI {
 
                 GUIUtils.setUpButton(gui, ItemSkinsGUIConfig::getButtonConfig, "removeItem", () -> {
                     ItemStack playerItemsStack = player.playerScreenHandler.getSlot(currentItemStack.getValue() - 53 + 8).getStack();
-                    NbtCompound nbtData = playerItemsStack.getNbt();
-                    if (nbtData != null) {
-                        nbtData.remove("CustomModelData");
-                        nbtData.remove("itemSkinsID");
-                        playerItemsStack.setNbt(nbtData);
-
-                        player.currentScreenHandler.getSlot(currentItemStack.getValue()).setStack(playerItemsStack);
-                    }
+                    playerItemsStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbt -> nbt.remove("itemSkinsID")));
+                    playerItemsStack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
+                    player.currentScreenHandler.getSlot(currentItemStack.getValue()).setStack(playerItemsStack);
                 });
             }
 

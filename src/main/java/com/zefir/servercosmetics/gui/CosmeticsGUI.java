@@ -5,12 +5,15 @@ import com.zefir.servercosmetics.CosmeticsData;
 import com.zefir.servercosmetics.config.CosmeticsGUIConfig;
 import com.zefir.servercosmetics.ext.CosmeticSlotExt;
 import com.zefir.servercosmetics.util.GUIUtils;
-import com.zefir.servercosmetics.util.IEntityDataSaver;
 import eu.pb4.sgui.api.GuiHelpers;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.SignGui;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.CustomModelDataComponent;
+import net.minecraft.component.type.DyedColorComponent;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
@@ -92,12 +95,12 @@ public class CosmeticsGUI {
                     gui.setSlot(CosmeticsGUIConfig.getCosmeticSlots()[i], GuiElementBuilder.from(is)
                             .addLoreLine(CosmeticsGUIConfig.getTextUnlocked())
                             .setCallback(() -> {
-                                if (Objects.equals(is.getItem().toString(), "leather_horse_armor")) {
+                                if (Objects.equals(is.getItem().toString(), Items.LEATHER_HORSE_ARMOR.toString())) {
 
                                     colorPicker(player, is);
                                 } else {
                                     gui.close();
-                                    CosmeticsData.setHeadCosmetics((IEntityDataSaver) player, is);
+                                    CosmeticsData.setHeadCosmetics(player.getUuid(), is);
                                     ((CosmeticSlotExt) player.playerScreenHandler).setHeadCosmetics(is);
                                     player.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(player.playerScreenHandler.syncId, player.playerScreenHandler.nextRevision(), 5, is));
                                 }
@@ -125,7 +128,7 @@ public class CosmeticsGUI {
 
             GUIUtils.setUpButton(gui, CosmeticsGUIConfig::getButtonConfig, "removeItem", () -> {
                 gui.close();
-                CosmeticsData.setHeadCosmetics((IEntityDataSaver) player, ItemStack.EMPTY);
+                CosmeticsData.setHeadCosmetics(player.getUuid(), ItemStack.EMPTY);
                 ((CosmeticSlotExt) player.playerScreenHandler).setHeadCosmetics(ItemStack.EMPTY);
                 player.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(player.playerScreenHandler.syncId, player.playerScreenHandler.nextRevision(), 5, ItemStack.EMPTY));
             });
@@ -216,9 +219,8 @@ public class CosmeticsGUI {
                                        ServerPlayerEntity player){
         ItemStack is;
         if(viewSwitch.getValue()) {
-            is = new ItemStack(Registries.ITEM.get(new Identifier("minecraft", "leather_horse_armor")));
-            NbtCompound nbtData = is.getOrCreateNbt();
-            nbtData.putInt("CustomModelData", CosmeticsGUIConfig.getPaintItemCMD());
+            is = new ItemStack(Items.LEATHER_HORSE_ARMOR);
+            is.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(CosmeticsGUIConfig.getPaintItemCMD()));
         } else {
             is = hatItemStack;
         }
@@ -229,11 +231,9 @@ public class CosmeticsGUI {
 
             int decimal = Integer.parseInt(colorHexValues[i], 16);
 
-            NbtCompound nbtDataDisplay = is.getOrCreateSubNbt("display");
-            nbtDataDisplay.putInt("color", decimal);
-
-            NbtCompound nbtDataDisplay2 = is.getOrCreateNbt();
-            nbtDataDisplay2.putInt("index", i);
+            is.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(decimal, true));
+            int finalI = i;
+            is.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbt -> nbt.putInt("index", finalI)));
 
             gui.setSlot(colorSlots[i], GuiElementBuilder.from(is)
                     .setCallback((index, clickType, actionType) -> {
@@ -259,9 +259,23 @@ public class CosmeticsGUI {
                                           ServerPlayerEntity player){
 
         ItemStack currentColorItemStack = new ItemStack(Items.LEATHER_HORSE_ARMOR);
-        currentColorItemStack.setNbt(Objects.requireNonNull(gui.getSlot(selectedColorSlot.getValue()).getItemStack().copy().getNbt()).copy());
-        assert currentColorItemStack.getNbt() != null;
-        final int slotIndex = currentColorItemStack.getNbt().getInt("index");
+        ItemStack sourceStack = Objects.requireNonNull(gui.getSlot(selectedColorSlot.getValue())).getItemStack();
+        currentColorItemStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbt -> {
+            NbtComponent sourceCustomData = sourceStack.get(DataComponentTypes.CUSTOM_DATA);
+            if (sourceCustomData != null) {
+                NbtCompound sourceNbt = sourceCustomData.copyNbt();
+                if (sourceNbt.contains("itemSkinsID")) {
+                    nbt.putString("itemSkinsID", sourceNbt.getString("itemSkinsID"));
+                }
+                if (sourceNbt.contains("index")) {
+                    nbt.putInt("index", sourceNbt.getInt("index"));
+                }
+            }
+        }));
+        currentColorItemStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, sourceStack.getOrDefault(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(0)));
+
+        int slotIndex = currentColorItemStack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT)
+                .copyNbt().getInt("index");
 
         int decimal = (Integer.parseInt(CosmeticsGUIConfig.getColorHexValues()[slotIndex], 16));
 
@@ -290,13 +304,8 @@ public class CosmeticsGUI {
             int decimal2 = rgb[0];
             decimal2 = (decimal2 << 8) + rgb[1];
             decimal2 = (decimal2 << 8) + rgb[2];
-            NbtCompound nbtData2 = is.getNbt();
-            assert nbtData2 != null;
-            NbtCompound nbtData3 = nbtData2.getCompound("display");
-            assert nbtData3 != null;
-            nbtData3.putInt("color", decimal2);
-            nbtData2.put("display", nbtData3);
-            is.setNbt(nbtData2);
+
+            is.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(decimal2, true));
 
 
 
@@ -305,14 +314,13 @@ public class CosmeticsGUI {
 
                     .setCallback(() -> {
                         ItemStack is4 = hatItemStack.copy();
-                        NbtCompound nbtData4 = is4.getOrCreateSubNbt("display");
-                        nbtData4.putInt("color", finalDecimal2);
+                        is4.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(finalDecimal2, true));
 
                         gui.setSlot(CosmeticsGUIConfig.getColorOutputSlot(), GuiElementBuilder.from(is4)
 
                                 .setCallback(() -> {
                                     gui.close();
-                                    CosmeticsData.setHeadCosmetics((IEntityDataSaver) player, is4);
+                                    CosmeticsData.setHeadCosmetics(player.getUuid(), is4);
                                     ((CosmeticSlotExt) player.playerScreenHandler).setHeadCosmetics(is4);
                                     player.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(player.playerScreenHandler.syncId, player.playerScreenHandler.nextRevision(), 5, is4));
                                 })
@@ -327,7 +335,7 @@ public class CosmeticsGUI {
             SignGui gui = new SignGui(player) {
 
                 {
-                    this.setSignType(Registries.BLOCK.get(new Identifier(CosmeticsGUIConfig.getSignType())));
+                    this.setSignType(Registries.BLOCK.get(Identifier.of(CosmeticsGUIConfig.getSignType())));
                     this.setColor(CosmeticsGUIConfig.getSignColor());
                     List<String> lines = CosmeticsGUIConfig.getTextLines();
                     for (int i = 0; i < lines.size(); i++) {
@@ -348,12 +356,11 @@ public class CosmeticsGUI {
                             Color color = Color.decode(colorString);
 
                             ItemStack is2 = is.copy();
-                            NbtCompound nbtData4 = is2.getOrCreateSubNbt("display");
-                            nbtData4.putInt("color", color.getRGB());
+                            is.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(color.getRGB(), true));
 
                             this.player.sendMessage(CosmeticsGUIConfig.getSuccessColorChangeMessage(), false);
 
-                            CosmeticsData.setHeadCosmetics((IEntityDataSaver) player, is2);
+                            CosmeticsData.setHeadCosmetics(player.getUuid(), is2);
                             ((CosmeticSlotExt) player.playerScreenHandler).setHeadCosmetics(is2);
                             player.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(player.playerScreenHandler.syncId, player.playerScreenHandler.nextRevision(), 5, is2));
                         }

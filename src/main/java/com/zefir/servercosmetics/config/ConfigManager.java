@@ -4,14 +4,14 @@ import com.mojang.brigadier.context.CommandContext;
 import com.zefir.servercosmetics.gui.CosmeticsGUI;
 import com.zefir.servercosmetics.gui.ItemSkinsGUI;
 import com.zefir.servercosmetics.util.Utils;
-import eu.pb4.sgui.api.GuiHelpers;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.CustomModelDataComponent;
+import net.minecraft.component.type.LoreComponent;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtString;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
@@ -210,26 +210,21 @@ public class ConfigManager {
     }
 
     public static ItemStack createItemStack(String material, int customModelData, Text displayName, String itemSkinId, List<Text> lore) {
-        NbtCompound nbtData = new NbtCompound();
-        nbtData.putInt("CustomModelData", customModelData);
-        if (itemSkinId != null) {
-            nbtData.putString("itemSkinsID", itemSkinId);
-        }
+        ItemStack itemStack = new ItemStack(Registries.ITEM.get(Identifier.of(material)));
 
-        if (!lore.isEmpty()) {
-            NbtCompound display = nbtData.getCompound("display");
-            NbtList loreItems = new NbtList();
-            for (Text l : lore) {
-                l = l.copy().styled(GuiHelpers.STYLE_CLEARER);
-                loreItems.add(NbtString.of(Text.Serializer.toJson(l)));
+        itemStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbt -> {
+            if (itemSkinId != null) {
+                nbt.putString("itemSkinsID", itemSkinId);
             }
-            display.put("Lore", loreItems);
-            nbtData.put("display", display);
+        }));
+        if (!lore.isEmpty()) {
+            for (Text l : lore) {
+                itemStack.apply(DataComponentTypes.LORE, LoreComponent.DEFAULT, l, LoreComponent::with);
+            }
         }
+        itemStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(customModelData));
+        itemStack.set(DataComponentTypes.CUSTOM_NAME, displayName);
 
-        ItemStack itemStack = new ItemStack(Registries.ITEM.get(new Identifier(material)));
-        itemStack.setNbt(nbtData);
-        itemStack.setCustomName(displayName);
         return itemStack;
     }
 

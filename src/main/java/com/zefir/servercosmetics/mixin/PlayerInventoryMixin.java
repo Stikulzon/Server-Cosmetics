@@ -2,6 +2,9 @@ package com.zefir.servercosmetics.mixin;
 
 import com.zefir.servercosmetics.config.ItemSkinsGUIConfig;
 import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.minecraft.component.ComponentMap;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
@@ -42,19 +45,25 @@ public class PlayerInventoryMixin {
     }
 
     @Unique
-    public ItemStack checkItemPermission(ItemStack stack){
-        NbtCompound nbt = stack.copy().getNbt();
-        if(nbt != null) {
-            if (nbt.getString("itemSkinsID") != null) {
+    public ItemStack checkItemPermission(ItemStack stack) {
+        ComponentMap components = stack.getComponents();
+        NbtComponent customData = components.get(DataComponentTypes.CUSTOM_DATA);
+
+        if (customData != null) {
+            NbtCompound nbt = customData.copyNbt();
+            if (nbt.contains("itemSkinsID")) {
                 Map<Integer, AbstractMap.SimpleEntry<String, AbstractMap.SimpleEntry<String, ItemStack>>> ism = ItemSkinsGUIConfig.getItemSkinsItems(stack.getItem());
-                if(ism != null){
+                if (ism != null) {
                     String itemSkinsID = nbt.getString("itemSkinsID");
                     for (int i = 0; i < ism.size(); i++) {
                         if (Objects.equals(ism.get(i).getKey(), itemSkinsID)) {
                             if (!Permissions.check(player, ism.get(i).getValue().getKey())) {
+                                // Remove itemSkinsID and CustomModelData
                                 nbt.remove("itemSkinsID");
                                 nbt.remove("CustomModelData");
-                                stack.setNbt(nbt);
+
+                                // Update the custom data component
+                                stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
                             }
                             return stack;
                         }
