@@ -15,6 +15,7 @@ repositories {
 	maven { url 'https://maven.nucleoid.xyz' }
 	maven { url 'https://jitpack.io' }
 	maven { url "https://api.modrinth.com/maven" }
+	mavenCentral()
 }
 
 dependencies {
@@ -28,6 +29,9 @@ dependencies {
 	include (modImplementation ("me.lucko:fabric-permissions-api:${project.fabric_permissions_api_version}"))
 
 	include(implementation 'com.github.Carleslc.Simple-YAML:Simple-Yaml:1.8.4')
+
+	compileOnly 'org.projectlombok:lombok:1.18.34'
+	annotationProcessor 'org.projectlombok:lombok:1.18.34'
 
 	include(implementation 'org.xerial:sqlite-jdbc:3.46.0.1')
 

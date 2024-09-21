@@ -2,6 +2,7 @@ package com.zefir.servercosmetics.config;
 
 import com.zefir.servercosmetics.ServerCosmetics;
 import com.zefir.servercosmetics.util.Utils;
+import lombok.Getter;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.DyeColor;
@@ -15,24 +16,37 @@ import java.nio.file.Path;
 import java.util.*;
 
 public class CosmeticsGUIConfig {
-    private static final Map<Integer, AbstractMap.SimpleEntry<String, ItemStack>> cosmeticsItemsMap = new HashMap<>();
+    @Getter
+    private static final Map<Integer, AbstractMap.SimpleEntry<AbstractMap.SimpleEntry<String, String>, ItemStack>> cosmeticsItemsMap = new HashMap<>();
     private static final Map<String, ConfigManager.NavigationButton> navigationButtons = new HashMap<>();
     private static String cosmeticsGUIName;
+    @Getter
     private static int[] cosmeticSlots;
+    @Getter
     private static int[] colorSlots;
+    @Getter
     private static int[] colorGradientSlots;
+    @Getter
     private static int colorInputSlot;
+    @Getter
     private static int colorOutputSlot;
+    @Getter
     private static String[] colorHexValues;
     private static String colorPickerGUIName;
+    @Getter
     private static String guiAccessPermission;
     private static String textUnlocked;
     private static String textLocked;
+    @Getter
     private static float saturationAdjustmentValue;
     private static boolean isPageIndicatorEnabled;
+    @Getter
     private static boolean replaceInventory;
+    @Getter
     private static String signType;
+    @Getter
     private static int paintItemCMD;
+    @Getter
     private static DyeColor signColor;
     private static List<String> textLines;
     private static String successMessage;
@@ -272,13 +286,6 @@ public class CosmeticsGUIConfig {
 
         return buttonDefaults;
     }
-    public static String getSignType() {
-        return signType;
-    }
-
-    public static DyeColor getSignColor() {
-        return signColor;
-    }
 
     public static List<String> getTextLines() {
         return new ArrayList<>(textLines);
@@ -287,49 +294,18 @@ public class CosmeticsGUIConfig {
     public static Text getSuccessColorChangeMessage() {
         return Utils.formatDisplayName(successMessage);
     }
-    public static int getPaintItemCMD(){
-        return paintItemCMD;
-    }
+
     public static Text getErrorColorChangeMessage() {
         return Utils.formatDisplayName(errorMessage);
     }
-    public static float getSaturationAdjustmentValue() { return saturationAdjustmentValue; }
+
     public static boolean getIsPageIndicatorEnabled() { return isPageIndicatorEnabled; }
     public static Text getCosmeticsGUIName() {
         return Utils.formatDisplayName(cosmeticsGUIName);
     }
-    public static int[] getCosmeticSlots() {
-        return cosmeticSlots;
-    }
-    public static int[] getColorSlots() {
-        return colorSlots;
-    }
-
-    public static int[] getColorGradientSlots() {
-        return colorGradientSlots;
-    }
-
-    public static int getColorInputSlot() {
-        return colorInputSlot;
-    }
-    public static boolean getReplaceInventory(){
-        return replaceInventory;
-    }
-
-    public static int getColorOutputSlot() {
-        return colorOutputSlot;
-    }
-
-    public static String[] getColorHexValues() {
-        return colorHexValues;
-    }
 
     public static Text getColorPickerGUIName() {
         return Utils.formatDisplayName(colorPickerGUIName);
-    }
-
-    public static String getPermissionOpenGui() {
-        return guiAccessPermission;
     }
 
     public static Text getTextUnlocked() {
@@ -400,6 +376,8 @@ public class CosmeticsGUIConfig {
                         return;
                     }
 
+                    String id = section.getString("id");
+
                     int customModelData = section.getInt("item.model-data");
 
                     List<Text> lore = section.getStringList("item.lore").stream().map(Utils::formatDisplayName).toList();
@@ -415,7 +393,7 @@ public class CosmeticsGUIConfig {
 
                     ItemStack itemStack = ConfigManager.createItemStack(material, customModelData, displayName, null, lore);
 
-                    addCosmeticItem(itemStack, permission);
+                    addCosmeticItem(itemStack, permission, id);
                 }
             }
         } catch (IOException e) {
@@ -444,6 +422,8 @@ public class CosmeticsGUIConfig {
                 return;
             }
 
+            String id = yamlFile.getString("id");
+
             int customModelData = yamlFile.getInt("cosmetic-item.customModelData");
 
             List<Text> lore = yamlFile.getStringList("lore").stream().map(Utils::formatDisplayName).toList();
@@ -463,17 +443,15 @@ public class CosmeticsGUIConfig {
 
             ItemStack itemStack = ConfigManager.createItemStack(material, customModelData, displayName, null, lore);
 
-            addCosmeticItem(itemStack, permission);
+            addCosmeticItem(itemStack, permission, id);
         } catch (IOException e) {
             throw new RuntimeException("Failed to load cosmetic item from file: " + file, e);
         }
     }
-    private static void addCosmeticItem(ItemStack itemStack, String permission) {
+    private static void addCosmeticItem(ItemStack itemStack, String permission, String id) {
         int index = cosmeticsItemsMap.size();
-        AbstractMap.SimpleEntry<String, ItemStack> entry = new AbstractMap.SimpleEntry<>(permission, itemStack);
-        cosmeticsItemsMap.put(index, entry);
-    }
-    public static Map<Integer, AbstractMap.SimpleEntry<String, ItemStack>> getAllCosmeticItems() {
-        return cosmeticsItemsMap;
+        AbstractMap.SimpleEntry<String, String> entryWithId = new AbstractMap.SimpleEntry<>(permission, id);
+        AbstractMap.SimpleEntry<AbstractMap.SimpleEntry<String, String>, ItemStack> entryWithIs = new AbstractMap.SimpleEntry<>(entryWithId, itemStack);
+        cosmeticsItemsMap.put(index, entryWithIs);
     }
 }
