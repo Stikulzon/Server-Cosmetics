@@ -1,6 +1,8 @@
 package com.zefir.servercosmetics.gui;
 
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.zefir.servercosmetics.CosmeticsData;
 import com.zefir.servercosmetics.config.CosmeticsGUIConfig;
 import com.zefir.servercosmetics.ext.CosmeticSlotExt;
@@ -10,6 +12,7 @@ import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.SignGui;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.component.type.DyedColorComponent;
@@ -36,7 +39,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 
-// TODO: remove mutable variables usage and map operations
+// TODO: remove mutable variables usage and (simplify?) map operations
 public class CosmeticsGUI {
 
     public static int openGui(CommandContext<ServerCommandSource> ctx) {
@@ -125,7 +128,7 @@ public class CosmeticsGUI {
         return cosmeticsItemsMap;
     }
 
-    private static void colorPicker(ServerPlayerEntity player, ItemStack hatItemStack) {
+    public static void colorPicker(ServerPlayerEntity player, ItemStack hatItemStack) {
 
         try {
 
@@ -438,6 +441,75 @@ public class CosmeticsGUI {
 
         public void setupColorInputButton(ItemStack hatItemStack) {
             GUIUtils.setUpButton(this, CosmeticsGUIConfig::getButtonConfig, "enterColor", () -> colorInput(player, hatItemStack));
+        }
+    }
+
+    public static int wearCosmeticById(CommandContext<ServerCommandSource> context) {
+        ServerPlayerEntity player;
+        try {
+            player = EntityArgumentType.getPlayer(context, "player");
+        } catch (CommandSyntaxException e) {
+            throw new RuntimeException(e);
+        }
+//        System.out.println("context.getSource().getPlayer()" + player);
+        if (player == null) {
+            context.getSource().sendFeedback(() -> Text.literal("Player not found"), false);
+            System.out.println("Player not found");
+            return 1;
+        }
+//        String id;
+//        try {
+        String id = StringArgumentType.getString(context, "cosmeticId");
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+//        System.out.println("check");
+        if (id == null || id.isEmpty()) {
+            context.getSource().sendFeedback(() -> Text.literal("Invalid cosmetic ID"), false);
+            System.out.println("Invalid cosmetic ID");
+            return 1;
+        }
+
+        // Search for the cosmetic by ID
+//        Optional<AbstractMap.SimpleEntry<AbstractMap.SimpleEntry<String, String>, ItemStack>> optionalEntry;
+//        try {
+        Optional<AbstractMap.SimpleEntry<AbstractMap.SimpleEntry<String, String>, ItemStack>> optionalEntry = CosmeticsGUIConfig.getCosmeticsItemsMap().values().stream()
+                    .filter(entry -> id.equals(entry.getKey().getValue()))
+                    .findFirst();
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+
+//        System.out.println("optionalEntry.isPresent()" + optionalEntry.isPresent());
+        if (optionalEntry.isPresent()) {
+            AbstractMap.SimpleEntry<AbstractMap.SimpleEntry<String, String>, ItemStack> cosmeticEntry = optionalEntry.get();
+            String permission = cosmeticEntry.getKey().getKey();
+
+            if (!Permissions.check(player, permission)) {
+                context.getSource().sendFeedback(() -> Text.literal("Selected player do not have permission to use this cosmetic"), false);
+                return 1;
+            }
+
+            ItemStack cosmeticItem = cosmeticEntry.getValue();
+            if (cosmeticItem == null || cosmeticItem.isEmpty()) {
+                context.getSource().sendFeedback(() -> Text.literal("Cosmetic item is empty"), false);
+                return 1;
+            }
+
+            // If the cosmetic's material is LEATHER_HORSE_ARMOR, open the color picker menu
+            if (cosmeticItem.getItem() == Items.LEATHER_HORSE_ARMOR) {
+                colorPicker(player, cosmeticItem);
+            } else {
+                // Equip the cosmetic
+                CosmeticsData.setHeadCosmetics(player.getUuid(), cosmeticItem);
+                ((CosmeticSlotExt) player.playerScreenHandler).setHeadCosmetics(cosmeticItem);
+                player.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(player.playerScreenHandler.syncId, player.playerScreenHandler.nextRevision(), 5, cosmeticItem));
+                context.getSource().sendFeedback(() -> Text.literal("You are now wearing the cosmetic"), false);
+            }
+            return 0;
+        } else {
+            context.getSource().sendFeedback(() -> Text.literal("Cosmetic not found with ID: " + id), false);
+            return 1;
         }
     }
 }

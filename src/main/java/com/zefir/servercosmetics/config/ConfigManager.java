@@ -1,5 +1,6 @@
 package com.zefir.servercosmetics.config;
 
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.zefir.servercosmetics.gui.CosmeticsGUI;
 import com.zefir.servercosmetics.gui.ItemSkinsGUI;
@@ -7,12 +8,14 @@ import com.zefir.servercosmetics.util.Utils;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.component.type.LoreComponent;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
+import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -60,6 +63,12 @@ public class ConfigManager {
                             .then(literal("reload")
                                     .requires(Permissions.require(Objects.requireNonNullElse(itemSkinsPermission, "servercosmetics.reload.cosmetics"), 4))
                                     .executes(ConfigManager::reloadCosmeticsConfigs))
+            );
+            dispatcher.register(literal("wearcosmetic")
+                    .requires(Permissions.require("servercosmetics.wearcosmetic", 4)) // Add permission for the command
+                            .then(CommandManager.argument("player", EntityArgumentType.player())
+                                .then(CommandManager.argument("cosmeticId", StringArgumentType.string())
+                                    .executes(CosmeticsGUI::wearCosmeticById))) // Correct the execute() call
             );
             dispatcher.register(
                     literal("is").executes(ItemSkinsGUI::openIsGui)
