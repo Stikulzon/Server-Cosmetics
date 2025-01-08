@@ -35,10 +35,10 @@ dependencies {
 
 	include(implementation 'org.xerial:sqlite-jdbc:3.46.0.1')
 
-	include(implementation "net.kyori:adventure-api:${project.adventure_version}")
-	include(implementation "net.kyori:adventure-text-serializer-legacy:${project.adventure_version}")
-	include(implementation "net.kyori:adventure-text-minimessage:${project.adventure_version}")
-	include(implementation "net.kyori:adventure-platform-fabric:${project.adventure_platform_version}")
+	include(modImplementation "net.kyori:adventure-api:${project.adventure_version}")
+	include(modImplementation "net.kyori:adventure-text-serializer-legacy:${project.adventure_version}")
+	include(modImplementation "net.kyori:adventure-text-minimessage:${project.adventure_version}")
+	include(modImplementation "net.kyori:adventure-platform-fabric:${project.adventure_platform_version}")
 }
 
 processResources {
