@@ -51,21 +51,21 @@ public class ConfigManager {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             dispatcher.register(literal("sc")
                     .then(literal("reload")
-                            .requires(Permissions.require(Objects.requireNonNullElse(cosmeticsReloadPermission, "servercosmetics.reload")))
+                            .requires(Permissions.require(Objects.requireNonNullElse(cosmeticsReloadPermission, "servercosmetics.reload"), 4))
                             .executes(ConfigManager::reloadAllConfigs))
             );
             dispatcher.register(
                     literal("cm").executes(CosmeticsGUI::openGui)
-                            .requires(Permissions.require(ItemSkinsGUIConfig.getPermissionOpenGui()))
+                            .requires(Permissions.require(ItemSkinsGUIConfig.getPermissionOpenGui(), 0))
                             .then(literal("reload")
-                                    .requires(Permissions.require(Objects.requireNonNullElse(itemSkinsPermission, "servercosmetics.reload.cosmetics")))
+                                    .requires(Permissions.require(Objects.requireNonNullElse(itemSkinsPermission, "servercosmetics.reload.cosmetics"), 4))
                                     .executes(ConfigManager::reloadCosmeticsConfigs))
             );
             dispatcher.register(
                     literal("is").executes(ItemSkinsGUI::openIsGui)
-                            .requires(Permissions.require(CosmeticsGUIConfig.getPermissionOpenGui()))
+                            .requires(Permissions.require(CosmeticsGUIConfig.getPermissionOpenGui(), 0))
                             .then(literal("reload")
-                                    .requires(Permissions.require(Objects.requireNonNullElse(configReloadPermission, "servercosmetics.reload.itemskins")))
+                                    .requires(Permissions.require(Objects.requireNonNullElse(configReloadPermission, "servercosmetics.reload.itemskins"), 4))
                                     .executes(ConfigManager::reloadItemSkinsConfigs))
             );
         });
