@@ -205,16 +205,16 @@ public class ItemSkinsGUIConfig {
             ConfigurationSection items = yamlFile.getConfigurationSection("items");
 
             Set<String> keys = items.getKeys(false);
-            System.out.println("keys: " + keys);
+//            System.out.println("keys: " + keys);
 
             for(String mat : keys) {
                 ConfigurationSection skins = items.getConfigurationSection(mat + ".wraps");
                 Set<String> skinsKeys = skins.getKeys(false);
-                System.out.println("skinsKeys: " + skinsKeys);
+//                System.out.println("skinsKeys: " + skinsKeys);
 
                 for(String skin : skinsKeys) {
                     ConfigurationSection skinSection = skins.getConfigurationSection(skin);
-                    System.out.println("section: " + skinSection);
+//                    System.out.println("section: " + skinSection);
 
                     List<String> materials = new ArrayList<>();
                     if (mat != null) {

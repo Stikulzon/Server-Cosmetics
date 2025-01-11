@@ -74,7 +74,7 @@ public class ItemSkinsGUI {
                             ItemStack itemStack = skinEntry.getValue().getValue();
 
                             // Check if the player has permission for this item (unlocked)
-                            if (Permissions.check(player, permission)) {
+                            if (Permissions.check(player, permission, 4)) {
                                 itemSkinsMap.put(itemSkinId, new AbstractMap.SimpleEntry<>(skinId, new AbstractMap.SimpleEntry<>(permission, itemStack.copy())));
                                 itemSkinId++;
                             }
@@ -86,7 +86,7 @@ public class ItemSkinsGUI {
                         ItemStack is = itemSkinsMap.get(finalI).getValue().getValue().copy(); // IMPORTANT TO USE .copy()!!!
 
                         String permission = itemSkinsMap.get(finalI).getValue().getKey();
-                        if (Permissions.check(player, permission)) {
+                        if (Permissions.check(player, permission, 4)) {
                             // loading unlocked item
                             Map<Integer, AbstractMap.SimpleEntry<String, AbstractMap.SimpleEntry<String, ItemStack>>> finalItemSkinsMap = itemSkinsMap;
                             gui.setSlot(cosmeticSlots[i], GuiElementBuilder.from(is)

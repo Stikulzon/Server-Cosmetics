@@ -344,7 +344,7 @@ public class CosmeticsGUIConfig {
     }
 
     public static void loadCosmeticItems() {
-        Path cosmeticsDir = ConfigManager.SERVER_COSMETICS_DIR.resolve("cosmetics");
+        Path cosmeticsDir = ConfigManager.SERVER_COSMETICS_DIR.resolve("Cosmetics");
         try {
             Files.createDirectories(cosmeticsDir);
         } catch (IOException e){

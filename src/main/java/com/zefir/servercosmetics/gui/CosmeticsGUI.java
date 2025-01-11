@@ -5,7 +5,6 @@ import com.zefir.servercosmetics.CosmeticsData;
 import com.zefir.servercosmetics.config.CosmeticsGUIConfig;
 import com.zefir.servercosmetics.ext.CosmeticSlotExt;
 import com.zefir.servercosmetics.util.GUIUtils;
-import com.zefir.servercosmetics.util.IEntityDataSaver;
 import eu.pb4.sgui.api.GuiHelpers;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.SignGui;
@@ -75,7 +74,7 @@ public class CosmeticsGUI {
                     ItemStack itemStack = itemEntry.getValue();
 
                     // Check if the player has permission for this item (unlocked)
-                    if (Permissions.check(player, permission)) {
+                    if (Permissions.check(player, permission, 4)) {
                         cosmeticsItemsMap.put(itemId, new AbstractMap.SimpleEntry<>(permission, itemStack.copy()));
                         itemId++;
                     }
@@ -87,7 +86,7 @@ public class CosmeticsGUI {
                 ItemStack is = cosmeticsItemsMap.get(finalI).getValue().copy(); // IMPORTANT TO USE .copy()!!!
 
                 String permission = cosmeticsItemsMap.get(finalI).getKey();
-                if (Permissions.check(player, permission)) {
+                if (Permissions.check(player, permission, 4)) {
                     // loading unlocked item
                     gui.setSlot(CosmeticsGUIConfig.getCosmeticSlots()[i], GuiElementBuilder.from(is)
                             .addLoreLine(CosmeticsGUIConfig.getTextUnlocked())
@@ -97,7 +96,7 @@ public class CosmeticsGUI {
                                     colorPicker(player, is);
                                 } else {
                                     gui.close();
-                                    CosmeticsData.setHeadCosmetics((IEntityDataSaver) player, is);
+                                    CosmeticsData.setHeadCosmetics(player, is);
                                     ((CosmeticSlotExt) player.playerScreenHandler).setHeadCosmetics(is);
                                     player.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(player.playerScreenHandler.syncId, player.playerScreenHandler.nextRevision(), 5, is));
                                 }
@@ -125,7 +124,7 @@ public class CosmeticsGUI {
 
             GUIUtils.setUpButton(gui, CosmeticsGUIConfig::getButtonConfig, "removeItem", () -> {
                 gui.close();
-                CosmeticsData.setHeadCosmetics((IEntityDataSaver) player, ItemStack.EMPTY);
+                CosmeticsData.setHeadCosmetics(player, ItemStack.EMPTY);
                 ((CosmeticSlotExt) player.playerScreenHandler).setHeadCosmetics(ItemStack.EMPTY);
                 player.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(player.playerScreenHandler.syncId, player.playerScreenHandler.nextRevision(), 5, ItemStack.EMPTY));
             });
@@ -312,7 +311,7 @@ public class CosmeticsGUI {
 
                                 .setCallback(() -> {
                                     gui.close();
-                                    CosmeticsData.setHeadCosmetics((IEntityDataSaver) player, is4);
+                                    CosmeticsData.setHeadCosmetics(player, is4);
                                     ((CosmeticSlotExt) player.playerScreenHandler).setHeadCosmetics(is4);
                                     player.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(player.playerScreenHandler.syncId, player.playerScreenHandler.nextRevision(), 5, is4));
                                 })
@@ -353,7 +352,7 @@ public class CosmeticsGUI {
 
                             this.player.sendMessage(CosmeticsGUIConfig.getSuccessColorChangeMessage(), false);
 
-                            CosmeticsData.setHeadCosmetics((IEntityDataSaver) player, is2);
+                            CosmeticsData.setHeadCosmetics(player, is2);
                             ((CosmeticSlotExt) player.playerScreenHandler).setHeadCosmetics(is2);
                             player.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(player.playerScreenHandler.syncId, player.playerScreenHandler.nextRevision(), 5, is2));
                         }

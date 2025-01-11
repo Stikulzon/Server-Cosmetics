@@ -2,7 +2,6 @@ package com.zefir.servercosmetics.mixin;
 
 import com.zefir.servercosmetics.CosmeticsData;
 import com.zefir.servercosmetics.ext.CosmeticSlotExt;
-import com.zefir.servercosmetics.util.IEntityDataSaver;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket;
@@ -22,9 +21,10 @@ public class PlayerManagerMixin {
     )
     void modifyHeadSlotItem (ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
         ScreenHandler handler = player.currentScreenHandler;
-        ItemStack itemStack = CosmeticsData.getHeadCosmetics((IEntityDataSaver) player);
-        ((CosmeticSlotExt) handler).setHeadCosmetics(itemStack);
-
-        player.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(handler.syncId, handler.nextRevision(), 5, itemStack));
+        ItemStack itemStack = CosmeticsData.getHeadCosmetics(player);
+        if(itemStack != ItemStack.EMPTY ) {
+            ((CosmeticSlotExt) handler).setHeadCosmetics(itemStack);
+            player.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(handler.syncId, handler.nextRevision(), 5, itemStack));
+        }
     }
 }
