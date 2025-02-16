@@ -72,7 +72,7 @@ public class ConfigManager {
             );
             dispatcher.register(
                     literal("is").executes(ItemSkinsGUI::openIsGui)
-                            .requires(Permissions.require(CosmeticsGUIConfig.getGuiAccessPermission(), 4))
+                            .requires(Permissions.require(CosmeticsGUIConfig.getPermissionOpenGui(), 4))
                             .then(literal("reload")
                                     .requires(Permissions.require(Objects.requireNonNullElse(configReloadPermission, "servercosmetics.reload.itemskins"), 4))
                                     .executes(ConfigManager::reloadItemSkinsConfigs))
