@@ -2,6 +2,7 @@ package com.zefir.servercosmetics.config;
 
 import com.zefir.servercosmetics.ServerCosmetics;
 import com.zefir.servercosmetics.util.Utils;
+import lombok.Getter;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
@@ -19,6 +20,7 @@ public class ItemSkinsGUIConfig {
     private static final Map<String, ConfigManager.NavigationButton> navigationButtons = new HashMap<>();
     private static String itemSkinsGuiName;
     private static int[] cosmeticSlots;
+    @Getter
     private static String permissionOpenGui;
     private static String messageUnlocked;
     private static String messageLocked;
@@ -159,9 +161,7 @@ public class ItemSkinsGUIConfig {
     public static int[] getCosmeticSlots() {
         return cosmeticSlots;
     }
-    public static String getPermissionOpenGui() {
-        return permissionOpenGui;
-    }
+
     public static Text getMessageUnlocked() {
         return Utils.formatDisplayName(messageUnlocked);
     }

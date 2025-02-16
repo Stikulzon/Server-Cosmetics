@@ -64,15 +64,15 @@ public class ConfigManager {
                                     .requires(Permissions.require(Objects.requireNonNullElse(itemSkinsPermission, "servercosmetics.reload.cosmetics"), 4))
                                     .executes(ConfigManager::reloadCosmeticsConfigs))
             );
-            dispatcher.register(literal("wearcosmetic")
-                    .requires(Permissions.require("servercosmetics.wearcosmetic", 4)) // Add permission for the command
-                            .then(CommandManager.argument("player", EntityArgumentType.player())
-                                .then(CommandManager.argument("cosmeticId", StringArgumentType.string())
-                                    .executes(CosmeticsGUI::wearCosmeticById))) // Correct the execute() call
-            );
+//            dispatcher.register(literal("wearcosmetic")
+//                    .requires(Permissions.require("servercosmetics.wearcosmetic", 4))
+//                            .then(CommandManager.argument("player", EntityArgumentType.player())
+//                                .then(CommandManager.argument("cosmeticId", StringArgumentType.string())
+//                                    .executes(CosmeticsGUI::wearCosmeticById)))
+//            );
             dispatcher.register(
                     literal("is").executes(ItemSkinsGUI::openIsGui)
-                            .requires(Permissions.require(CosmeticsGUIConfig.getGuiAccessPermission(), 4))
+                            .requires(Permissions.require(CosmeticsGUIConfig.getPermissionOpenGui(), 4))
                             .then(literal("reload")
                                     .requires(Permissions.require(Objects.requireNonNullElse(configReloadPermission, "servercosmetics.reload.itemskins"), 4))
                                     .executes(ConfigManager::reloadItemSkinsConfigs))

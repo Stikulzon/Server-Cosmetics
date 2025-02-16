@@ -298,7 +298,7 @@ public class CosmeticsGUI {
         private final ItemStack hatItemStack;
 
         public ColorPickerScreen(ServerPlayerEntity player, MutableInt selectedColorSlot, MutableFloat saturation, MutableBoolean isAlreadyGenerated, MutableBoolean viewSwitch, ItemStack hatItemStack) {
-            super(ScreenHandlerType.GENERIC_9X5, player, true);
+            super(ScreenHandlerType.GENERIC_9X6, player, true);
             this.selectedColorSlot = selectedColorSlot;
             this.saturation = saturation;
             this.isAlreadyGenerated = isAlreadyGenerated;

@@ -34,7 +34,7 @@ public class CosmeticsGUIConfig {
     private static String[] colorHexValues;
     private static String colorPickerGUIName;
     @Getter
-    private static String guiAccessPermission;
+    private static String permissionOpenGui;
     private static String textUnlocked;
     private static String textLocked;
     @Getter
@@ -91,7 +91,7 @@ public class CosmeticsGUIConfig {
             colorPickerGUIName = yamlFile.getString("colorPicker.name");
             saturationAdjustmentValue = yamlFile.getLong("colorPicker.saturationAdjustmentValue");
             paintItemCMD = yamlFile.getInt("paintItemCustomModelData");
-            guiAccessPermission = yamlFile.getString("permissions.openGui");
+            permissionOpenGui = yamlFile.getString("permissions.openGui");
             textUnlocked = yamlFile.getString("texts.unlocked");
             textLocked = yamlFile.getString("texts.locked");
             isPageIndicatorEnabled = yamlFile.getBoolean("pageIndicatorEnabled");

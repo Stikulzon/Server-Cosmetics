@@ -46,24 +46,24 @@ public class PlayerInventoryMixin {
 
     @Unique
     public ItemStack checkItemPermission(ItemStack stack) {
-        ComponentMap components = stack.getComponents();
-        NbtComponent customData = components.get(DataComponentTypes.CUSTOM_DATA);
+        NbtComponent sourceCustomData =  stack.getComponents().get(DataComponentTypes.CUSTOM_DATA);
 
-        if (customData != null) {
-            NbtCompound nbt = customData.copyNbt();
-            if (nbt.contains("itemSkinsID")) {
+        if (sourceCustomData != null) {
+            NbtCompound copiedCustomData = sourceCustomData.copyNbt();
+            if (copiedCustomData.contains("itemSkinsID")) {
                 Map<Integer, AbstractMap.SimpleEntry<String, AbstractMap.SimpleEntry<String, ItemStack>>> ism = ItemSkinsGUIConfig.getItemSkinsItems(stack.getItem());
                 if (ism != null) {
-                    String itemSkinsID = nbt.getString("itemSkinsID");
+                    String itemSkinsID = copiedCustomData.getString("itemSkinsID");
                     for (int i = 0; i < ism.size(); i++) {
                         if (Objects.equals(ism.get(i).getKey(), itemSkinsID)) {
                             if (!Permissions.check(player, ism.get(i).getValue().getKey())) {
-                                // Remove itemSkinsID and CustomModelData
-                                nbt.remove("itemSkinsID");
-                                nbt.remove("CustomModelData");
+                                // Remove itemSkinsID
+                                stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbt -> {
+                                    nbt.remove("itemSkinsID");
+                                }));
 
-                                // Update the custom data component
-                                stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+                                // Remove data component data
+                                stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT);
                             }
                             return stack;
                         }
