@@ -18,10 +18,13 @@ import static java.lang.Integer.parseInt;
 public class CosmeticsData {
 
     private static final String DATABASE_URL = "jdbc:sqlite:cosmetics.db";
+    private static Connection conn;
 
     static {
-        try (Connection conn = DriverManager.getConnection(DATABASE_URL);
-             Statement stmt = conn.createStatement()) {
+        try {
+            Class.forName("org.sqlite.JDBC");
+            conn = DriverManager.getConnection(DATABASE_URL);
+            Statement stmt = conn.createStatement();
             stmt.executeUpdate("CREATE TABLE IF NOT EXISTS cosmetics (" +
                     "uuid VARCHAR(36) PRIMARY KEY," +
                     "item_id TEXT," +
@@ -29,14 +32,18 @@ public class CosmeticsData {
                     "dyed_color_component INTEGER," +
                     "display_name TEXT" +
                     ")");
+
+        } catch (ClassNotFoundException e) {
+            System.err.println("SQLite JDBC driver not found.");
         } catch (SQLException e) {
             throw new RuntimeException("Error initializing database", e);
         }
     }
 
+    public static void init(){}
+
     public static void setHeadCosmetics(UUID playerUUID, ItemStack is) {
-        try (Connection conn = DriverManager.getConnection(DATABASE_URL);
-             PreparedStatement pstmt = conn.prepareStatement(
+        try (PreparedStatement pstmt = conn.prepareStatement(
                      "INSERT OR REPLACE INTO cosmetics (uuid, item_id, custom_model_data, dyed_color_component, display_name) VALUES (?, ?, ?, ?, ?)")) {
 
             pstmt.setString(1, playerUUID.toString());
@@ -68,8 +75,7 @@ public class CosmeticsData {
         }
     }
     public static ItemStack getHeadCosmetics(UUID playerUUID) {
-        try (Connection conn = DriverManager.getConnection(DATABASE_URL);
-             PreparedStatement pstmt = conn.prepareStatement(
+        try (PreparedStatement pstmt = conn.prepareStatement(
                      "SELECT item_id, custom_model_data, dyed_color_component, display_name FROM cosmetics WHERE uuid = ?")) {
             pstmt.setString(1, playerUUID.toString());
 

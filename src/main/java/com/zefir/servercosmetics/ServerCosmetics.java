@@ -30,6 +30,7 @@ public class ServerCosmetics implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		ConfigManager.registerConfigs();
+		CosmeticsData.init();
 
 		ServerLifecycleEvents.SERVER_STARTING.register(this::onServerStarting);
 		ConfigManager.registerCommands();
