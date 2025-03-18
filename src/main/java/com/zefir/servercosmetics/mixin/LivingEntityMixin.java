@@ -1,6 +1,6 @@
 package com.zefir.servercosmetics.mixin;
 
-import com.zefir.servercosmetics.CosmeticsData;
+import com.zefir.servercosmetics.database.DatabaseManager;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -26,7 +26,7 @@ public class LivingEntityMixin {
             if(slot.getEntitySlotId() == 3) {
                 LivingEntity livingEntity = (LivingEntity) (Object) this;
                 PlayerEntity playerEntity = (PlayerEntity) livingEntity;
-                ItemStack cosmeticsIS = CosmeticsData.getHeadCosmetics(playerEntity.getUuid());
+                ItemStack cosmeticsIS = DatabaseManager.getHeadCosmetics(playerEntity.getUuid());
                 if (cosmeticsIS != ItemStack.EMPTY) {
                     return cosmeticsIS;
                 }

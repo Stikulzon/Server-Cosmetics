@@ -30,6 +30,9 @@ dependencies {
 
 	include(implementation 'com.github.Carleslc.Simple-YAML:Simple-Yaml:1.8.4')
 
+	include (implementation 'com.j256.ormlite:ormlite-jdbc:6.1')
+	include (implementation 'com.j256.ormlite:ormlite-core:6.1')
+
 	compileOnly 'org.projectlombok:lombok:1.18.34'
 	annotationProcessor 'org.projectlombok:lombok:1.18.34'
 

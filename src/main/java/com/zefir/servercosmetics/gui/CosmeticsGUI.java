@@ -3,7 +3,7 @@ package com.zefir.servercosmetics.gui;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.zefir.servercosmetics.CosmeticsData;
+import com.zefir.servercosmetics.database.DatabaseManager;
 import com.zefir.servercosmetics.config.CosmeticsGUIConfig;
 import com.zefir.servercosmetics.ext.CosmeticSlotExt;
 import com.zefir.servercosmetics.util.GUIUtils;
@@ -199,7 +199,7 @@ public class CosmeticsGUI {
 
                     this.player.sendMessage(CosmeticsGUIConfig.getSuccessColorChangeMessage(), false);
 
-                    CosmeticsData.setHeadCosmetics(player.getUuid(), is2);
+                    DatabaseManager.setHeadCosmetics(player.getUuid(), is2);
                     ((CosmeticSlotExt) player.playerScreenHandler).setHeadCosmetics(is2);
                     player.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(player.playerScreenHandler.syncId, player.playerScreenHandler.nextRevision(), 5, is2));
                 }
@@ -231,7 +231,7 @@ public class CosmeticsGUI {
                                     colorPicker(player, is);
                                 } else {
                                     this.close();
-                                    CosmeticsData.setHeadCosmetics(player.getUuid(), is);
+                                    DatabaseManager.setHeadCosmetics(player.getUuid(), is);
                                     ((CosmeticSlotExt) player.playerScreenHandler).setHeadCosmetics(is);
                                     player.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(player.playerScreenHandler.syncId, player.playerScreenHandler.nextRevision(), 5, is));
                                 }
@@ -262,7 +262,7 @@ public class CosmeticsGUI {
 
             GUIUtils.setUpButton(this, CosmeticsGUIConfig::getButtonConfig, "removeItem", () -> {
                 this.close();
-                CosmeticsData.setHeadCosmetics(player.getUuid(), ItemStack.EMPTY);
+                DatabaseManager.setHeadCosmetics(player.getUuid(), ItemStack.EMPTY);
                 ((CosmeticSlotExt) player.playerScreenHandler).setHeadCosmetics(ItemStack.EMPTY);
                 player.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(player.playerScreenHandler.syncId, player.playerScreenHandler.nextRevision(), 5, ItemStack.EMPTY));
             });
@@ -404,7 +404,7 @@ public class CosmeticsGUI {
 
                                     .setCallback(() -> {
                                         this.close();
-                                        CosmeticsData.setHeadCosmetics(player.getUuid(), is4);
+                                        DatabaseManager.setHeadCosmetics(player.getUuid(), is4);
                                         ((CosmeticSlotExt) player.playerScreenHandler).setHeadCosmetics(is4);
                                         player.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(player.playerScreenHandler.syncId, player.playerScreenHandler.nextRevision(), 5, is4));
                                     })
@@ -501,7 +501,7 @@ public class CosmeticsGUI {
                 colorPicker(player, cosmeticItem);
             } else {
                 // Equip the cosmetic
-                CosmeticsData.setHeadCosmetics(player.getUuid(), cosmeticItem);
+                DatabaseManager.setHeadCosmetics(player.getUuid(), cosmeticItem);
                 ((CosmeticSlotExt) player.playerScreenHandler).setHeadCosmetics(cosmeticItem);
                 player.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(player.playerScreenHandler.syncId, player.playerScreenHandler.nextRevision(), 5, cosmeticItem));
                 context.getSource().sendFeedback(() -> Text.literal("You are now wearing the cosmetic"), false);
