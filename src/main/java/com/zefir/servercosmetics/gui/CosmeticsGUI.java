@@ -41,7 +41,6 @@ import java.util.function.Supplier;
 
 // TODO: remove mutable variables usage and (simplify?) map operations
 public class CosmeticsGUI {
-
     public static int openGui(CommandContext<ServerCommandSource> ctx) {
         ServerPlayerEntity player = ctx.getSource().getPlayer();
         if (player == null) {

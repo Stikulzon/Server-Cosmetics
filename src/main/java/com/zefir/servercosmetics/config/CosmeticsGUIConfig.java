@@ -391,7 +391,7 @@ public class CosmeticsGUIConfig {
                         displayName = Utils.formatDisplayName("");
                     }
 
-                    ItemStack itemStack = ConfigManager.createItemStack(material, customModelData, displayName, null, lore);
+                    ItemStack itemStack = ConfigManager.createItemStack(material, customModelData, displayName, file.getFileName().toString().substring(0, file.getFileName().toString().lastIndexOf('.')), lore);
 
                     addCosmeticItem(itemStack, permission, id);
                 }
@@ -424,8 +424,6 @@ public class CosmeticsGUIConfig {
 
             String id = yamlFile.getString("id");
 
-            int customModelData = yamlFile.getInt("cosmetic-item.customModelData");
-
             List<Text> lore = yamlFile.getStringList("lore").stream().map(Utils::formatDisplayName).toList();
 
             if(lore.isEmpty()) {
@@ -441,7 +439,18 @@ public class CosmeticsGUIConfig {
                 displayName = Utils.formatDisplayName("");
             }
 
-            ItemStack itemStack = ConfigManager.createItemStack(material, customModelData, displayName, null, lore);
+//            String type = yamlFile.getString("cosmetic-item.type"); // TODO: Replace with a search based on image
+            ItemStack itemStack;
+//            if (type == null) {
+                int customModelData = yamlFile.getInt("cosmetic-item.customModelData");
+                itemStack = ConfigManager.createItemStack(material, customModelData, displayName, file.getFileName().toString().substring(0, file.getFileName().toString().lastIndexOf('.')), lore);
+//            } else {
+////                itemStack = ConfigManager.createPolymerItemStack(material, displayName, null, lore);
+//
+//                if (yamlFile.getString("cosmetic-item.customModelData") != null) {
+//                    ServerCosmetics.LOGGER.warn("Warn when loading {}: customModelData defined, but never used because it's a polymer cosmetic", file.getFileName().toString());
+//                }
+//            }
 
             addCosmeticItem(itemStack, permission, id);
         } catch (IOException e) {

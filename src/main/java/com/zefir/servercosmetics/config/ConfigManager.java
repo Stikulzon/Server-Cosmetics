@@ -2,9 +2,14 @@ package com.zefir.servercosmetics.config;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import com.zefir.servercosmetics.ServerCosmetics;
 import com.zefir.servercosmetics.gui.CosmeticsGUI;
 import com.zefir.servercosmetics.gui.ItemSkinsGUI;
+import com.zefir.servercosmetics.util.SimpleCosmeticPolymerItem;
 import com.zefir.servercosmetics.util.Utils;
+import eu.pb4.polymer.core.api.item.SimplePolymerItem;
+import eu.pb4.polymer.resourcepack.api.PolymerModelData;
+import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.loader.api.FabricLoader;
@@ -14,6 +19,7 @@ import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.component.type.LoreComponent;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -35,6 +41,12 @@ import static net.minecraft.server.command.CommandManager.literal;
 
 public class ConfigManager {
     public static final Path SERVER_COSMETICS_DIR = FabricLoader.getInstance().getConfigDir().resolve("ServerCosmetics");
+
+//    public static ItemStack createPolymerItemStack(String material, Text displayName, Object o, List<Text> lore) {
+//        ItemStack itemStack = new SimplePolymerItem();
+//        return itemStack;
+//    }
+
     public record NavigationButton(Text name, String item, int customModelData, int slotIndex, List<String> lore) {}
     private static String configReloadPermission;
     private static String itemSkinsPermission;
@@ -59,7 +71,7 @@ public class ConfigManager {
             );
             dispatcher.register(
                     literal("cm").executes(CosmeticsGUI::openGui)
-                            .requires(Permissions.require(ItemSkinsGUIConfig.getPermissionOpenGui(), 4))
+                            .requires(Permissions.require(ItemSkinsGUIConfig.getPermissionOpenGui(), 0))
                             .then(literal("reload")
                                     .requires(Permissions.require(Objects.requireNonNullElse(itemSkinsPermission, "servercosmetics.reload.cosmetics"), 4))
                                     .executes(ConfigManager::reloadCosmeticsConfigs))
@@ -72,7 +84,7 @@ public class ConfigManager {
             );
             dispatcher.register(
                     literal("is").executes(ItemSkinsGUI::openIsGui)
-                            .requires(Permissions.require(CosmeticsGUIConfig.getPermissionOpenGui(), 4))
+                            .requires(Permissions.require(CosmeticsGUIConfig.getPermissionOpenGui(), 0))
                             .then(literal("reload")
                                     .requires(Permissions.require(Objects.requireNonNullElse(configReloadPermission, "servercosmetics.reload.itemskins"), 4))
                                     .executes(ConfigManager::reloadItemSkinsConfigs))
@@ -219,7 +231,8 @@ public class ConfigManager {
     }
 
     public static ItemStack createItemStack(String material, int customModelData, Text displayName, String itemSkinId, List<Text> lore) {
-        ItemStack itemStack = new ItemStack(Registries.ITEM.get(Identifier.of(material)));
+        PolymerModelData polymerModel = PolymerResourcePackUtils.requestModel(Registries.ITEM.get(Identifier.of(material)), Identifier.of(ServerCosmetics.MOD_ID, "item/" + itemSkinId));
+        ItemStack itemStack = new ItemStack(polymerModel.item());
 
         itemStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbt -> {
             if (itemSkinId != null) {
@@ -231,7 +244,7 @@ public class ConfigManager {
                 itemStack.apply(DataComponentTypes.LORE, LoreComponent.DEFAULT, l, LoreComponent::with);
             }
         }
-        itemStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(customModelData));
+        itemStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(polymerModel.value()));
         itemStack.set(DataComponentTypes.CUSTOM_NAME, displayName);
 
         return itemStack;

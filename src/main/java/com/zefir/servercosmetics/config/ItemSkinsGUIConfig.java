@@ -252,7 +252,7 @@ public class ItemSkinsGUIConfig {
                             materials.set(i, materialKey);
                         }
 
-                        ItemStack itemStack = ConfigManager.createItemStack(materialKey, customModelData, displayName, file.getFileName().toString().replace(".yml", ""), lore);
+                        ItemStack itemStack = ConfigManager.createItemStack(materialKey, customModelData, displayName, file.getFileName().toString().substring(0, file.getFileName().toString().lastIndexOf('.')), lore);
                         addItemSkin(materialKey, itemStack, permission, uuid);
                     }
                 }
@@ -309,7 +309,7 @@ public class ItemSkinsGUIConfig {
                     materials.set(i, materialKey);
                 }
 
-                ItemStack itemStack = ConfigManager.createItemStack(materialKey, customModelData, displayName, file.getFileName().toString().replace(".yml", ""), lore);
+                ItemStack itemStack = ConfigManager.createItemStack(materialKey, customModelData, displayName, file.getFileName().toString().substring(0, file.getFileName().toString().lastIndexOf('.')), lore);
                 addItemSkin(materialKey, itemStack, permission, file.getFileName().toString());
             }
         } catch (IOException e) {

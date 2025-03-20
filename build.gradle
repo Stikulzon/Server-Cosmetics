@@ -23,20 +23,24 @@ dependencies {
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-//	modImplementation "maven.modrinth:inventorio:${project.inventorio_version}-fabric"
 
 	include (modImplementation ("eu.pb4:sgui:${project.sgui_version}"))
 	include (modImplementation ("me.lucko:fabric-permissions-api:${project.fabric_permissions_api_version}"))
 
 	include(implementation 'com.github.Carleslc.Simple-YAML:Simple-Yaml:1.8.4')
 
+	include (implementation 'org.xerial:sqlite-jdbc:3.46.0.1')
 	include (implementation 'com.j256.ormlite:ormlite-jdbc:6.1')
 	include (implementation 'com.j256.ormlite:ormlite-core:6.1')
 
 	compileOnly 'org.projectlombok:lombok:1.18.34'
 	annotationProcessor 'org.projectlombok:lombok:1.18.34'
 
-	include(implementation 'org.xerial:sqlite-jdbc:3.46.0.1')
+	modImplementation ("eu.pb4:polymer-core:[${polymer_version}]")
+	modImplementation ("eu.pb4:polymer-blocks:[${polymer_version}]")
+	modImplementation ("eu.pb4:polymer-resource-pack:[${polymer_version}]")
+	modImplementation ("eu.pb4:polymer-virtual-entity:[${polymer_version}]")
+	modImplementation ("eu.pb4:polymer-autohost:${polymer_version}")
 
 	include(modImplementation "net.kyori:adventure-api:${project.adventure_version}")
 	include(modImplementation "net.kyori:adventure-text-serializer-legacy:${project.adventure_version}")
