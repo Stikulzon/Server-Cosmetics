@@ -219,17 +219,20 @@ public class CosmeticsGUIConfig {
                 "name", "Next",
                 "item", "minecraft:paper",
                 "customModelData", 10,
+                "textureName", "next",
                 "slotIndex", 51));
 
         buttonDefaults.put("previous", Map.of(
                 "name", "Back",
                 "item", "minecraft:paper",
                 "customModelData", 11,
+                "textureName", "previous",
                 "slotIndex", 47));
 
         buttonDefaults.put("removeItem", Map.of(
                 "name", "Remove item",
                 "item", "minecraft:paper",
+                "textureName", "remove",
                 "customModelData", 12,
                 "slotIndex", 49));
 
@@ -249,12 +252,14 @@ public class CosmeticsGUIConfig {
         buttonDefaults.put("decreaseBrightness", Map.of(
                 "name", "Decrease brightness",
                 "item", "minecraft:paper",
+                "textureName", "previous",
                 "customModelData", 11,
                 "slotIndex", 15));
 
         buttonDefaults.put("increaseBrightness", Map.of(
                 "name", "Increase brightness",
                 "item", "minecraft:paper",
+                "textureName", "next",
                 "customModelData", 10,
                 "slotIndex", 16));
 
@@ -281,7 +286,6 @@ public class CosmeticsGUIConfig {
         buttonDefaults.put("pageIndicator", Map.of(
                 "name", "Page",
                 "item", "minecraft:paper",
-                "customModelData", 0,
                 "slotIndex", 53));
 
         return buttonDefaults;

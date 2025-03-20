@@ -47,7 +47,7 @@ public class ConfigManager {
 //        return itemStack;
 //    }
 
-    public record NavigationButton(Text name, String item, int customModelData, int slotIndex, List<String> lore) {}
+    public record NavigationButton(Text name, String item, String textureName, int customModelData, int slotIndex, List<String> lore) {}
     private static String configReloadPermission;
     private static String itemSkinsPermission;
     private static String cosmeticsReloadPermission;
@@ -224,6 +224,7 @@ public class ConfigManager {
         navigationButtons.put(buttonKey, new NavigationButton(
                 Utils.formatDisplayName(yamlFile.getString(basePath + ".name")),
                 yamlFile.getString(basePath + ".item"),
+                yamlFile.getString(basePath + ".textureName"),
                 customModelData,
                 yamlFile.getInt(basePath + ".slotIndex"),
                 yamlFile.getStringList(basePath + ".lore")

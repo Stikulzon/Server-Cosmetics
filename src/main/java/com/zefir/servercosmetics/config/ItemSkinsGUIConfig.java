@@ -108,18 +108,21 @@ public class ItemSkinsGUIConfig {
         buttonDefaults.put("next", Map.of(
                 "name", "Next",
                 "item", "minecraft:paper",
+                "textureName", "next",
                 "customModelData", 10,
                 "slotIndex", 51));
 
         buttonDefaults.put("previous", Map.of(
                 "name", "Back",
                 "item", "minecraft:paper",
+                "textureName", "previous",
                 "customModelData", 11,
                 "slotIndex", 47));
 
         buttonDefaults.put("removeItem", Map.of(
                 "name", "Remove item",
                 "item", "minecraft:paper",
+                "textureName", "remove",
                 "customModelData", 12,
                 "slotIndex", 49));
 
