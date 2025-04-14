@@ -148,6 +148,10 @@ public class ConfigManager {
     }
 
     public static void loadDemoConfigs() {
+        if(SERVER_COSMETICS_DIR.toFile().exists()) {
+            return;
+        }
+
         Path demoConfigsPath = FabricLoader.getInstance().getModContainer("servercosmetics").flatMap(servercosmetics -> servercosmetics.findPath("assets/servercosmetics/demo-configs/")).get();
 
         try {
@@ -206,9 +210,7 @@ public class ConfigManager {
     }
 
     private static void createAndLoadConfig() {
-        if(!SERVER_COSMETICS_DIR.toFile().exists()){
-            loadDemoConfigs();
-        }
+        loadDemoConfigs();
 
         Path configFile = SERVER_COSMETICS_DIR.resolve("config.yml");
         YamlFile yamlFile = new YamlFile(configFile.toAbsolutePath().toString());

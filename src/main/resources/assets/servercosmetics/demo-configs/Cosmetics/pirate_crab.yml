@@ -1,6 +1,5 @@
 cosmetic-item:
   material: PAPER
   display-name: "&bPirate Crab"
-  customModelData: 102
 
 permission: "cosmetics.helmet.pirate_crab"

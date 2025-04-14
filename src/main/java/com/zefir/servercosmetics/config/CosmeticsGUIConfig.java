@@ -125,7 +125,7 @@ public class CosmeticsGUIConfig {
         // Config body
 
         yamlFile.path("guiName")
-                .addDefault("&f\uF811\uF811\uF811\uF811\uF811\uF811\uF811\uF811솯\uF811\uF811\uF811\uF811\uF811\uF811\uF811\uF811\uF811\uF811\uF811\uF811䍒䍒䍒䍒䍒䍒䍒䍒䍒䍒")
+                .addDefault("Cosmetics Menu")
                 .commentSide("GUI title.");
 
         yamlFile.path("replaceInventory")
@@ -158,7 +158,7 @@ public class CosmeticsGUIConfig {
                 .commentSide("Color HEX values, must have same variables count as color picker slots");
 
         yamlFile.path("colorPicker.name")
-                .addDefault("§f\uF811\uF811\uF811\uF811\uF811\uF811\uF811\uF811섈")
+                .addDefault("Color Picker")
                 .commentSide("Color picker title.");
 
         yamlFile.path("colorPicker.saturationAdjustmentValue")

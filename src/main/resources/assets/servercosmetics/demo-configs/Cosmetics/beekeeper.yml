@@ -1,7 +1,6 @@
 cosmetic-item:
   material: PAPER
   display-name: "&bBeekeeper"
-  customModelData: 101
   lore:
     - "Some description"
 

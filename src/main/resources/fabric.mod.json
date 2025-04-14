@@ -17,6 +17,9 @@
 	"entrypoints": {
 		"main": [
 			"com.zefir.servercosmetics.ServerCosmetics"
+		],
+		"fabric-datagen": [
+			"com.zefir.servercosmetics.ServerCosmeticsDataGenerator"
 		]
 	},
 	"mixins": [

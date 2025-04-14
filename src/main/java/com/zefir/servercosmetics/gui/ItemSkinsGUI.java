@@ -53,7 +53,7 @@ public class ItemSkinsGUI {
             num.increment();
             int pageNumber = num.getValue();
             SimpleGui gui = getSimpleGui(player, currentItemStack, filterRegime);
-            gui.setTitle(ItemSkinsGUIConfig.getItemSkinsGuiName());
+            gui.setTitle(GuiTextures.ITEM_SKINS_MENU.apply(ItemSkinsGUIConfig.getItemSkinsGuiName()));
             var previousGui = GuiHelpers.getCurrentGui(player);
             var next = new MutableObject<SimpleGui>();
             int[] cosmeticSlots = ItemSkinsGUIConfig.getCosmeticSlots();

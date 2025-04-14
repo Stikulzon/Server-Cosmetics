@@ -68,7 +68,7 @@ public class CosmeticsGUI {
             var previousGui = GuiHelpers.getCurrentGui(player);
             var gui = new CosmeticsScreen(player, pageNumber, (SimpleGui) previousGui, filterRegime);
 
-            gui.setTitle(CosmeticsGUIConfig.getCosmeticsGUIName());
+            gui.setTitle(GuiTextures.COSMETICS_MENU.apply(CosmeticsGUIConfig.getCosmeticsGUIName()));
 
             Map<Integer, AbstractMap.SimpleEntry<String, ItemStack>> cosmeticsItemsMap = getFilteredCosmetics(player, filterRegime);
 
@@ -140,7 +140,7 @@ public class CosmeticsGUI {
 
                 var gui = new ColorPickerScreen(player, selectedColorSlot, saturation, isAlreadyGenerated, viewSwitch, hatItemStack);
 
-                gui.setTitle(CosmeticsGUIConfig.getColorPickerGUIName());
+                gui.setTitle(GuiTextures.COLOR_PICKER_MENU.apply(CosmeticsGUIConfig.getColorPickerGUIName()));
                 gui.setSlot(CosmeticsGUIConfig.getColorInputSlot(), GuiElementBuilder.from(hatItemStack));
                 gui.drawColorSlots(hatItemStack);
                 gui.setupBrightnessButtons();
@@ -297,7 +297,7 @@ public class CosmeticsGUI {
         private final ItemStack hatItemStack;
 
         public ColorPickerScreen(ServerPlayerEntity player, MutableInt selectedColorSlot, MutableFloat saturation, MutableBoolean isAlreadyGenerated, MutableBoolean viewSwitch, ItemStack hatItemStack) {
-            super(ScreenHandlerType.GENERIC_9X6, player, true);
+            super(ScreenHandlerType.GENERIC_9X5, player, true);
             this.selectedColorSlot = selectedColorSlot;
             this.saturation = saturation;
             this.isAlreadyGenerated = isAlreadyGenerated;

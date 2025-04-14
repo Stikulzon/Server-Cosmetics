@@ -2,11 +2,14 @@ package com.zefir.servercosmetics;
 
 import com.zefir.servercosmetics.config.ConfigManager;
 import com.zefir.servercosmetics.database.DatabaseManager;
+import com.zefir.servercosmetics.gui.GuiTextures;
+import com.zefir.servercosmetics.gui.UiResourceCreator;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import net.fabricmc.api.ModInitializer;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +25,8 @@ public class ServerCosmetics implements ModInitializer {
 
 		ServerLifecycleEvents.SERVER_STARTING.register(this::onServerStarting);
 		ConfigManager.registerCommands();
+		UiResourceCreator.setup();
+		GuiTextures.register();
 
 		if (PolymerResourcePackUtils.addModAssets(MOD_ID)) {
 			LOGGER.info("Successfully added mod assets for " + MOD_ID);
@@ -29,6 +34,11 @@ public class ServerCosmetics implements ModInitializer {
 			LOGGER.error("Failed to add mod assets for " + MOD_ID);
 		}
 		PolymerResourcePackUtils.markAsRequired();
+	}
+
+
+	public static Identifier id(String path) {
+		return Identifier.of(MOD_ID, path);
 	}
 
 	private void onServerStarting(MinecraftServer server) {

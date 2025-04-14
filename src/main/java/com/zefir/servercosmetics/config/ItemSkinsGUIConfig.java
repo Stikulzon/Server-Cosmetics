@@ -76,7 +76,7 @@ public class ItemSkinsGUIConfig {
 
         yamlFile.setHeader("ItemSkins GUI Config File");
 
-        yamlFile.addDefault("guiName", "&f\uF811\uF811\uF811\uF811\uF811\uF811\uF811\uF811솱\uF811\uF811\uF811\uF811\uF811\uF811\uF811\uF811\uF811\uF811\uF811\uF811䍒䍒䍒䍒䍒䍒䍒䍒䍒䍒");
+        yamlFile.addDefault("guiName", "Item Skins Menu");
         yamlFile.addDefault("cosmeticSlots", new int[]{
             19,20,21,22,23,24,25,
             28,29,30,31,32,33,34,
