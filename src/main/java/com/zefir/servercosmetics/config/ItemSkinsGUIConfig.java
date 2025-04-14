@@ -19,12 +19,15 @@ public class ItemSkinsGUIConfig {
     private static final Map<String, Map<Integer, AbstractMap.SimpleEntry<String, AbstractMap.SimpleEntry<String, ItemStack>>>> itemSkinsMap = new HashMap<>();
     private static final Map<String, ConfigManager.NavigationButton> navigationButtons = new HashMap<>();
     private static String itemSkinsGuiName;
+    @Getter
     private static int[] cosmeticSlots;
     @Getter
     private static String permissionOpenGui;
     private static String messageUnlocked;
     private static String messageLocked;
+    @Getter
     private static boolean isPageIndicatorEnabled;
+    @Getter
     private static int itemSlot;
     public static void itemSkinsInit(){
         loadConfig();
@@ -109,21 +112,18 @@ public class ItemSkinsGUIConfig {
                 "name", "Next",
                 "item", "minecraft:paper",
                 "textureName", "next",
-                "customModelData", 10,
                 "slotIndex", 51));
 
         buttonDefaults.put("previous", Map.of(
                 "name", "Back",
                 "item", "minecraft:paper",
                 "textureName", "previous",
-                "customModelData", 11,
                 "slotIndex", 47));
 
         buttonDefaults.put("removeItem", Map.of(
                 "name", "Remove item",
                 "item", "minecraft:paper",
                 "textureName", "remove",
-                "customModelData", 12,
                 "slotIndex", 49));
 
         buttonDefaults.put("skinFilter.show-all-skins", Map.of(
@@ -149,7 +149,6 @@ public class ItemSkinsGUIConfig {
         buttonDefaults.put("pageIndicator", Map.of(
                 "name", "Page",
                 "item", "minecraft:paper",
-                "customModelData", 0,
                 "slotIndex", 53));
 
         return buttonDefaults;
@@ -161,9 +160,6 @@ public class ItemSkinsGUIConfig {
     public static Text getItemSkinsGuiName() {
         return Utils.formatDisplayName(itemSkinsGuiName);
     }
-    public static int[] getCosmeticSlots() {
-        return cosmeticSlots;
-    }
 
     public static Text getMessageUnlocked() {
         return Utils.formatDisplayName(messageUnlocked);
@@ -171,8 +167,6 @@ public class ItemSkinsGUIConfig {
     public static Text getMessageLocked() {
         return Utils.formatDisplayName(messageLocked);
     }
-    public static boolean getIsPageIndicatorEnabled() { return isPageIndicatorEnabled; }
-    public static int getItemSlot() { return itemSlot; }
 
 
     public static void loadItemSkins() {
@@ -228,7 +222,6 @@ public class ItemSkinsGUIConfig {
                         return;
                     }
 
-                    int customModelData = skinSection.getInt("id");
                     String uuid = skinSection.getString("uuid");
 
                     String permission = skinSection.getString("permission");
@@ -255,7 +248,7 @@ public class ItemSkinsGUIConfig {
                             materials.set(i, materialKey);
                         }
 
-                        ItemStack itemStack = ConfigManager.createItemStack(materialKey, customModelData, displayName, file.getFileName().toString().substring(0, file.getFileName().toString().lastIndexOf('.')), lore);
+                        ItemStack itemStack = ConfigManager.createItemStack(materialKey, displayName, file.getFileName().toString().substring(0, file.getFileName().toString().lastIndexOf('.')), lore);
                         addItemSkin(materialKey, itemStack, permission, uuid);
                     }
                 }
@@ -279,8 +272,6 @@ public class ItemSkinsGUIConfig {
                     return;
                 }
             }
-
-            int customModelData = yamlFile.getInt("custom-model-data");
 
             String permission = yamlFile.getString("permission");
             if (permission == null) {
@@ -312,7 +303,7 @@ public class ItemSkinsGUIConfig {
                     materials.set(i, materialKey);
                 }
 
-                ItemStack itemStack = ConfigManager.createItemStack(materialKey, customModelData, displayName, file.getFileName().toString().substring(0, file.getFileName().toString().lastIndexOf('.')), lore);
+                ItemStack itemStack = ConfigManager.createItemStack(materialKey, displayName, file.getFileName().toString().substring(0, file.getFileName().toString().lastIndexOf('.')), lore);
                 addItemSkin(materialKey, itemStack, permission, file.getFileName().toString());
             }
         } catch (IOException e) {

@@ -33,6 +33,5 @@ public class ServerCosmetics implements ModInitializer {
 
 	private void onServerStarting(MinecraftServer server) {
 		SERVER = server;
-		LOGGER.info("initialized");
 	}
 }

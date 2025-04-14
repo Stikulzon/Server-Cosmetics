@@ -5,9 +5,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.zefir.servercosmetics.ServerCosmetics;
 import com.zefir.servercosmetics.gui.CosmeticsGUI;
 import com.zefir.servercosmetics.gui.ItemSkinsGUI;
-import com.zefir.servercosmetics.util.SimpleCosmeticPolymerItem;
 import com.zefir.servercosmetics.util.Utils;
-import eu.pb4.polymer.core.api.item.SimplePolymerItem;
 import eu.pb4.polymer.resourcepack.api.PolymerModelData;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import me.lucko.fabric.api.permissions.v0.Permissions;
@@ -18,8 +16,8 @@ import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.component.type.LoreComponent;
 import net.minecraft.component.type.NbtComponent;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -42,12 +40,10 @@ import static net.minecraft.server.command.CommandManager.literal;
 public class ConfigManager {
     public static final Path SERVER_COSMETICS_DIR = FabricLoader.getInstance().getConfigDir().resolve("ServerCosmetics");
 
-//    public static ItemStack createPolymerItemStack(String material, Text displayName, Object o, List<Text> lore) {
-//        ItemStack itemStack = new SimplePolymerItem();
-//        return itemStack;
-//    }
+    private static final String TARGET_TEXTURE_PATH = "assets/servercosmetics/textures/item/";
+    private static final String TARGET_MODEL_PATH = "assets/servercosmetics/models/item/";
 
-    public record NavigationButton(Text name, String item, String textureName, int customModelData, int slotIndex, List<String> lore) {}
+    public record NavigationButton(Text name, Item baseItem, PolymerModelData polymerModelData, int slotIndex, List<String> lore) {}
     private static String configReloadPermission;
     private static String itemSkinsPermission;
     private static String cosmeticsReloadPermission;
@@ -60,6 +56,7 @@ public class ConfigManager {
         createAndLoadConfig();
         ItemSkinsGUIConfig.itemSkinsInit();
         CosmeticsGUIConfig.serverCosmeticsInit();
+        registerResourcePackListener();
     }
 
     public static void registerCommands(){
@@ -91,6 +88,65 @@ public class ConfigManager {
             );
         });
     }
+
+    public static void registerResourcePackListener() {
+        PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register((builder) -> {
+            Path resourcePackSourceDir = Path.of("config", "ServerCosmetics");
+
+            if (Files.isDirectory(resourcePackSourceDir)) {
+                ServerCosmetics.LOGGER.info("Scanning for .png and .json files in: {}", resourcePackSourceDir.toAbsolutePath());
+
+                try (Stream<Path> pathStream = Files.walk(resourcePackSourceDir)) {
+                    pathStream
+                            .filter(Files::isRegularFile)
+                            .forEach(filePath -> {
+                                Path fileNamePath = filePath.getFileName();
+                                if (fileNamePath == null) {
+                                    return;
+                                }
+
+                                String fileNameString = fileNamePath.toString();
+                                String filenameLower = fileNameString.toLowerCase(Locale.ROOT);
+                                String targetBaseDir = null;
+
+                                if (filenameLower.endsWith(".png")) {
+                                    targetBaseDir = TARGET_TEXTURE_PATH;
+                                } else if (filenameLower.endsWith(".json")) {
+                                    targetBaseDir = TARGET_MODEL_PATH;
+                                }
+
+                                if (targetBaseDir == null) {
+                                    return;
+                                }
+
+                                try {
+                                    String finalTargetPath = targetBaseDir + fileNameString;
+
+                                    byte[] data = Files.readAllBytes(filePath);
+
+                                    if (builder.addData(finalTargetPath, data)) {
+                                        ServerCosmetics.LOGGER.debug("Added {} -> {}", filePath.getFileName(), finalTargetPath);
+                                    } else {
+                                        ServerCosmetics.LOGGER.warn("Could not add {} as {} to resource pack (maybe already exists?)", filePath.getFileName(), finalTargetPath);
+                                    }
+                                } catch (IOException e) {
+                                    ServerCosmetics.LOGGER.error("Failed to read or add file {} to resource pack", filePath, e);
+                                } catch (IllegalArgumentException e) {
+                                    ServerCosmetics.LOGGER.error("Failed to relativize path {}", filePath, e);
+                                }
+                            });
+
+                    ServerCosmetics.LOGGER.info("Finished adding custom .png and .json resources from {}", resourcePackSourceDir.toAbsolutePath());
+
+                } catch (IOException e) {
+                    ServerCosmetics.LOGGER.error("Error walking directory {} for resource pack generation", resourcePackSourceDir.toAbsolutePath(), e);
+                }
+            } else {
+                ServerCosmetics.LOGGER.warn("Custom resource source directory not found or is not a directory: {}", resourcePackSourceDir.toAbsolutePath());
+            }
+        });
+    }
+
     public static void loadDemoConfigs() {
         Path demoConfigsPath = FabricLoader.getInstance().getModContainer("servercosmetics").flatMap(servercosmetics -> servercosmetics.findPath("assets/servercosmetics/demo-configs/")).get();
 
@@ -117,7 +173,6 @@ public class ConfigManager {
 
     public static int reloadAllConfigs(CommandContext<ServerCommandSource> context) {
         try {
-
             createAndLoadConfig();
             ItemSkinsGUIConfig.itemSkinsInit();
             CosmeticsGUIConfig.serverCosmeticsInit();
@@ -220,18 +275,19 @@ public class ConfigManager {
 
     public static void loadButtonConfigs(YamlFile yamlFile, String buttonKey, Map<String, NavigationButton> navigationButtons) {
         String basePath = "buttons." + buttonKey;
-        int customModelData = yamlFile.isSet(basePath + ".customModelData") ? yamlFile.getInt(basePath + ".customModelData") : -1;
+        String baseItemString = yamlFile.getString(basePath + ".item");
+        String complitedItemString = baseItemString.contains(":") ? baseItemString : "minecraft:" + baseItemString.toLowerCase();
+        PolymerModelData polymerModelData = yamlFile.isSet(basePath + ".textureName") ? PolymerResourcePackUtils.requestModel(Registries.ITEM.get(Identifier.of(complitedItemString)), Identifier.of(ServerCosmetics.MOD_ID, "item/" + yamlFile.getString(basePath + ".textureName"))) : null;
         navigationButtons.put(buttonKey, new NavigationButton(
                 Utils.formatDisplayName(yamlFile.getString(basePath + ".name")),
-                yamlFile.getString(basePath + ".item"),
-                yamlFile.getString(basePath + ".textureName"),
-                customModelData,
+                Registries.ITEM.get(Identifier.of(complitedItemString)),
+                polymerModelData,
                 yamlFile.getInt(basePath + ".slotIndex"),
                 yamlFile.getStringList(basePath + ".lore")
         ));
     }
 
-    public static ItemStack createItemStack(String material, int customModelData, Text displayName, String itemSkinId, List<Text> lore) {
+    public static ItemStack createItemStack(String material, Text displayName, String itemSkinId, List<Text> lore) {
         PolymerModelData polymerModel = PolymerResourcePackUtils.requestModel(Registries.ITEM.get(Identifier.of(material)), Identifier.of(ServerCosmetics.MOD_ID, "item/" + itemSkinId));
         ItemStack itemStack = new ItemStack(polymerModel.item());
 

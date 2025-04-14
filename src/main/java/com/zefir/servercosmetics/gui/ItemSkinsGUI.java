@@ -62,7 +62,7 @@ public class ItemSkinsGUI {
             if(currentItemStack.getValue() != -1) {
                 Map<Integer, AbstractMap.SimpleEntry<String, AbstractMap.SimpleEntry<String, ItemStack>>> allItemSkinsMap = ItemSkinsGUIConfig.getItemSkinsItems(player.currentScreenHandler.getSlot(currentItemStack.getValue()).getStack().getItem());
 
-                System.out.println("allItemSkinsMap: " + allItemSkinsMap);
+//                System.out.println("allItemSkinsMap: " + allItemSkinsMap);
 
                 if (allItemSkinsMap != null) {
                     Map<Integer, AbstractMap.SimpleEntry<String, AbstractMap.SimpleEntry<String, ItemStack>>> itemSkinsMap = new HashMap<>();
@@ -75,7 +75,7 @@ public class ItemSkinsGUI {
                             String skinId = skinEntry.getKey();
                             String permission = skinEntry.getValue().getKey();
                             ItemStack itemStack = skinEntry.getValue().getValue();
-                            System.out.println("itemStack: " + itemStack);
+//                            System.out.println("itemStack: " + itemStack);
 
                             // Check if the player has permission for this item (unlocked)
                             if (Permissions.check(player, permission)) {
@@ -147,7 +147,7 @@ public class ItemSkinsGUI {
 
 
 
-            if(ItemSkinsGUIConfig.getIsPageIndicatorEnabled()) {
+            if(ItemSkinsGUIConfig.isPageIndicatorEnabled()) {
                 GUIUtils.setUpButton(gui, ItemSkinsGUIConfig::getButtonConfig, "pageIndicator", () -> {
                 });
             }

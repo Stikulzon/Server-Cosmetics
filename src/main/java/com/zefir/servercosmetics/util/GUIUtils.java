@@ -16,18 +16,20 @@ public class GUIUtils {
     public static void setUpButton(SimpleGui gui, Function<String, ConfigManager.NavigationButton> getConfigFunction, String buttonKey, Runnable callback) {
         ConfigManager.NavigationButton buttonConfig = getConfigFunction.apply(buttonKey);
         if (buttonConfig != null) {
-            String itemString = buttonConfig.item().contains(":") ? buttonConfig.item() : "minecraft:" + buttonConfig.item().toLowerCase();
-
-            PolymerModelData polymerModel = PolymerResourcePackUtils.requestModel(Registries.ITEM.get(Identifier.of(itemString)), Identifier.of(ServerCosmetics.MOD_ID, "ui/" + buttonConfig.textureName()));
-            ItemStack itemStack = new ItemStack(polymerModel.item());
+            ItemStack itemStack;
+            if(buttonConfig.polymerModelData() != null) {
+                itemStack = new ItemStack(buttonConfig.polymerModelData().item());
+            } else {
+                itemStack = new ItemStack(buttonConfig.baseItem());
+            }
 
             GuiElementBuilder builder = new GuiElementBuilder(itemStack)
                     .setName(buttonConfig.name())
                     .setLore(buttonConfig.lore().stream().map(Utils::formatDisplayName).toList())
                     .setCallback((index, clickType, actionType) -> callback.run());
 
-            if (buttonConfig.customModelData() >= 0) {
-                builder.setCustomModelData(polymerModel.value());
+            if (buttonConfig.polymerModelData() != null) {
+                builder.setCustomModelData(buttonConfig.polymerModelData().value());
             }
 
             gui.setSlot(buttonConfig.slotIndex(), builder);

@@ -309,7 +309,7 @@ public class CosmeticsGUI {
             ItemStack is;
             if (viewSwitch.getValue()) {
                 is = new ItemStack(Items.LEATHER_HORSE_ARMOR);
-                is.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(CosmeticsGUIConfig.getPaintItemCMD()));
+                is.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(CosmeticsGUIConfig.getPaintItemPolymerModelData().value()));
             } else {
                 is = hatItemStack;
             }

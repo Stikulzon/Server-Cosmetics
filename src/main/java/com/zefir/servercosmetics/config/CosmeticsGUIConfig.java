@@ -2,10 +2,14 @@ package com.zefir.servercosmetics.config;
 
 import com.zefir.servercosmetics.ServerCosmetics;
 import com.zefir.servercosmetics.util.Utils;
+import eu.pb4.polymer.resourcepack.api.PolymerModelData;
+import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import lombok.Getter;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.text.Text;
 import net.minecraft.util.DyeColor;
+import net.minecraft.util.Identifier;
 import org.simpleyaml.configuration.ConfigurationSection;
 import org.simpleyaml.configuration.comments.format.YamlCommentFormat;
 import org.simpleyaml.configuration.file.YamlFile;
@@ -45,7 +49,7 @@ public class CosmeticsGUIConfig {
     @Getter
     private static String signType;
     @Getter
-    private static int paintItemCMD;
+    private static PolymerModelData paintItemPolymerModelData;
     @Getter
     private static DyeColor signColor;
     private static List<String> textLines;
@@ -90,7 +94,7 @@ public class CosmeticsGUIConfig {
             colorHexValues = yamlFile.getStringList("colorPicker.hexValues").toArray(new String[0]);
             colorPickerGUIName = yamlFile.getString("colorPicker.name");
             saturationAdjustmentValue = yamlFile.getLong("colorPicker.saturationAdjustmentValue");
-            paintItemCMD = yamlFile.getInt("paintItemCustomModelData");
+            paintItemPolymerModelData = PolymerResourcePackUtils.requestModel(Items.LEATHER_HORSE_ARMOR, Identifier.of(ServerCosmetics.MOD_ID, "item/" + yamlFile.getString("paintItemModelPath")));
             permissionOpenGui = yamlFile.getString("permissions.openGui");
             textUnlocked = yamlFile.getString("texts.unlocked");
             textLocked = yamlFile.getString("texts.locked");
@@ -137,8 +141,8 @@ public class CosmeticsGUIConfig {
 
         yamlFile.path("slots.colorOutput")
                 .addDefault(34);
-        yamlFile.path("paintItemCustomModelData")
-                .addDefault(1);
+        yamlFile.path("paintItemModelPath")
+                .addDefault("paint_button");
 
         yamlFile.path("slots.color")
                 .addDefault(new int[]{21, 22, 23, 30, 31, 32, 39, 40, 41})
@@ -218,14 +222,12 @@ public class CosmeticsGUIConfig {
         buttonDefaults.put("next", Map.of(
                 "name", "Next",
                 "item", "minecraft:paper",
-                "customModelData", 10,
                 "textureName", "next",
                 "slotIndex", 51));
 
         buttonDefaults.put("previous", Map.of(
                 "name", "Back",
                 "item", "minecraft:paper",
-                "customModelData", 11,
                 "textureName", "previous",
                 "slotIndex", 47));
 
@@ -233,7 +235,6 @@ public class CosmeticsGUIConfig {
                 "name", "Remove item",
                 "item", "minecraft:paper",
                 "textureName", "remove",
-                "customModelData", 12,
                 "slotIndex", 49));
 
         buttonDefaults.put("toggleColorView", Map.of(
@@ -253,14 +254,12 @@ public class CosmeticsGUIConfig {
                 "name", "Decrease brightness",
                 "item", "minecraft:paper",
                 "textureName", "previous",
-                "customModelData", 11,
                 "slotIndex", 15));
 
         buttonDefaults.put("increaseBrightness", Map.of(
                 "name", "Increase brightness",
                 "item", "minecraft:paper",
                 "textureName", "next",
-                "customModelData", 10,
                 "slotIndex", 16));
 
         buttonDefaults.put("cosmeticFilter.show-all-skins", Map.of(
@@ -382,8 +381,6 @@ public class CosmeticsGUIConfig {
 
                     String id = section.getString("id");
 
-                    int customModelData = section.getInt("item.model-data");
-
                     List<Text> lore = section.getStringList("item.lore").stream().map(Utils::formatDisplayName).toList();
 
                     String tempName = section.getString("item.name");
@@ -395,7 +392,7 @@ public class CosmeticsGUIConfig {
                         displayName = Utils.formatDisplayName("");
                     }
 
-                    ItemStack itemStack = ConfigManager.createItemStack(material, customModelData, displayName, file.getFileName().toString().substring(0, file.getFileName().toString().lastIndexOf('.')), lore);
+                    ItemStack itemStack = ConfigManager.createItemStack(material, displayName, file.getFileName().toString().substring(0, file.getFileName().toString().lastIndexOf('.')), lore);
 
                     addCosmeticItem(itemStack, permission, id);
                 }
@@ -443,18 +440,8 @@ public class CosmeticsGUIConfig {
                 displayName = Utils.formatDisplayName("");
             }
 
-//            String type = yamlFile.getString("cosmetic-item.type"); // TODO: Replace with a search based on image
             ItemStack itemStack;
-//            if (type == null) {
-                int customModelData = yamlFile.getInt("cosmetic-item.customModelData");
-                itemStack = ConfigManager.createItemStack(material, customModelData, displayName, file.getFileName().toString().substring(0, file.getFileName().toString().lastIndexOf('.')), lore);
-//            } else {
-////                itemStack = ConfigManager.createPolymerItemStack(material, displayName, null, lore);
-//
-//                if (yamlFile.getString("cosmetic-item.customModelData") != null) {
-//                    ServerCosmetics.LOGGER.warn("Warn when loading {}: customModelData defined, but never used because it's a polymer cosmetic", file.getFileName().toString());
-//                }
-//            }
+            itemStack = ConfigManager.createItemStack(material, displayName, file.getFileName().toString().substring(0, file.getFileName().toString().lastIndexOf('.')), lore);
 
             addCosmeticItem(itemStack, permission, id);
         } catch (IOException e) {
