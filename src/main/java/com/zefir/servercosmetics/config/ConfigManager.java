@@ -23,11 +23,14 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.simpleyaml.configuration.ConfigurationSection;
 import org.simpleyaml.configuration.comments.format.YamlCommentFormat;
 import org.simpleyaml.configuration.file.YamlFile;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -91,7 +94,7 @@ public class ConfigManager {
 
     public static void registerResourcePackListener() {
         PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register((builder) -> {
-            Path resourcePackSourceDir = Path.of("config", "ServerCosmetics");
+            Path resourcePackSourceDir = Path.of("config", "ServerCosmetics", "Assets");
 
             if (Files.isDirectory(resourcePackSourceDir)) {
                 ServerCosmetics.LOGGER.info("Scanning for .png and .json files in: {}", resourcePackSourceDir.toAbsolutePath());
@@ -108,21 +111,35 @@ public class ConfigManager {
                                 String fileNameString = fileNamePath.toString();
                                 String filenameLower = fileNameString.toLowerCase(Locale.ROOT);
                                 String targetBaseDir = null;
-
-                                if (filenameLower.endsWith(".png")) {
-                                    targetBaseDir = TARGET_TEXTURE_PATH;
-                                } else if (filenameLower.endsWith(".json")) {
-                                    targetBaseDir = TARGET_MODEL_PATH;
-                                }
-
-                                if (targetBaseDir == null) {
-                                    return;
-                                }
+                                byte[] data;
 
                                 try {
+                                    data = Files.readAllBytes(filePath);
+
+                                    if (filenameLower.endsWith(".png")) {
+                                        targetBaseDir = TARGET_TEXTURE_PATH;
+                                    } else if (filenameLower.endsWith(".json")) {
+                                        targetBaseDir = TARGET_MODEL_PATH;
+                                        try {
+                                            String content = new String(data, StandardCharsets.UTF_8);
+                                            JSONObject jsonObject = new JSONObject(content);
+
+                                            if (jsonObject.has("animation")) {
+                                                targetBaseDir = TARGET_TEXTURE_PATH;
+                                                ServerCosmetics.LOGGER.debug("JSON file {} has 'animation' key, targeting TEXTURE_PATH.", fileNameString);
+                                            }
+                                        } catch (JSONException e) {
+                                            ServerCosmetics.LOGGER.warn("Could not parse JSON file {} to check for 'animation' key. Assuming it's a model. Error: {}", fileNameString, e.getMessage());
+                                        }
+                                    }
+
+                                    if (targetBaseDir == null) {
+                                        // Neither .png nor .json
+                                        return;
+                                    }
+
                                     String finalTargetPath = targetBaseDir + fileNameString;
 
-                                    byte[] data = Files.readAllBytes(filePath);
 
                                     if (builder.addData(finalTargetPath, data)) {
                                         ServerCosmetics.LOGGER.debug("Added {} -> {}", filePath.getFileName(), finalTargetPath);
@@ -130,9 +147,9 @@ public class ConfigManager {
                                         ServerCosmetics.LOGGER.warn("Could not add {} as {} to resource pack (maybe already exists?)", filePath.getFileName(), finalTargetPath);
                                     }
                                 } catch (IOException e) {
-                                    ServerCosmetics.LOGGER.error("Failed to read or add file {} to resource pack", filePath, e);
-                                } catch (IllegalArgumentException e) {
-                                    ServerCosmetics.LOGGER.error("Failed to relativize path {}", filePath, e);
+                                    ServerCosmetics.LOGGER.error("Failed to read file {} for resource pack", filePath, e);
+                                } catch (IllegalArgumentException e) { // This was in your original code for builder.relativize, might not be needed if addData takes full path
+                                    ServerCosmetics.LOGGER.error("Failed with path {} for resource pack", filePath, e);
                                 }
                             });
 
