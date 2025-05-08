@@ -63,7 +63,7 @@ public class PlayerInventoryMixin {
                                 }));
 
                                 // Remove data component data
-                                stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT);
+                                stack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
                             }
                             return stack;
                         }
