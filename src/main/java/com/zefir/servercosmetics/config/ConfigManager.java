@@ -148,8 +148,6 @@ public class ConfigManager {
                                     }
                                 } catch (IOException e) {
                                     ServerCosmetics.LOGGER.error("Failed to read file {} for resource pack", filePath, e);
-                                } catch (IllegalArgumentException e) { // This was in your original code for builder.relativize, might not be needed if addData takes full path
-                                    ServerCosmetics.LOGGER.error("Failed with path {} for resource pack", filePath, e);
                                 }
                             });
 
