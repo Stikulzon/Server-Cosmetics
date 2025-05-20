@@ -5,6 +5,8 @@ import com.zefir.servercosmetics.util.Utils;
 import eu.pb4.polymer.resourcepack.api.PolymerModelData;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import lombok.Getter;
+import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.text.Text;
@@ -21,6 +23,7 @@ import java.util.*;
 
 public class CosmeticsGUIConfig {
     @Getter
+    // <id, <<permission, cosmeticsFileName>, itemStack>>
     private static final Map<Integer, AbstractMap.SimpleEntry<AbstractMap.SimpleEntry<String, String>, ItemStack>> cosmeticsItemsMap = new HashMap<>();
     private static final Map<String, ConfigManager.NavigationButton> navigationButtons = new HashMap<>();
     private static String cosmeticsGUIName;
@@ -402,6 +405,33 @@ public class CosmeticsGUIConfig {
         }
     }
 
+    public static ItemStack getItemStackFromCosmeticsName(String stringId) {
+        for (Map.Entry<Integer, AbstractMap.SimpleEntry<
+                AbstractMap.SimpleEntry<String, String>,
+                ItemStack>> entry : cosmeticsItemsMap.entrySet()) {
+
+            AbstractMap.SimpleEntry<String, String> idEntry = entry.getValue().getKey(); // <permission, stringId>
+            if (idEntry.getValue().equals(stringId)) {
+                return entry.getValue().getValue(); // ItemStack
+            }
+        }
+        return null;
+    }
+
+    public static ItemStack getItemStackFromCosmeticsNameWithPermissionCheck(String stringId, PlayerEntity player) {
+        for (Map.Entry<Integer, AbstractMap.SimpleEntry<
+                AbstractMap.SimpleEntry<String, String>,
+                ItemStack>> entry : cosmeticsItemsMap.entrySet()) {
+
+            AbstractMap.SimpleEntry<String, String> idEntry = entry.getValue().getKey(); // <permission, stringId>
+
+            if (idEntry.getValue().equals(stringId) && Permissions.check(player, idEntry.getKey())) {
+                return entry.getValue().getValue(); // ItemStack
+            }
+        }
+        return null;
+    }
+
 
     private static void loadCosmeticItem(Path file) {
         YamlFile yamlFile = new YamlFile(file.toAbsolutePath().toString());
@@ -423,8 +453,6 @@ public class CosmeticsGUIConfig {
                 return;
             }
 
-            String id = yamlFile.getString("id");
-
             List<Text> lore = yamlFile.getStringList("lore").stream().map(Utils::formatDisplayName).toList();
 
             if(lore.isEmpty()) {
@@ -440,8 +468,8 @@ public class CosmeticsGUIConfig {
                 displayName = Utils.formatDisplayName("");
             }
 
-            ItemStack itemStack;
-            itemStack = ConfigManager.createItemStack(material, displayName, file.getFileName().toString().substring(0, file.getFileName().toString().lastIndexOf('.')), lore);
+            String id = file.getFileName().toString().substring(0, file.getFileName().toString().lastIndexOf('.'));
+            ItemStack itemStack = ConfigManager.createItemStack(material, displayName, id, lore);
 
             addCosmeticItem(itemStack, permission, id);
         } catch (IOException e) {

@@ -2,7 +2,10 @@ package com.zefir.servercosmetics.config;
 
 import com.zefir.servercosmetics.ServerCosmetics;
 import com.zefir.servercosmetics.util.Utils;
+import eu.pb4.polymer.resourcepack.api.PolymerModelData;
 import lombok.Getter;
+import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
@@ -310,6 +313,43 @@ public class ItemSkinsGUIConfig {
             throw new RuntimeException("Failed to load item skin from file: " + file, e);
         }
     }
+
+    public static ItemStack getItemStackFromCosmeticsNameAndItem(String stringId, Item item) {
+        String material = String.valueOf(item.getName());
+        System.out.println("material: " + material);
+        if (!material.contains(":")) {
+            material = "minecraft:" + material.toLowerCase();
+        }
+        itemSkinsMap.get(material);
+        for (Map.Entry<Integer, AbstractMap.SimpleEntry<String, AbstractMap.SimpleEntry<String, ItemStack>>> entry : itemSkinsMap.get(material).entrySet()) {
+
+            AbstractMap.SimpleEntry<String, AbstractMap.SimpleEntry<String, ItemStack>> idEntry = entry.getValue(); // <permission, stringId>
+            if (idEntry.getKey().equals(stringId)) {
+                return entry.getValue().getValue().getValue(); // ItemStack
+            }
+        }
+        return null;
+    }
+
+
+
+//    public static ItemStack checkItemSkinPermission(String stringId, Item item, PlayerEntity player) {
+//        String material = String.valueOf(item.getName());
+//        System.out.println("material: " + material);
+//        if (!material.contains(":")) {
+//            material = "minecraft:" + material.toLowerCase();
+//        }
+//        itemSkinsMap.get(material);
+//        for (Map.Entry<Integer, AbstractMap.SimpleEntry<String, AbstractMap.SimpleEntry<String, ItemStack>>> entry : itemSkinsMap.get(material).entrySet()) {
+//
+//            AbstractMap.SimpleEntry<String, AbstractMap.SimpleEntry<String, ItemStack>> idEntry = entry.getValue(); // <permission, stringId>
+//            if (idEntry.getKey().equals(stringId)) {
+//                Permissions.check(player,)
+//                return entry.getValue().getValue().getValue(); // ItemStack
+//            }
+//        }
+//        return null;
+//    }
 
     public static Map<Integer, AbstractMap.SimpleEntry<String, AbstractMap.SimpleEntry<String, ItemStack>>> getItemSkinsItems(Item item) {
         return itemSkinsMap.get(item.toString());

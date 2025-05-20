@@ -12,11 +12,7 @@ public class CosmeticTable {
     @DatabaseField(id = true)
     private String uuid;
     @DatabaseField
-    private String itemId;
-    @DatabaseField
-    private Integer customModelData;
+    private String name;
     @DatabaseField
     private Integer dyedColorComponent;
-    @DatabaseField
-    private String displayName;
 }

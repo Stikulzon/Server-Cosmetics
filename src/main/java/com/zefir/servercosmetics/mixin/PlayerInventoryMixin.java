@@ -20,6 +20,8 @@ import java.util.AbstractMap;
 import java.util.Map;
 import java.util.Objects;
 
+import static com.zefir.servercosmetics.config.ItemSkinsGUIConfig.getItemStackFromCosmeticsNameAndItem;
+
 @Mixin(PlayerInventory.class)
 public class PlayerInventoryMixin {
     @Final
@@ -46,7 +48,7 @@ public class PlayerInventoryMixin {
 
     @Unique
     public ItemStack checkItemPermission(ItemStack stack) {
-        NbtComponent sourceCustomData =  stack.getComponents().get(DataComponentTypes.CUSTOM_DATA);
+        NbtComponent sourceCustomData = stack.getComponents().get(DataComponentTypes.CUSTOM_DATA);
 
         if (sourceCustomData != null) {
             NbtCompound copiedCustomData = sourceCustomData.copyNbt();
@@ -54,6 +56,20 @@ public class PlayerInventoryMixin {
                 Map<Integer, AbstractMap.SimpleEntry<String, AbstractMap.SimpleEntry<String, ItemStack>>> ism = ItemSkinsGUIConfig.getItemSkinsItems(stack.getItem());
                 if (ism != null) {
                     String itemSkinsID = copiedCustomData.getString("itemSkinsID");
+                    ItemStack updatedItemStack = getItemStackFromCosmeticsNameAndItem(itemSkinsID, stack.getItem());
+                    if (updatedItemStack == null) {
+                        // Remove itemSkinsID
+                        stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbt -> {
+                            nbt.remove("itemSkinsID");
+                        }));
+
+                        // Remove data component data
+                        stack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
+//                        updatedItemStack.getComponents().get(DataComponentTypes.CUSTOM_DATA).copyNbt().getString("itemSkinsID")
+                    } else if (stack.get(DataComponentTypes.CUSTOM_MODEL_DATA) != updatedItemStack.get(DataComponentTypes.CUSTOM_MODEL_DATA)) {
+                        stack.set(DataComponentTypes.CUSTOM_MODEL_DATA, updatedItemStack.get(DataComponentTypes.CUSTOM_MODEL_DATA));
+                    }
+
                     for (int i = 0; i < ism.size(); i++) {
                         if (Objects.equals(ism.get(i).getKey(), itemSkinsID)) {
                             if (!Permissions.check(player, ism.get(i).getValue().getKey())) {

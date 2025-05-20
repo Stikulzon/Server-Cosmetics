@@ -7,6 +7,7 @@ import com.zefir.servercosmetics.database.DatabaseManager;
 import com.zefir.servercosmetics.config.CosmeticsGUIConfig;
 import com.zefir.servercosmetics.ext.CosmeticSlotExt;
 import com.zefir.servercosmetics.util.GUIUtils;
+import eu.pb4.polymer.resourcepack.api.PolymerModelData;
 import eu.pb4.sgui.api.GuiHelpers;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.SignGui;
@@ -66,7 +67,7 @@ public class CosmeticsGUI {
             num.increment();
             int pageNumber = num.getValue();
             var previousGui = GuiHelpers.getCurrentGui(player);
-            var gui = new CosmeticsScreen(player, pageNumber, (SimpleGui) previousGui, filterRegime);
+            var gui = new CosmeticsScreen(player);
 
             gui.setTitle(GuiTextures.COSMETICS_MENU.apply(CosmeticsGUIConfig.getCosmeticsGUIName()));
 
@@ -210,7 +211,7 @@ public class CosmeticsGUI {
 
     private static class CosmeticsScreen extends SimpleGui {
 
-        public CosmeticsScreen(ServerPlayerEntity player, int pageNumber, SimpleGui previousGui, MutableInt filterRegime) {
+        public CosmeticsScreen(ServerPlayerEntity player) {
             super(ScreenHandlerType.GENERIC_9X6, player, CosmeticsGUIConfig.isReplaceInventory());
         }
 
@@ -450,19 +451,15 @@ public class CosmeticsGUI {
         } catch (CommandSyntaxException e) {
             throw new RuntimeException(e);
         }
-//        System.out.println("context.getSource().getPlayer()" + player);
+
         if (player == null) {
             context.getSource().sendFeedback(() -> Text.literal("Player not found"), false);
             System.out.println("Player not found");
             return 1;
         }
-//        String id;
-//        try {
+
         String id = StringArgumentType.getString(context, "cosmeticId");
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
-//        System.out.println("check");
+
         if (id == null || id.isEmpty()) {
             context.getSource().sendFeedback(() -> Text.literal("Invalid cosmetic ID"), false);
             System.out.println("Invalid cosmetic ID");
@@ -470,16 +467,10 @@ public class CosmeticsGUI {
         }
 
         // Search for the cosmetic by ID
-//        Optional<AbstractMap.SimpleEntry<AbstractMap.SimpleEntry<String, String>, ItemStack>> optionalEntry;
-//        try {
         Optional<AbstractMap.SimpleEntry<AbstractMap.SimpleEntry<String, String>, ItemStack>> optionalEntry = CosmeticsGUIConfig.getCosmeticsItemsMap().values().stream()
                     .filter(entry -> id.equals(entry.getKey().getValue()))
                     .findFirst();
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
 
-//        System.out.println("optionalEntry.isPresent()" + optionalEntry.isPresent());
         if (optionalEntry.isPresent()) {
             AbstractMap.SimpleEntry<AbstractMap.SimpleEntry<String, String>, ItemStack> cosmeticEntry = optionalEntry.get();
             String permission = cosmeticEntry.getKey().getKey();

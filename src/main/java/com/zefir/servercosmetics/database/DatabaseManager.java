@@ -5,17 +5,25 @@ import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
+import com.mojang.authlib.GameProfile;
+import com.zefir.servercosmetics.ServerCosmetics;
+import eu.pb4.polymer.resourcepack.api.PolymerModelData;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.component.type.DyedColorComponent;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.Registries;
+import net.minecraft.server.PlayerManager;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
 import java.sql.SQLException;
+import java.util.AbstractMap;
 import java.util.Objects;
 import java.util.UUID;
+
+import static com.zefir.servercosmetics.config.CosmeticsGUIConfig.*;
 
 public class DatabaseManager {
     private static final String DATABASE_URL = "jdbc:sqlite:cosmetics.db";
@@ -39,24 +47,19 @@ public class DatabaseManager {
             cosmetic.setUuid(playerUUID.toString());
 
             if (is.isEmpty()) {
-                cosmetic.setItemId(null);
-                cosmetic.setCustomModelData(null);
+                cosmetic.setName(null);
                 cosmetic.setDyedColorComponent(null);
-                cosmetic.setDisplayName(null);
             } else {
-                cosmetic.setItemId(is.getItem().toString());
-                cosmetic.setCustomModelData(is.getOrDefault(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(0)).value());
+                NbtCompound copiedCustomData = is.getComponents().get(DataComponentTypes.CUSTOM_DATA).copyNbt();
+                if(!copiedCustomData.contains("itemSkinsID")){
+                    throw new NullPointerException("cosmeticsID is missing in cosmetic " + is);
+                }
+                cosmetic.setName(copiedCustomData.getString("itemSkinsID"));
 
                 if (is.get(DataComponentTypes.DYED_COLOR) != null) {
                     cosmetic.setDyedColorComponent(Objects.requireNonNull(is.get(DataComponentTypes.DYED_COLOR)).rgb());
                 } else {
                     cosmetic.setDyedColorComponent(null);
-                }
-
-                if (is.get(DataComponentTypes.CUSTOM_NAME) != null) {
-                    cosmetic.setDisplayName(Objects.requireNonNull(is.get(DataComponentTypes.CUSTOM_NAME)).getString());
-                } else {
-                    cosmetic.setDisplayName(null);
                 }
             }
 
@@ -72,22 +75,18 @@ public class DatabaseManager {
         try {
             CosmeticTable cosmetic = cosmeticDao.queryForId(playerUUID.toString());
 
-            if (cosmetic == null || cosmetic.getItemId() == null) {
+            if (cosmetic == null) {
                 return ItemStack.EMPTY;
             }
 
-            ItemStack itemStack = new ItemStack(Registries.ITEM.get(Identifier.of(cosmetic.getItemId())));
+            ItemStack itemStack = getItemStackFromCosmeticsNameWithPermissionCheck(cosmetic.getName(), ServerCosmetics.SERVER.getPlayerManager().getPlayer(playerUUID));
 
-            if (cosmetic.getCustomModelData() != null) {
-                itemStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(cosmetic.getCustomModelData()));
+            if (cosmetic.getName() == null || itemStack == null) {
+                return ItemStack.EMPTY;
             }
 
             if (cosmetic.getDyedColorComponent() != null) {
                 itemStack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(cosmetic.getDyedColorComponent(), true));
-            }
-
-            if (cosmetic.getDisplayName() != null) {
-                itemStack.set(DataComponentTypes.CUSTOM_NAME, Text.literal(cosmetic.getDisplayName()));
             }
 
             return itemStack;
