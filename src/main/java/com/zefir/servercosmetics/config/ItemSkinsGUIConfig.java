@@ -2,12 +2,10 @@ package com.zefir.servercosmetics.config;
 
 import com.zefir.servercosmetics.ServerCosmetics;
 import com.zefir.servercosmetics.util.Utils;
-import eu.pb4.polymer.resourcepack.api.PolymerModelData;
 import lombok.Getter;
-import me.lucko.fabric.api.permissions.v0.Permissions;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
 import org.simpleyaml.configuration.ConfigurationSection;
 import org.simpleyaml.configuration.comments.format.YamlCommentFormat;
@@ -315,12 +313,10 @@ public class ItemSkinsGUIConfig {
     }
 
     public static ItemStack getItemStackFromCosmeticsNameAndItem(String stringId, Item item) {
-        String material = String.valueOf(item.getName());
-        System.out.println("material: " + material);
-        if (!material.contains(":")) {
-            material = "minecraft:" + material.toLowerCase();
+        String material = String.valueOf(Registries.ITEM.getId(item));
+        if(itemSkinsMap.get(material) == null){
+            return null;
         }
-        itemSkinsMap.get(material);
         for (Map.Entry<Integer, AbstractMap.SimpleEntry<String, AbstractMap.SimpleEntry<String, ItemStack>>> entry : itemSkinsMap.get(material).entrySet()) {
 
             AbstractMap.SimpleEntry<String, AbstractMap.SimpleEntry<String, ItemStack>> idEntry = entry.getValue(); // <permission, stringId>

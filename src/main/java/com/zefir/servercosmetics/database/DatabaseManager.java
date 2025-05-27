@@ -5,25 +5,17 @@ import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
-import com.mojang.authlib.GameProfile;
 import com.zefir.servercosmetics.ServerCosmetics;
-import eu.pb4.polymer.resourcepack.api.PolymerModelData;
 import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.component.type.DyedColorComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.Registries;
-import net.minecraft.server.PlayerManager;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 
 import java.sql.SQLException;
-import java.util.AbstractMap;
 import java.util.Objects;
 import java.util.UUID;
 
-import static com.zefir.servercosmetics.config.CosmeticsGUIConfig.*;
+import static com.zefir.servercosmetics.config.CosmeticsGUIConfig.getItemStackFromCosmeticsNameWithPermissionCheck;
 
 public class DatabaseManager {
     private static final String DATABASE_URL = "jdbc:sqlite:cosmetics.db";
@@ -50,7 +42,7 @@ public class DatabaseManager {
                 cosmetic.setName(null);
                 cosmetic.setDyedColorComponent(null);
             } else {
-                NbtCompound copiedCustomData = is.getComponents().get(DataComponentTypes.CUSTOM_DATA).copyNbt();
+                NbtCompound copiedCustomData = Objects.requireNonNull(is.getComponents().get(DataComponentTypes.CUSTOM_DATA)).copyNbt();
                 if(!copiedCustomData.contains("itemSkinsID")){
                     throw new NullPointerException("cosmeticsID is missing in cosmetic " + is);
                 }

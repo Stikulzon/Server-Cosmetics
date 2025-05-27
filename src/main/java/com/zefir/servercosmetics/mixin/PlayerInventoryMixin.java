@@ -2,7 +2,6 @@ package com.zefir.servercosmetics.mixin;
 
 import com.zefir.servercosmetics.config.ItemSkinsGUIConfig;
 import me.lucko.fabric.api.permissions.v0.Permissions;
-import net.minecraft.component.ComponentMap;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.player.PlayerEntity;
@@ -46,6 +45,7 @@ public class PlayerInventoryMixin {
         return stack;
     }
 
+    // лайнокод
     @Unique
     public ItemStack checkItemPermission(ItemStack stack) {
         NbtComponent sourceCustomData = stack.getComponents().get(DataComponentTypes.CUSTOM_DATA);
@@ -59,13 +59,10 @@ public class PlayerInventoryMixin {
                     ItemStack updatedItemStack = getItemStackFromCosmeticsNameAndItem(itemSkinsID, stack.getItem());
                     if (updatedItemStack == null) {
                         // Remove itemSkinsID
-                        stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbt -> {
-                            nbt.remove("itemSkinsID");
-                        }));
+                        stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbt -> nbt.remove("itemSkinsID")));
 
                         // Remove data component data
                         stack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
-//                        updatedItemStack.getComponents().get(DataComponentTypes.CUSTOM_DATA).copyNbt().getString("itemSkinsID")
                     } else if (stack.get(DataComponentTypes.CUSTOM_MODEL_DATA) != updatedItemStack.get(DataComponentTypes.CUSTOM_MODEL_DATA)) {
                         stack.set(DataComponentTypes.CUSTOM_MODEL_DATA, updatedItemStack.get(DataComponentTypes.CUSTOM_MODEL_DATA));
                     }
@@ -74,9 +71,7 @@ public class PlayerInventoryMixin {
                         if (Objects.equals(ism.get(i).getKey(), itemSkinsID)) {
                             if (!Permissions.check(player, ism.get(i).getValue().getKey())) {
                                 // Remove itemSkinsID
-                                stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbt -> {
-                                    nbt.remove("itemSkinsID");
-                                }));
+                                stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbt -> nbt.remove("itemSkinsID")));
 
                                 // Remove data component data
                                 stack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
