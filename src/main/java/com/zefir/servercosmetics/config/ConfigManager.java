@@ -38,8 +38,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static net.minecraft.server.command.CommandManager.literal;
-
 public class ConfigManager {
     public static final Path SERVER_COSMETICS_DIR = FabricLoader.getInstance().getConfigDir().resolve("ServerCosmetics");
 
@@ -47,9 +45,9 @@ public class ConfigManager {
     private static final String TARGET_MODEL_PATH = "assets/servercosmetics/models/item/";
 
     public record NavigationButton(Text name, Item baseItem, PolymerModelData polymerModelData, int slotIndex, List<String> lore) {}
-    private static String configReloadPermission;
-    private static String itemSkinsPermission;
-    private static String cosmeticsReloadPermission;
+    public static String configReloadPermission;
+    public static String itemSkinsPermission;
+    public static String cosmeticsReloadPermission;
     private static Text successConfigReloadMessage;
     private static Text errorConfigReloadMessage;
     private static Boolean legacyMode;
@@ -60,36 +58,6 @@ public class ConfigManager {
         ItemSkinsGUIConfig.itemSkinsInit();
         CosmeticsGUIConfig.serverCosmeticsInit();
         registerResourcePackListener();
-    }
-
-    public static void registerCommands(){
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
-            dispatcher.register(literal("sc")
-                    .then(literal("reload")
-                            .requires(Permissions.require(Objects.requireNonNullElse(cosmeticsReloadPermission, "servercosmetics.reload"), 4))
-                            .executes(ConfigManager::reloadAllConfigs))
-            );
-            dispatcher.register(
-                    literal("cm").executes(CosmeticsGUI::openGui)
-                            .requires(Permissions.require(ItemSkinsGUIConfig.getPermissionOpenGui(), 0))
-                            .then(literal("reload")
-                                    .requires(Permissions.require(Objects.requireNonNullElse(itemSkinsPermission, "servercosmetics.reload.cosmetics"), 4))
-                                    .executes(ConfigManager::reloadCosmeticsConfigs))
-            );
-            dispatcher.register(literal("wearcosmetic")
-                    .requires(Permissions.require("servercosmetics.wearcosmetic", 4)) // Add permission for the command
-                            .then(CommandManager.argument("player", EntityArgumentType.player())
-                                .then(CommandManager.argument("cosmeticId", StringArgumentType.string())
-                                    .executes(CosmeticsGUI::wearCosmeticById))) // Correct the execute() call
-            );
-            dispatcher.register(
-                    literal("is").executes(ItemSkinsGUI::openIsGui)
-                            .requires(Permissions.require(CosmeticsGUIConfig.getPermissionOpenGui(), 0))
-                            .then(literal("reload")
-                                    .requires(Permissions.require(Objects.requireNonNullElse(configReloadPermission, "servercosmetics.reload.itemskins"), 4))
-                                    .executes(ConfigManager::reloadItemSkinsConfigs))
-            );
-        });
     }
 
     public static void registerResourcePackListener() {

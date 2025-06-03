@@ -2,6 +2,7 @@ package com.zefir.servercosmetics.gui;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.zefir.servercosmetics.config.ItemSkinsGUIConfig;
+import com.zefir.servercosmetics.gui.resources.GuiTextures;
 import com.zefir.servercosmetics.util.GUIUtils;
 import eu.pb4.sgui.api.ClickType;
 import eu.pb4.sgui.api.GuiHelpers;

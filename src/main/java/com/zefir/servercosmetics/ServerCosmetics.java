@@ -1,9 +1,10 @@
 package com.zefir.servercosmetics;
 
+import com.zefir.servercosmetics.command.CosmeticCommands;
 import com.zefir.servercosmetics.config.ConfigManager;
 import com.zefir.servercosmetics.database.DatabaseManager;
-import com.zefir.servercosmetics.gui.GuiTextures;
-import com.zefir.servercosmetics.gui.UiResourceCreator;
+import com.zefir.servercosmetics.gui.resources.GuiTextures;
+import com.zefir.servercosmetics.gui.resources.UiResourceCreator;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import net.fabricmc.api.ModInitializer;
 
@@ -24,7 +25,7 @@ public class ServerCosmetics implements ModInitializer {
 		DatabaseManager.init();
 
 		ServerLifecycleEvents.SERVER_STARTING.register(this::onServerStarting);
-		ConfigManager.registerCommands();
+		CosmeticCommands.registerCommands();
 		UiResourceCreator.setup();
 		GuiTextures.register();
 

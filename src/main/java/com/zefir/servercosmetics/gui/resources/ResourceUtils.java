@@ -1,4 +1,4 @@
-package com.zefir.servercosmetics.gui;
+package com.zefir.servercosmetics.gui.resources;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import eu.pb4.polymer.common.api.PolymerCommonUtils;
