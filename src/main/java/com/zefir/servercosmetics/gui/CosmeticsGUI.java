@@ -10,6 +10,7 @@ import com.zefir.servercosmetics.config.entries.CustomItemRegistry;
 import com.zefir.servercosmetics.database.DatabaseManager;
 import com.zefir.servercosmetics.config.CosmeticsGUIConfig;
 import com.zefir.servercosmetics.ext.CosmeticSlotExt;
+import com.zefir.servercosmetics.gui.resources.GuiTextures;
 import com.zefir.servercosmetics.util.GUIUtils;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.SignGui;

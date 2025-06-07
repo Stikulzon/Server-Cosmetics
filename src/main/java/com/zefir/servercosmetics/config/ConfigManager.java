@@ -1,18 +1,12 @@
 package com.zefir.servercosmetics.config;
 
-import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.zefir.servercosmetics.ServerCosmetics;
 import com.zefir.servercosmetics.config.entries.CustomItemRegistry;
-import com.zefir.servercosmetics.gui.CosmeticsGUI;
-import com.zefir.servercosmetics.gui.ItemSkinsGUI;
 import com.zefir.servercosmetics.util.Utils;
 import eu.pb4.polymer.resourcepack.api.PolymerModelData;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
-import me.lucko.fabric.api.permissions.v0.Permissions;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.component.type.LoreComponent;
@@ -20,7 +14,6 @@ import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
-import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -38,8 +31,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static net.minecraft.server.command.CommandManager.literal;
-
 public class ConfigManager {
     public static final Path SERVER_COSMETICS_DIR = FabricLoader.getInstance().getConfigDir().resolve("ServerCosmetics");
 
@@ -48,9 +39,9 @@ public class ConfigManager {
 
     public record NavigationButton(Text name, Item baseItem, PolymerModelData polymerModelData, int slotIndex, List<String> lore) {}
 
-    private static String configReloadPermission;
-    private static String itemSkinsReloadPermission;
-    private static String cosmeticsReloadPermission;
+    public static String configReloadPermission;
+    public static String itemSkinsReloadPermission;
+    public static String cosmeticsReloadPermission;
     private static Text successConfigReloadMessage;
     private static Text errorConfigReloadMessage;
     private static boolean legacyMode;
@@ -64,36 +55,6 @@ public class ConfigManager {
         CustomItemRegistry.initialize();
 
         registerResourcePackListener();
-    }
-
-    public static void registerCommands(){
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
-            dispatcher.register(literal("sc")
-                    .then(literal("reload")
-                            .requires(Permissions.require(Objects.requireNonNullElse(configReloadPermission, "servercosmetics.reload"), 4))
-                            .executes(ConfigManager::reloadAllConfigsCommand))
-            );
-            dispatcher.register(
-                    literal("cm").executes(CosmeticsGUI::openGui)
-                            .requires(Permissions.require(CosmeticsGUIConfig.get().getPermissionOpenGui(), 0))
-                            .then(literal("reload")
-                                    .requires(Permissions.require(Objects.requireNonNullElse(cosmeticsReloadPermission, "servercosmetics.reload.cosmetics"), 4))
-                                    .executes(ConfigManager::reloadCosmeticsConfigsCommand))
-            );
-            dispatcher.register(literal("wearcosmetic")
-                    .requires(Permissions.require("servercosmetics.wearcosmetic", 4))
-                    .then(CommandManager.argument("player", EntityArgumentType.player())
-                            .then(CommandManager.argument("cosmeticId", StringArgumentType.string())
-                                    .executes(CosmeticsGUI::wearCosmeticById)))
-            );
-            dispatcher.register(
-                    literal("is").executes(ItemSkinsGUI::openIsGui)
-                            .requires(Permissions.require(ItemSkinsGUIConfig.get().getPermissionOpenGui(), 0))
-                            .then(literal("reload")
-                                    .requires(Permissions.require(Objects.requireNonNullElse(itemSkinsReloadPermission, "servercosmetics.reload.itemskins"), 4))
-                                    .executes(ConfigManager::reloadItemSkinsConfigsCommand))
-            );
-        });
     }
 
     public static void registerResourcePackListener() {
@@ -210,7 +171,7 @@ public class ConfigManager {
         }
     }
 
-    private static int reloadAllConfigsCommand(CommandContext<ServerCommandSource> context) {
+    public static int reloadAllConfigsCommand(CommandContext<ServerCommandSource> context) {
         try {
             createAndLoadMainConfig();
             CustomItemRegistry.setLegacyMode(legacyMode);
@@ -226,7 +187,7 @@ public class ConfigManager {
         }
         return 1;
     }
-    private static int reloadItemSkinsConfigsCommand(CommandContext<ServerCommandSource> context) {
+    public static int reloadItemSkinsConfigsCommand(CommandContext<ServerCommandSource> context) {
         try {
             createAndLoadMainConfig();
             CustomItemRegistry.setLegacyMode(legacyMode);
@@ -242,7 +203,7 @@ public class ConfigManager {
         return 1;
     }
 
-    private static int reloadCosmeticsConfigsCommand(CommandContext<ServerCommandSource> context) {
+    public static int reloadCosmeticsConfigsCommand(CommandContext<ServerCommandSource> context) {
         try {
             createAndLoadMainConfig();
             CustomItemRegistry.setLegacyMode(legacyMode);
