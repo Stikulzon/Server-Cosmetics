@@ -3,6 +3,7 @@ package com.zefir.servercosmetics.config;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.zefir.servercosmetics.ServerCosmetics;
+import com.zefir.servercosmetics.config.entries.CustomItemRegistry;
 import com.zefir.servercosmetics.gui.CosmeticsGUI;
 import com.zefir.servercosmetics.gui.ItemSkinsGUI;
 import com.zefir.servercosmetics.util.Utils;
@@ -25,7 +26,6 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.simpleyaml.configuration.ConfigurationSection;
 import org.simpleyaml.configuration.comments.format.YamlCommentFormat;
 import org.simpleyaml.configuration.file.YamlFile;
 
@@ -38,6 +38,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static net.minecraft.server.command.CommandManager.literal;
+
 public class ConfigManager {
     public static final Path SERVER_COSMETICS_DIR = FabricLoader.getInstance().getConfigDir().resolve("ServerCosmetics");
 
@@ -45,23 +47,58 @@ public class ConfigManager {
     private static final String TARGET_MODEL_PATH = "assets/servercosmetics/models/item/";
 
     public record NavigationButton(Text name, Item baseItem, PolymerModelData polymerModelData, int slotIndex, List<String> lore) {}
-    public static String configReloadPermission;
-    public static String itemSkinsPermission;
-    public static String cosmeticsReloadPermission;
+
+    private static String configReloadPermission;
+    private static String itemSkinsReloadPermission;
+    private static String cosmeticsReloadPermission;
     private static Text successConfigReloadMessage;
     private static Text errorConfigReloadMessage;
-    private static Boolean legacyMode;
+    private static boolean legacyMode;
 
     public static void registerConfigs() {
-        createAndLoadConfig();
+        createAndLoadMainConfig();
+        CustomItemRegistry.setLegacyMode(legacyMode);
+
         ItemSkinsGUIConfig.itemSkinsInit();
         CosmeticsGUIConfig.serverCosmeticsInit();
+        CustomItemRegistry.initialize();
+
         registerResourcePackListener();
+    }
+
+    public static void registerCommands(){
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+            dispatcher.register(literal("sc")
+                    .then(literal("reload")
+                            .requires(Permissions.require(Objects.requireNonNullElse(configReloadPermission, "servercosmetics.reload"), 4))
+                            .executes(ConfigManager::reloadAllConfigsCommand))
+            );
+            dispatcher.register(
+                    literal("cm").executes(CosmeticsGUI::openGui)
+                            .requires(Permissions.require(CosmeticsGUIConfig.get().getPermissionOpenGui(), 0))
+                            .then(literal("reload")
+                                    .requires(Permissions.require(Objects.requireNonNullElse(cosmeticsReloadPermission, "servercosmetics.reload.cosmetics"), 4))
+                                    .executes(ConfigManager::reloadCosmeticsConfigsCommand))
+            );
+            dispatcher.register(literal("wearcosmetic")
+                    .requires(Permissions.require("servercosmetics.wearcosmetic", 4))
+                    .then(CommandManager.argument("player", EntityArgumentType.player())
+                            .then(CommandManager.argument("cosmeticId", StringArgumentType.string())
+                                    .executes(CosmeticsGUI::wearCosmeticById)))
+            );
+            dispatcher.register(
+                    literal("is").executes(ItemSkinsGUI::openIsGui)
+                            .requires(Permissions.require(ItemSkinsGUIConfig.get().getPermissionOpenGui(), 0))
+                            .then(literal("reload")
+                                    .requires(Permissions.require(Objects.requireNonNullElse(itemSkinsReloadPermission, "servercosmetics.reload.itemskins"), 4))
+                                    .executes(ConfigManager::reloadItemSkinsConfigsCommand))
+            );
+        });
     }
 
     public static void registerResourcePackListener() {
         PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register((builder) -> {
-            Path resourcePackSourceDir = Path.of("config", "ServerCosmetics", "Assets");
+            Path resourcePackSourceDir = SERVER_COSMETICS_DIR.resolve("Assets");
 
             if (Files.isDirectory(resourcePackSourceDir)) {
                 ServerCosmetics.LOGGER.info("Scanning for .png and .json files in: {}", resourcePackSourceDir.toAbsolutePath());
@@ -101,12 +138,10 @@ public class ConfigManager {
                                     }
 
                                     if (targetBaseDir == null) {
-                                        // Neither .png nor .json
                                         return;
                                     }
 
                                     String finalTargetPath = targetBaseDir + fileNameString;
-
 
                                     if (builder.addData(finalTargetPath, data)) {
                                         ServerCosmetics.LOGGER.debug("Added {} -> {}", filePath.getFileName(), finalTargetPath);
@@ -117,81 +152,113 @@ public class ConfigManager {
                                     ServerCosmetics.LOGGER.error("Failed to read file {} for resource pack", filePath, e);
                                 }
                             });
-
                     ServerCosmetics.LOGGER.info("Finished adding custom .png and .json resources from {}", resourcePackSourceDir.toAbsolutePath());
-
                 } catch (IOException e) {
                     ServerCosmetics.LOGGER.error("Error walking directory {} for resource pack generation", resourcePackSourceDir.toAbsolutePath(), e);
                 }
             } else {
-                ServerCosmetics.LOGGER.warn("Custom resource source directory not found or is not a directory: {}", resourcePackSourceDir.toAbsolutePath());
+                ServerCosmetics.LOGGER.info("Custom resource source directory not found or is not a directory: {}. Skipping custom asset loading.", resourcePackSourceDir.toAbsolutePath());
+                try {
+                    Files.createDirectories(resourcePackSourceDir);
+                    ServerCosmetics.LOGGER.info("Created assets directory at: {}", resourcePackSourceDir.toAbsolutePath());
+                } catch (IOException e) {
+                    ServerCosmetics.LOGGER.error("Failed to create assets directory: {}", resourcePackSourceDir.toAbsolutePath(), e);
+                }
             }
         });
     }
 
     public static void loadDemoConfigs() {
-        if(SERVER_COSMETICS_DIR.toFile().exists()) {
+        if(SERVER_COSMETICS_DIR.toFile().exists() && SERVER_COSMETICS_DIR.resolve("config.yml").toFile().exists()) {
+            return;
+        }
+        try {
+            Files.createDirectories(SERVER_COSMETICS_DIR);
+        } catch (IOException e) {
+            ServerCosmetics.LOGGER.error("Failed to create base ServerCosmetics directory.", e);
+        }
+
+
+        Path demoConfigsPathSource = FabricLoader.getInstance().getModContainer("servercosmetics")
+                .flatMap(modContainer -> modContainer.findPath("assets/servercosmetics/demo-configs/"))
+                .orElse(null);
+
+        if (demoConfigsPathSource == null) {
+            ServerCosmetics.LOGGER.warn("Could not find demo-configs path in mod assets.");
             return;
         }
 
-        Path demoConfigsPath = FabricLoader.getInstance().getModContainer("servercosmetics").flatMap(servercosmetics -> servercosmetics.findPath("assets/servercosmetics/demo-configs/")).get();
+        ServerCosmetics.LOGGER.info("Loading demo configurations from {} to {}", demoConfigsPathSource, SERVER_COSMETICS_DIR);
 
-        try {
-        Files.walk(demoConfigsPath).forEach(path -> {
-            Path destPath = SERVER_COSMETICS_DIR.resolve(demoConfigsPath.relativize(path).toString());
-
-            try {
-                if (Files.isDirectory(path)) {
-                    if (Files.notExists(destPath)) {
-                        Files.createDirectories(destPath);
+        try (Stream<Path> stream = Files.walk(demoConfigsPathSource)) {
+            stream.forEach(sourcePath -> {
+                Path destPath = SERVER_COSMETICS_DIR.resolve(demoConfigsPathSource.relativize(sourcePath).toString());
+                try {
+                    if (Files.isDirectory(sourcePath)) {
+                        if (Files.notExists(destPath)) {
+                            Files.createDirectories(destPath);
+                        }
+                    } else {
+                        Files.copy(sourcePath, destPath, StandardCopyOption.REPLACE_EXISTING);
                     }
-                } else {
-                    Files.copy(path, destPath, StandardCopyOption.REPLACE_EXISTING);
+                } catch (IOException e) {
+                    throw new RuntimeException("Failed to copy demo file " + sourcePath + " to " + destPath, e);
                 }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            });
+        } catch (IOException | RuntimeException e) {
+            ServerCosmetics.LOGGER.error("Failed to load demo configs fully.", e);
         }
     }
 
-    public static int reloadAllConfigs(CommandContext<ServerCommandSource> context) {
+    private static int reloadAllConfigsCommand(CommandContext<ServerCommandSource> context) {
         try {
-            createAndLoadConfig();
+            createAndLoadMainConfig();
+            CustomItemRegistry.setLegacyMode(legacyMode);
+
             ItemSkinsGUIConfig.itemSkinsInit();
             CosmeticsGUIConfig.serverCosmeticsInit();
+            CustomItemRegistry.reloadAll();
+
             context.getSource().sendFeedback(() -> successConfigReloadMessage, false);
         } catch (Exception e){
             context.getSource().sendFeedback(() -> errorConfigReloadMessage, false);
-            throw new RuntimeException("An error occurred during configs reload!", e);
+            ServerCosmetics.LOGGER.error("An error occurred during ALL configs reload!", e);
         }
-        return 0;
+        return 1;
     }
-    public static int reloadItemSkinsConfigs(CommandContext<ServerCommandSource> context) {
+    private static int reloadItemSkinsConfigsCommand(CommandContext<ServerCommandSource> context) {
         try {
+            createAndLoadMainConfig();
+            CustomItemRegistry.setLegacyMode(legacyMode);
+
             ItemSkinsGUIConfig.itemSkinsInit();
+            CustomItemRegistry.reloadItemSkins();
+
             context.getSource().sendFeedback(() -> successConfigReloadMessage, false);
         } catch (Exception e){
             context.getSource().sendFeedback(() -> errorConfigReloadMessage, false);
-            throw new RuntimeException("An error occurred during configs reload!", e);
+            ServerCosmetics.LOGGER.error("An error occurred during ItemSkins configs reload!", e);
         }
-        return 0;
+        return 1;
     }
 
-    public static int reloadCosmeticsConfigs(CommandContext<ServerCommandSource> context) {
+    private static int reloadCosmeticsConfigsCommand(CommandContext<ServerCommandSource> context) {
         try {
+            createAndLoadMainConfig();
+            CustomItemRegistry.setLegacyMode(legacyMode);
+
             CosmeticsGUIConfig.serverCosmeticsInit();
+            CustomItemRegistry.reloadCosmetics();
+
             context.getSource().sendFeedback(() -> successConfigReloadMessage, false);
         } catch (Exception e){
             context.getSource().sendFeedback(() -> errorConfigReloadMessage, false);
-            throw new RuntimeException("An error occurred during configs reload!", e);
+            ServerCosmetics.LOGGER.error("An error occurred during Cosmetics configs reload!", e);
         }
-        return 0;
+        return 1;
     }
 
-    private static void createAndLoadConfig() {
+    private static void createAndLoadMainConfig() {
         loadDemoConfigs();
 
         Path configFile = SERVER_COSMETICS_DIR.resolve("config.yml");
@@ -199,25 +266,22 @@ public class ConfigManager {
 
         try {
             yamlFile.createOrLoadWithComments();
-            initializeConfigDefaults(yamlFile);
+            initializeMainConfigDefaults(yamlFile);
             yamlFile.loadWithComments();
 
             configReloadPermission = yamlFile.getString("permissions.reloadAllConfigs");
-            itemSkinsPermission = yamlFile.getString("permissions.reloadItemSkins");
+            itemSkinsReloadPermission = yamlFile.getString("permissions.reloadItemSkins");
             cosmeticsReloadPermission = yamlFile.getString("permissions.reloadCosmetics");
             successConfigReloadMessage = Utils.formatDisplayName(yamlFile.getString("configReload.message.success"));
             errorConfigReloadMessage = Utils.formatDisplayName(yamlFile.getString("configReload.message.error"));
             legacyMode = yamlFile.getBoolean("legacyMode");
 
         } catch (IOException e) {
-            throw new RuntimeException("Failed to create or load configuration file", e);
+            throw new RuntimeException("Failed to create or load main configuration file (config.yml)", e);
         }
     }
-    public static boolean isLegacyMode() {
-        return legacyMode;
-    }
 
-    private static void initializeConfigDefaults(YamlFile yamlFile) {
+    private static void initializeMainConfigDefaults(YamlFile yamlFile) {
         yamlFile.setCommentFormat(YamlCommentFormat.PRETTY);
 
         yamlFile.options().headerFormatter()
@@ -235,53 +299,45 @@ public class ConfigManager {
         yamlFile.path("permissions").comment("If the mod cannot get permissions from config, the default one will be used");
         yamlFile.addDefault("configReload.message.success", "&aConfig successfully reload!");
         yamlFile.addDefault("configReload.message.error", "&cAn error occurred during configs reload!");
-        yamlFile.path("legacyMode").addDefault(false).commentSide("If you don't know what it is, you want it to be false");
+        yamlFile.path("legacyMode").addDefault(false).commentSide("If true, plugin will try to read some fields from older config structures for cosmetic/skin definitions. Recommended: false for new setups.");
 
         try {
             yamlFile.save();
         } catch (IOException e) {
-            throw new RuntimeException("Failed to save default yml configuration", e);
+            throw new RuntimeException("Failed to save default main yml configuration", e);
         }
     }
 
-
-    public static void addButtonDefault(ConfigurationSection parentSection, String buttonName, Map<String, Object> properties) {
-        ConfigurationSection buttonSection = parentSection.getConfigurationSection(buttonName);
-        if (buttonSection == null) {
-            buttonSection = parentSection.createSection(buttonName);
+    public static ItemStack createItemStack(String baseMaterialId, Text displayName, String cosmeticOrSkinId, List<Text> loreTexts) {
+        Item baseItem = Registries.ITEM.get(Identifier.of(baseMaterialId));
+        if (baseItem == Registries.ITEM.get(Registries.ITEM.getDefaultId()) && !baseMaterialId.equals(Registries.ITEM.getDefaultId().toString())) {
+            ServerCosmetics.LOGGER.warn("Invalid baseMaterialId '{}' for item '{}'. Defaulting to minecraft:paper.", baseMaterialId, cosmeticOrSkinId);
+            baseItem = Registries.ITEM.get(Identifier.of("minecraft:paper")); // Fallback
         }
 
-        properties.forEach(buttonSection::addDefault);
-    }
+        PolymerModelData polymerModel;
+        try {
+            polymerModel = PolymerResourcePackUtils.requestModel(baseItem, Identifier.of(ServerCosmetics.MOD_ID, "item/" + cosmeticOrSkinId));
+        } catch (Exception e) {
+            ServerCosmetics.LOGGER.error("Failed to request model for item id '{}' with base item '{}': {}", cosmeticOrSkinId, baseMaterialId, e.getMessage());
+            ItemStack errorStack = new ItemStack(baseItem);
+            errorStack.set(DataComponentTypes.CUSTOM_NAME, Text.literal("Error: " + cosmeticOrSkinId));
+            return errorStack;
+        }
 
-    public static void loadButtonConfigs(YamlFile yamlFile, String buttonKey, Map<String, NavigationButton> navigationButtons) {
-        String basePath = "buttons." + buttonKey;
-        String baseItemString = yamlFile.getString(basePath + ".item");
-        String complitedItemString = baseItemString.contains(":") ? baseItemString : "minecraft:" + baseItemString.toLowerCase();
-        PolymerModelData polymerModelData = yamlFile.isSet(basePath + ".textureName") ? PolymerResourcePackUtils.requestModel(Registries.ITEM.get(Identifier.of(complitedItemString)), Identifier.of(ServerCosmetics.MOD_ID, "item/" + yamlFile.getString(basePath + ".textureName"))) : null;
-        navigationButtons.put(buttonKey, new NavigationButton(
-                Utils.formatDisplayName(yamlFile.getString(basePath + ".name")),
-                Registries.ITEM.get(Identifier.of(complitedItemString)),
-                polymerModelData,
-                yamlFile.getInt(basePath + ".slotIndex"),
-                yamlFile.getStringList(basePath + ".lore")
-        ));
-    }
 
-    public static ItemStack createItemStack(String material, Text displayName, String itemSkinId, List<Text> lore) {
-        PolymerModelData polymerModel = PolymerResourcePackUtils.requestModel(Registries.ITEM.get(Identifier.of(material)), Identifier.of(ServerCosmetics.MOD_ID, "item/" + itemSkinId));
         ItemStack itemStack = new ItemStack(polymerModel.item());
 
         itemStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbt -> {
-            if (itemSkinId != null) {
-                nbt.putString("itemSkinsID", itemSkinId);
-            }
+            nbt.putString("cosmeticItemId", cosmeticOrSkinId);
         }));
-        if (!lore.isEmpty()) {
-            for (Text l : lore) {
-                itemStack.apply(DataComponentTypes.LORE, LoreComponent.DEFAULT, l, LoreComponent::with);
-            }
+
+        if (loreTexts != null && !loreTexts.isEmpty()) {
+            itemStack.set(DataComponentTypes.LORE, new LoreComponent(loreTexts));
+        } else {
+            itemStack.set(DataComponentTypes.LORE, new LoreComponent(Collections.emptyList()));
         }
+
         itemStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(polymerModel.value()));
         itemStack.set(DataComponentTypes.CUSTOM_NAME, displayName);
 
@@ -289,10 +345,15 @@ public class ConfigManager {
     }
 
     public static List<Path> listFiles(Path dir) {
+        if (!Files.isDirectory(dir)) {
+            ServerCosmetics.LOGGER.warn("Attempted to list files in a non-directory: {}", dir);
+            return Collections.emptyList();
+        }
         try (Stream<Path> walk = Files.walk(dir)) {
             return walk.filter(Files::isRegularFile).collect(Collectors.toList());
         } catch (IOException e) {
-            throw new RuntimeException("Failed to list files in directory: " + dir, e);
+            ServerCosmetics.LOGGER.error("Failed to list files in directory: " + dir, e);
+            return Collections.emptyList();
         }
     }
 }

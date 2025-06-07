@@ -13,8 +13,7 @@ import net.minecraft.util.Identifier;
 import java.util.function.Function;
 
 public class GUIUtils {
-    public static void setUpButton(SimpleGui gui, Function<String, ConfigManager.NavigationButton> getConfigFunction, String buttonKey, Runnable callback) {
-        ConfigManager.NavigationButton buttonConfig = getConfigFunction.apply(buttonKey);
+    public static void setUpButton(SimpleGui gui, ConfigManager.NavigationButton buttonConfig, Runnable callback) {
         if (buttonConfig != null) {
             ItemStack itemStack;
             if(buttonConfig.polymerModelData() != null) {

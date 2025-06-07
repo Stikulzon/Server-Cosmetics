@@ -1,6 +1,8 @@
 package com.zefir.servercosmetics.config;
 
 import com.zefir.servercosmetics.ServerCosmetics;
+import com.zefir.servercosmetics.config.entries.CustomItemEntry;
+import com.zefir.servercosmetics.config.entries.CustomItemRegistry;
 import com.zefir.servercosmetics.util.Utils;
 import eu.pb4.polymer.resourcepack.api.PolymerModelData;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
@@ -13,22 +15,12 @@ import net.minecraft.text.Text;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
 import org.simpleyaml.configuration.ConfigurationSection;
-import org.simpleyaml.configuration.comments.format.YamlCommentFormat;
 import org.simpleyaml.configuration.file.YamlFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 
-public class CosmeticsGUIConfig {
-    @Getter
-    // <id, <<permission, cosmeticsFileName>, itemStack>>
-    private static final Map<Integer, AbstractMap.SimpleEntry<AbstractMap.SimpleEntry<String, String>, ItemStack>> cosmeticsItemsMap = new HashMap<>();
-    private static final Map<String, ConfigManager.NavigationButton> navigationButtons = new HashMap<>();
-    private static String cosmeticsGUIName;
-    @Getter
-    private static int[] cosmeticSlots;
+public class CosmeticsGUIConfig extends AbstractGuiConfig {
+
     @Getter
     private static int[] colorSlots;
     @Getter
@@ -39,14 +31,10 @@ public class CosmeticsGUIConfig {
     private static int colorOutputSlot;
     @Getter
     private static String[] colorHexValues;
-    private static String colorPickerGUIName;
     @Getter
-    private static String permissionOpenGui;
-    private static String textUnlocked;
-    private static String textLocked;
+    private static String colorPickerGUINameString;
     @Getter
     private static float saturationAdjustmentValue;
-    private static boolean isPageIndicatorEnabled;
     @Getter
     private static boolean replaceInventory;
     @Getter
@@ -56,363 +44,178 @@ public class CosmeticsGUIConfig {
     @Getter
     private static DyeColor signColor;
     private static List<String> textLines;
-    private static String successMessage;
-    private static String errorMessage;
+    @Getter
+    private static String successMessageString;
+    @Getter
+    private static String errorMessageString;
 
+    private static CosmeticsGUIConfig instance;
 
-    public static void serverCosmeticsInit(){
-        loadConfig();
-        loadCosmeticItems();
+    public CosmeticsGUIConfig() {
+        super("CosmeticsGUI.yml");
     }
 
-    public static void loadConfig() {
-        Path configFile = ConfigManager.SERVER_COSMETICS_DIR.resolve("CosmeticsGUI.yml");
-        YamlFile yamlFile = new YamlFile(configFile.toAbsolutePath().toString());
+    public static void serverCosmeticsInit() {
+        instance = new CosmeticsGUIConfig();
+        instance.init();
+    }
 
-        try {
-            yamlFile.createOrLoadWithComments();
-            setupDefaultConfig(yamlFile);
-            yamlFile.loadWithComments();
+    public static CosmeticsGUIConfig get() {
+        if (instance == null) {
+            serverCosmeticsInit();
+        }
+        return instance;
+    }
 
-            ConfigManager.loadButtonConfigs(yamlFile, "next", navigationButtons);
-            ConfigManager.loadButtonConfigs(yamlFile, "previous", navigationButtons);
-            ConfigManager.loadButtonConfigs(yamlFile, "removeItem", navigationButtons);
-            ConfigManager.loadButtonConfigs(yamlFile, "toggleColorView", navigationButtons);
-            ConfigManager.loadButtonConfigs(yamlFile, "enterColor", navigationButtons);
-            ConfigManager.loadButtonConfigs(yamlFile, "decreaseBrightness", navigationButtons);
-            ConfigManager.loadButtonConfigs(yamlFile, "increaseBrightness", navigationButtons);
-            ConfigManager.loadButtonConfigs(yamlFile, "pageIndicator", navigationButtons);
-            ConfigManager.loadButtonConfigs(yamlFile, "cosmeticFilter.show-all-skins", navigationButtons);
-            ConfigManager.loadButtonConfigs(yamlFile, "cosmeticFilter.show-owned-skins", navigationButtons);
+    @Override
+    protected String getGuiConfigHeader() {
+        return "Cosmetics GUI Config File";
+    }
 
-            cosmeticsGUIName = yamlFile.getString("guiName");
-            cosmeticSlots = yamlFile.getIntegerList("slots.cosmetic").stream().mapToInt(Integer::intValue).toArray();
-            colorSlots = yamlFile.getIntegerList("slots.color").stream().mapToInt(Integer::intValue).toArray();
-            colorGradientSlots = yamlFile.getIntegerList("slots.colorGradient").stream().mapToInt(Integer::intValue).toArray();
-            colorInputSlot = yamlFile.getInt("slots.colorInput");
-            colorOutputSlot = yamlFile.getInt("slots.colorOutput");
-            colorHexValues = yamlFile.getStringList("colorPicker.hexValues").toArray(new String[0]);
-            colorPickerGUIName = yamlFile.getString("colorPicker.name");
-            saturationAdjustmentValue = yamlFile.getLong("colorPicker.saturationAdjustmentValue");
-            paintItemPolymerModelData = PolymerResourcePackUtils.requestModel(Items.LEATHER_HORSE_ARMOR, Identifier.of(ServerCosmetics.MOD_ID, "item/" + yamlFile.getString("paintItemModelPath")));
-            permissionOpenGui = yamlFile.getString("permissions.openGui");
-            textUnlocked = yamlFile.getString("texts.unlocked");
-            textLocked = yamlFile.getString("texts.locked");
-            isPageIndicatorEnabled = yamlFile.getBoolean("pageIndicatorEnabled");
-            replaceInventory = yamlFile.getBoolean("replaceInventory");
-            signType = yamlFile.getString("colorInput.signType");
-            signColor = DyeColor.valueOf(yamlFile.getString("colorInput.signColor").toUpperCase());
-            textLines = yamlFile.getStringList("colorInput.textLines");
-            successMessage = yamlFile.getString("colorInput.messages.success");
-            errorMessage = yamlFile.getString("colorInput.messages.error");
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create or load CosmeticsGUI.yml file", e);
+    @Override
+    protected void addSpecificDefaults(YamlFile file) {
+        file.addDefault("replaceInventory", true);
+        file.addDefault("slots.colorInput", 28);
+        file.addDefault("slots.colorOutput", 34);
+        file.addDefault("paintItemModelPath", "paint_button");
+        file.addDefault("slots.color", new int[]{21, 22, 23, 30, 31, 32, 39, 40, 41});
+        file.addDefault("slots.colorGradient", new int[]{1, 2, 3, 4, 5, 6, 7});
+        file.addDefault("colorPicker.hexValues", new String[]{"ff0000", "ff7700", "ffff00", "ff0099", "ffffff", "09ff00", "8800ff", "0000ff", "00ffff"});
+        file.addDefault("colorPicker.name", "Color Picker");
+        file.addDefault("colorPicker.saturationAdjustmentValue", 20.0F);
+        file.addDefault("permissions.openGui", "servercosmetics.gui.cosmetics");
+        file.addDefault("colorInput.signType", "minecraft:acacia_wall_sign");
+        file.addDefault("colorInput.signColor", "WHITE");
+        file.addDefault("colorInput.textLines", List.of("Enter the color in", "HEX format", "Example: #FFFFFF"));
+        file.addDefault("colorInput.messages.success", "&aColor successfully changed!");
+        file.addDefault("colorInput.messages.error", "&cIncorrect color format!");
+
+        if (!file.contains("displaySlots")) {
+            file.set("displaySlots", List.of(
+                    19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41, 42, 43
+            ));
         }
     }
 
-    private static void setupDefaultConfig(YamlFile yamlFile) {
-        yamlFile.setCommentFormat(YamlCommentFormat.PRETTY);
+    @Override
+    protected void loadSpecificConfig(YamlFile file) {
+        replaceInventory = file.getBoolean("replaceInventory");
+        colorSlots = file.getIntegerList("slots.color").stream().mapToInt(Integer::intValue).toArray();
+        colorGradientSlots = file.getIntegerList("slots.colorGradient").stream().mapToInt(Integer::intValue).toArray();
+        colorInputSlot = file.getInt("slots.colorInput");
+        colorOutputSlot = file.getInt("slots.colorOutput");
+        colorHexValues = file.getStringList("colorPicker.hexValues").toArray(new String[0]);
+        colorPickerGUINameString = file.getString("colorPicker.name");
+        saturationAdjustmentValue = (float) file.getDouble("colorPicker.saturationAdjustmentValue", 20.0);
 
-        // Header
-        yamlFile.options().headerFormatter()
-                .prefixFirst("###############################")
-                .commentPrefix("## ")
-                .commentSuffix(" ##")
-                .suffixLast("###############################");
 
-        yamlFile.setHeader("Cosmetics GUI Config File");
-
-        // Config body
-
-        yamlFile.path("guiName")
-                .addDefault("Cosmetics Menu")
-                .commentSide("GUI title.");
-
-        yamlFile.path("replaceInventory")
-                .addDefault(true)
-                .commentSide("Use player inventory as GUI slots. With it you can use slots from 53 til 89");
-
-        // Slot configurations
-        yamlFile.path("slots.cosmetic")
-                .addDefault(new int[]{19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41, 42, 43}).commentSide("Cosmetic slots.");
-
-        yamlFile.path("slots.colorInput")
-                .addDefault(28);
-
-        yamlFile.path("slots.colorOutput")
-                .addDefault(34);
-        yamlFile.path("paintItemModelPath")
-                .addDefault("paint_button");
-
-        yamlFile.path("slots.color")
-                .addDefault(new int[]{21, 22, 23, 30, 31, 32, 39, 40, 41})
-                .commentSide("Color picker slots.");
-
-        yamlFile.path("slots.colorGradient")
-                .addDefault(new int[]{1, 2, 3, 4, 5, 6, 7})
-                .commentSide("Gradient slots.");
-
-        // Color picker settings
-        yamlFile.path("colorPicker.hexValues")
-                .addDefault(new String[]{"ff0000", "ff7700", "ffff00", "ff0099", "ffffff", "09ff00", "8800ff", "0000ff", "00ffff"})
-                .commentSide("Color HEX values, must have same variables count as color picker slots");
-
-        yamlFile.path("colorPicker.name")
-                .addDefault("Color Picker")
-                .commentSide("Color picker title.");
-
-        yamlFile.path("colorPicker.saturationAdjustmentValue")
-                .addDefault(20F)
-                .commentSide("Saturation adjustment.");
-
-        // Permissions
-        yamlFile.path("permissions.openGui")
-                .addDefault("servercosmetics.gui.cosmetics")
-                .commentSide("Permission that needed to open gui.");
-
-        // Texts
-        yamlFile.path("texts.unlocked")
-                .addDefault("§a(Unlocked)")
-                .commentSide("Text displayed for unlocked items.");
-
-        yamlFile.path("texts.locked")
-                .addDefault("§c(Locked)")
-                .commentSide("Text displayed for locked items.");
-
-        yamlFile.path("pageIndicatorEnabled")
-                .addDefault(false)
-                .commentSide("Is page indicator enabled.");
-
-        yamlFile.path("colorInput.signType")
-                .addDefault("minecraft:acacia_wall_sign")
-                .commentSide("Sign type.");
-
-        yamlFile.path("colorInput.signColor")
-                .addDefault("WHITE")
-                .commentSide("The color of the sign text.");
-
-        yamlFile.path("colorInput.textLines")
-                .addDefault(List.of("Enter the color in", "HEX format", "Example: #FFFFFF"))
-                .commentSide("Sign text.");
-
-        yamlFile.path("colorInput.messages.success")
-                .addDefault("§aColor successfully changed!")
-                .commentSide("The message displayed to the player upon successful color change.");
-
-        yamlFile.path("colorInput.messages.error")
-                .addDefault("§cIncorrect color format!")
-                .commentSide("The error message displayed when an incorrect color format is entered.");
-
-        // Buttons
-        ConfigurationSection buttons = yamlFile.getConfigurationSection("buttons") == null ? yamlFile.createSection("buttons") : yamlFile.getConfigurationSection("buttons");
-
-        Map<String, Map<String, Object>> buttonDefaults = setupButtonDefaults();
-        buttonDefaults.forEach((buttonName, properties) -> ConfigManager.addButtonDefault(buttons, buttonName, properties));
-
-        try {
-            yamlFile.save();
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to save default yml configuration", e);
+        String paintItemModelPath = file.getString("paintItemModelPath");
+        if (paintItemModelPath != null && !paintItemModelPath.isEmpty()) {
+            try {
+                paintItemPolymerModelData = PolymerResourcePackUtils.requestModel(Items.LEATHER_HORSE_ARMOR, Identifier.of(ServerCosmetics.MOD_ID, "item/" + paintItemModelPath));
+            } catch (Exception e) {
+                ServerCosmetics.LOGGER.error("Failed to load paintItemModelData for path '{}': {}", paintItemModelPath, e.getMessage());
+                paintItemPolymerModelData = null;
+            }
+        } else {
+            paintItemPolymerModelData = null;
         }
+
+
+        signType = file.getString("colorInput.signType");
+        try {
+            signColor = DyeColor.valueOf(file.getString("colorInput.signColor", "WHITE").toUpperCase());
+        } catch (IllegalArgumentException e) {
+            ServerCosmetics.LOGGER.warn("Invalid signColor '{}' in CosmeticsGUI.yml, defaulting to WHITE.", file.getString("colorInput.signColor"));
+            signColor = DyeColor.WHITE;
+        }
+        textLines = file.getStringList("colorInput.textLines");
+        successMessageString = file.getString("colorInput.messages.success");
+        errorMessageString = file.getString("colorInput.messages.error");
     }
 
-    public static Map<String, Map<String, Object>> setupButtonDefaults() {
-        Map<String, Map<String, Object>> buttonDefaults = new HashMap<>();
-
+    @Override
+    protected void addDefaultButtons(ConfigurationSection buttonsSection) {
+        Map<String, Map<String, Object>> buttonDefaults = new java.util.HashMap<>();
         buttonDefaults.put("next", Map.of(
-                "name", "Next",
-                "item", "minecraft:paper",
-                "textureName", "next",
-                "slotIndex", 51));
-
+                "name", "Next", "item", "minecraft:paper", "textureName", "next", "slotIndex", 51));
         buttonDefaults.put("previous", Map.of(
-                "name", "Back",
-                "item", "minecraft:paper",
-                "textureName", "previous",
-                "slotIndex", 47));
-
+                "name", "Back", "item", "minecraft:paper", "textureName", "previous", "slotIndex", 47));
         buttonDefaults.put("removeItem", Map.of(
-                "name", "Remove item",
-                "item", "minecraft:paper",
-                "textureName", "remove",
-                "slotIndex", 49));
-
+                "name", "Remove item", "item", "minecraft:paper", "textureName", "remove", "slotIndex", 49));
         buttonDefaults.put("toggleColorView", Map.of(
-                "name", "Toggle view",
-                "item", "minecraft:diamond_chestplate",
-                "slotIndex", 10));
-
+                "name", "Toggle view", "item", "minecraft:diamond_chestplate", "slotIndex", 10));
         buttonDefaults.put("enterColor", Map.of(
-                "name", "Enter custom color",
-                "item", "minecraft:oak_sign",
-                "slotIndex", 9,
-                "lore", List.of(
-                        "§eEnter the color in HEX format",
-                        "§ein the first line of the sign")));
-
+                "name", "Enter custom color", "item", "minecraft:oak_sign", "slotIndex", 9,
+                "lore", List.of("§eEnter the color in HEX format", "§ein the first line of the sign")));
         buttonDefaults.put("decreaseBrightness", Map.of(
-                "name", "Decrease brightness",
-                "item", "minecraft:paper",
-                "textureName", "previous",
-                "slotIndex", 15));
-
+                "name", "Decrease brightness", "item", "minecraft:paper", "textureName", "previous", "slotIndex", 15));
         buttonDefaults.put("increaseBrightness", Map.of(
-                "name", "Increase brightness",
-                "item", "minecraft:paper",
-                "textureName", "next",
-                "slotIndex", 16));
-
+                "name", "Increase brightness", "item", "minecraft:paper", "textureName", "next", "slotIndex", 16));
         buttonDefaults.put("cosmeticFilter.show-all-skins", Map.of(
-                "name", "&bCosmetic Filter",
-                "item", "minecraft:diamond_chestplate",
-                "slotIndex", 4,
-                "lore", List.of(
-                        "&aAll cosmetics &7(Selected)",
-                        "&7Available cosmetics",
-                        "",
-                        "&aClick to change mode!")));
-
+                "name", "&bCosmetic Filter", "item", "minecraft:diamond_chestplate", "slotIndex", 4,
+                "lore", List.of("&aAll cosmetics &7(Selected)", "&7Available cosmetics", "", "&aClick to change mode!")));
         buttonDefaults.put("cosmeticFilter.show-owned-skins", Map.of(
-                "name", "&bCosmetic Filter",
-                "item", "minecraft:golden_chestplate",
-                "slotIndex", 4,
-                "lore", List.of(
-                        "&7All cosmetics",
-                        "&aAvailable cosmetics &7(Selected)",
-                        "",
-                        "&aClick to change mode!")));
-
+                "name", "&bCosmetic Filter", "item", "minecraft:golden_chestplate", "slotIndex", 4,
+                "lore", List.of("&7All cosmetics", "&aAvailable cosmetics &7(Selected)", "", "&aClick to change mode!")));
         buttonDefaults.put("pageIndicator", Map.of(
-                "name", "Page",
-                "item", "minecraft:paper",
-                "slotIndex", 53));
+                "name", "Page", "item", "minecraft:paper", "slotIndex", 53));
 
-        return buttonDefaults;
+        buttonDefaults.forEach((buttonName, properties) -> addDefaultButtonToSection(buttonsSection, buttonName, properties));
     }
 
-    public static List<String> getTextLines() {
-        return new ArrayList<>(textLines);
+    @Override
+    protected void loadAllNavigationButtons(YamlFile file) {
+        loadNavigationButton(file, "next");
+        loadNavigationButton(file, "previous");
+        loadNavigationButton(file, "removeItem");
+        loadNavigationButton(file, "toggleColorView");
+        loadNavigationButton(file, "enterColor");
+        loadNavigationButton(file, "decreaseBrightness");
+        loadNavigationButton(file, "increaseBrightness");
+        loadNavigationButton(file, "cosmeticFilter.show-all-skins");
+        loadNavigationButton(file, "cosmeticFilter.show-owned-skins");
+        loadNavigationButton(file, "pageIndicator");
+    }
+
+    // --- Static accessors proxying to instance ---
+
+    public static List<String> getTextLines() { // For sign
+        return new ArrayList<>(textLines); // Return a copy
     }
 
     public static Text getSuccessColorChangeMessage() {
-        return Utils.formatDisplayName(successMessage);
+        return Utils.formatDisplayName(successMessageString);
     }
 
     public static Text getErrorColorChangeMessage() {
-        return Utils.formatDisplayName(errorMessage);
-    }
-
-    public static boolean getIsPageIndicatorEnabled() { return isPageIndicatorEnabled; }
-    public static Text getCosmeticsGUIName() {
-        return Utils.formatDisplayName(cosmeticsGUIName);
+        return Utils.formatDisplayName(errorMessageString);
     }
 
     public static Text getColorPickerGUIName() {
-        return Utils.formatDisplayName(colorPickerGUIName);
+        return Utils.formatDisplayName(colorPickerGUINameString);
     }
 
-    public static Text getTextUnlocked() {
-        return Utils.formatDisplayName(textUnlocked);
+    // --- Methods to retrieve cosmetic data from CustomItemRegistry ---
+
+    public static ItemStack getItemStackFromCosmeticId(String cosmeticId) {
+        CustomItemEntry entry = CustomItemRegistry.getStandaloneCosmetic(cosmeticId);
+        return entry != null ? entry.itemStack() : null;
     }
 
-    public static Text getTextLocked() {
-        return Utils.formatDisplayName(textLocked);
-    }
-
-    public static ConfigManager.NavigationButton getButtonConfig(String buttonKey) {
-        return navigationButtons.get(buttonKey);
-    }
-
-    public static void loadCosmeticItems() {
-        Path cosmeticsDir = ConfigManager.SERVER_COSMETICS_DIR.resolve("Cosmetics");
-        try {
-            Files.createDirectories(cosmeticsDir);
-        } catch (IOException e){
-            throw new RuntimeException("Failed to create cosmetics folder", e);
-        }
-        List<Path> files = ConfigManager.listFiles(cosmeticsDir);
-        cosmeticsItemsMap.clear();
-
-        for (Path file : files) {
-            loadCosmeticItem(file);
-        }
-    }
-
-    public static ItemStack getItemStackFromCosmeticsName(String stringId) {
-        for (Map.Entry<Integer, AbstractMap.SimpleEntry<
-                AbstractMap.SimpleEntry<String, String>,
-                ItemStack>> entry : cosmeticsItemsMap.entrySet()) {
-
-            AbstractMap.SimpleEntry<String, String> idEntry = entry.getValue().getKey(); // <permission, stringId>
-            if (idEntry.getValue().equals(stringId)) {
-                return entry.getValue().getValue(); // ItemStack
-            }
+    public static ItemStack getItemStackFromCosmeticIdWithPermissionCheck(String cosmeticId, PlayerEntity player) {
+        CustomItemEntry entry = CustomItemRegistry.getStandaloneCosmetic(cosmeticId);
+        if (entry != null && Permissions.check(player, entry.permission())) {
+            return entry.itemStack();
         }
         return null;
     }
 
-    public static ItemStack getItemStackFromCosmeticsNameWithPermissionCheck(String stringId, PlayerEntity player) {
-        for (Map.Entry<Integer, AbstractMap.SimpleEntry<
-                AbstractMap.SimpleEntry<String, String>,
-                ItemStack>> entry : cosmeticsItemsMap.entrySet()) {
-
-            AbstractMap.SimpleEntry<String, String> idEntry = entry.getValue().getKey(); // <permission, stringId>
-
-            if (idEntry.getValue().equals(stringId) && Permissions.check(player, idEntry.getKey())) {
-                return entry.getValue().getValue(); // ItemStack
-            }
-        }
-        return null;
+    public static Map<String, CustomItemEntry> getAllCosmeticEntries() {
+        return CustomItemRegistry.getStandaloneCosmeticsMap();
     }
 
-
-    private static void loadCosmeticItem(Path file) {
-        YamlFile yamlFile = new YamlFile(file.toAbsolutePath().toString());
-        try {
-            yamlFile.load();
-
-            String material = yamlFile.getString("cosmetic-item.material");
-            if (material == null) {
-                ServerCosmetics.LOGGER.error("Error loading {}: you do not defined \"material\"", file.getFileName().toString());
-                return;
-            }
-            if (!material.contains(":")){
-                material = "minecraft:" + material.toLowerCase();
-            }
-
-            String permission = yamlFile.getString("permission");
-            if (permission == null) {
-                ServerCosmetics.LOGGER.error("Error loading {}: you do not defined \"permission\"", file.getFileName().toString());
-                return;
-            }
-
-            List<Text> lore = yamlFile.getStringList("lore").stream().map(Utils::formatDisplayName).toList();
-
-            if(lore.isEmpty()) {
-                lore = yamlFile.getStringList("cosmetic-item.lore").stream().map(Utils::formatDisplayName).toList();
-            }
-
-            String tempName = yamlFile.getString("cosmetic-item.display-name");
-            Text displayName;
-            if (tempName != null) {
-                displayName = Utils.formatDisplayName(tempName);
-            } else {
-                ServerCosmetics.LOGGER.warn("[WARN] You do not defined \"display-name\" in {}", file.getFileName().toString());
-                displayName = Utils.formatDisplayName("");
-            }
-
-            String id = file.getFileName().toString().substring(0, file.getFileName().toString().lastIndexOf('.'));
-            ItemStack itemStack = ConfigManager.createItemStack(material, displayName, id, lore);
-
-            addCosmeticItem(itemStack, permission, id);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to load cosmetic item from file: " + file, e);
-        }
-    }
-    private static void addCosmeticItem(ItemStack itemStack, String permission, String id) {
-        int index = cosmeticsItemsMap.size();
-        AbstractMap.SimpleEntry<String, String> entryWithId = new AbstractMap.SimpleEntry<>(permission, id);
-        AbstractMap.SimpleEntry<AbstractMap.SimpleEntry<String, String>, ItemStack> entryWithIs = new AbstractMap.SimpleEntry<>(entryWithId, itemStack);
-        cosmeticsItemsMap.put(index, entryWithIs);
-    }
+//    public static Map<Integer, CustomItemEntry> getPaginatedCosmeticEntries(int page, int itemsPerPage) {
+//        return CustomItemRegistry.getPaginatedStandaloneCosmetics(page, itemsPerPage);
+//    }
 }

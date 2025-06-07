@@ -1,25 +1,24 @@
 package com.zefir.servercosmetics.mixin;
 
-import com.zefir.servercosmetics.config.ItemSkinsGUIConfig;
+import com.zefir.servercosmetics.config.entries.CustomItemEntry;
+import com.zefir.servercosmetics.config.entries.CustomItemRegistry;
+import com.zefir.servercosmetics.datafixer.NbtDatafixer;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.Registries;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
-
-import java.util.AbstractMap;
-import java.util.Map;
-import java.util.Objects;
-
-import static com.zefir.servercosmetics.config.ItemSkinsGUIConfig.getItemStackFromCosmeticsNameAndItem;
 
 @Mixin(PlayerInventory.class)
 public class PlayerInventoryMixin {
@@ -32,7 +31,7 @@ public class PlayerInventoryMixin {
             argsOnly = true
     )
     public ItemStack injectedSetStack(ItemStack stack){
-        return checkItemPermission(stack);
+        return checkItemSkinPermission(stack);
     }
 
     @ModifyVariable(
@@ -41,45 +40,52 @@ public class PlayerInventoryMixin {
             argsOnly = true
     )
     public ItemStack injectedInsertStack(ItemStack stack) {
-        checkItemPermission(stack);
-        return stack;
+        return checkItemSkinPermission(stack);
     }
 
-    // лайнокод
     @Unique
-    public ItemStack checkItemPermission(ItemStack stack) {
-        NbtComponent sourceCustomData = stack.getComponents().get(DataComponentTypes.CUSTOM_DATA);
+    public ItemStack checkItemSkinPermission(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return stack;
+        }
+        NbtDatafixer.fixItemStackNbt(stack);
 
-        if (sourceCustomData != null) {
-            NbtCompound copiedCustomData = sourceCustomData.copyNbt();
-            if (copiedCustomData.contains("itemSkinsID")) {
-                Map<Integer, AbstractMap.SimpleEntry<String, AbstractMap.SimpleEntry<String, ItemStack>>> ism = ItemSkinsGUIConfig.getItemSkinsItems(stack.getItem());
-                if (ism != null) {
-                    String itemSkinsID = copiedCustomData.getString("itemSkinsID");
-                    ItemStack updatedItemStack = getItemStackFromCosmeticsNameAndItem(itemSkinsID, stack.getItem());
-                    if (updatedItemStack == null) {
-                        // Remove itemSkinsID
-                        stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbt -> nbt.remove("itemSkinsID")));
+        NbtComponent customDataComponent = stack.get(DataComponentTypes.CUSTOM_DATA);
 
-                        // Remove data component data
-                        stack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
-                    } else if (stack.get(DataComponentTypes.CUSTOM_MODEL_DATA) != updatedItemStack.get(DataComponentTypes.CUSTOM_MODEL_DATA)) {
-                        stack.set(DataComponentTypes.CUSTOM_MODEL_DATA, updatedItemStack.get(DataComponentTypes.CUSTOM_MODEL_DATA));
-                    }
+        if (customDataComponent != null) {
+            NbtCompound nbt = customDataComponent.copyNbt();
+            if (nbt.contains("cosmeticItemId", NbtCompound.STRING_TYPE)) {
+                String itemSkinId = nbt.getString("cosmeticItemId");
+                Item baseItem = stack.getItem();
+                String targetMaterialId = Registries.ITEM.getId(baseItem).toString();
 
-                    for (int i = 0; i < ism.size(); i++) {
-                        if (Objects.equals(ism.get(i).getKey(), itemSkinsID)) {
-                            if (!Permissions.check(player, ism.get(i).getValue().getKey())) {
-                                // Remove itemSkinsID
-                                stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbt -> nbt.remove("itemSkinsID")));
+                CustomItemEntry skinEntry = CustomItemRegistry.getItemSkin(targetMaterialId, itemSkinId);
 
-                                // Remove data component data
-                                stack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
-                            }
-                            return stack;
-                        }
-                    }
+                if (skinEntry == null) {
+                    stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(currentNbt -> currentNbt.remove("cosmeticItemId")));
+                    stack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
+                    return stack;
                 }
+
+                if (!Permissions.check(this.player, skinEntry.permission())) {
+                    stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(currentNbt -> currentNbt.remove("cosmeticItemId")));
+                    stack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
+                    return stack;
+                }
+
+                ItemStack skinDefinitionStack = skinEntry.itemStack();
+                CustomModelDataComponent expectedModelData = skinDefinitionStack.get(DataComponentTypes.CUSTOM_MODEL_DATA);
+                CustomModelDataComponent currentModelData = stack.get(DataComponentTypes.CUSTOM_MODEL_DATA);
+
+                if (expectedModelData != null) {
+                    if (currentModelData == null || currentModelData.value() != expectedModelData.value()) {
+                        stack.set(DataComponentTypes.CUSTOM_MODEL_DATA, expectedModelData);
+                    }
+                } else {
+                    stack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
+                }
+
+                return stack;
             }
         }
         return stack;

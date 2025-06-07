@@ -3,12 +3,14 @@ package com.zefir.servercosmetics.gui;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.zefir.servercosmetics.ServerCosmetics;
+import com.zefir.servercosmetics.config.ItemSkinsGUIConfig;
+import com.zefir.servercosmetics.config.entries.CustomItemEntry;
+import com.zefir.servercosmetics.config.entries.CustomItemRegistry;
 import com.zefir.servercosmetics.database.DatabaseManager;
 import com.zefir.servercosmetics.config.CosmeticsGUIConfig;
 import com.zefir.servercosmetics.ext.CosmeticSlotExt;
-import com.zefir.servercosmetics.gui.resources.GuiTextures;
 import com.zefir.servercosmetics.util.GUIUtils;
-import eu.pb4.sgui.api.GuiHelpers;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.SignGui;
 import eu.pb4.sgui.api.gui.SimpleGui;
@@ -31,236 +33,203 @@ import net.minecraft.util.Identifier;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.lang3.mutable.MutableFloat;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.apache.commons.lang3.mutable.MutableObject;
-import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.*;
-import java.util.List;
-import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 
-// TODO: remove mutable variables usage and (simplify?) map operations
 public class CosmeticsGUI {
     public static int openGui(CommandContext<ServerCommandSource> ctx) {
         ServerPlayerEntity player = ctx.getSource().getPlayer();
         if (player == null) {
-            ctx.getSource().sendFeedback(() -> Text.literal("Player not find"), false);
+            ctx.getSource().sendFeedback(() -> Text.literal("Player not found"), false);
             return 1;
         }
 
         try {
-            var filterRegime = new MutableInt(0);
-            drawCosmeticItems(player, filterRegime);
-
+            // filterRegime: 0 for all, 1 for owned
+            drawCosmeticItems(player, new MutableInt(0), new MutableInt(0)); // Start with page 0, filter all
         } catch (Exception e) {
+            ctx.getSource().sendError(Text.literal("An error occurred opening the Cosmetics GUI."));
             throw new RuntimeException(e);
         }
         return 0;
     }
 
-    private static void drawCosmeticItems(ServerPlayerEntity player, MutableInt filterRegime) {
-        var num = new MutableInt();
-        var creator = new MutableObject<Supplier<SimpleGui>>();
+    // Added currentPageNum parameter
+    private static void drawCosmeticItems(ServerPlayerEntity player, MutableInt filterRegime, MutableInt currentPageNum) {
+        SimpleGui gui = new CosmeticsScreen(player, filterRegime, currentPageNum, CosmeticsGUI::drawCosmeticItems);
+        gui.setTitle(GuiTextures.COSMETICS_MENU.apply(CosmeticsGUIConfig.get().getGuiName()));
 
-        creator.setValue(() -> {
-            num.increment();
-            int pageNumber = num.getValue();
-            var previousGui = GuiHelpers.getCurrentGui(player);
-            var gui = new CosmeticsScreen(player);
-
-            gui.setTitle(GuiTextures.COSMETICS_MENU.apply(CosmeticsGUIConfig.getCosmeticsGUIName()));
-
-            Map<Integer, AbstractMap.SimpleEntry<String, ItemStack>> cosmeticsItemsMap = getFilteredCosmetics(player, filterRegime);
-
-            gui.drawCosmeticItems(cosmeticsItemsMap, pageNumber);
-            gui.setupNavigationButtons(creator, (SimpleGui) previousGui, pageNumber, cosmeticsItemsMap);
-            gui.setupCosmeticFilterButtons(filterRegime);
-            gui.setupPageIndicator(pageNumber, cosmeticsItemsMap);
-
-            return gui;
-        });
-
-        creator.getValue().get().open();
+        gui.open();
     }
 
-    private static Map<Integer, AbstractMap.SimpleEntry<String, ItemStack>> getFilteredCosmetics(ServerPlayerEntity player, MutableInt filterRegime) {
-        Map<Integer, AbstractMap.SimpleEntry<AbstractMap.SimpleEntry<String, String>, ItemStack>> originalCosmeticsItemsMap = CosmeticsGUIConfig.getCosmeticsItemsMap();
-        Map<Integer, AbstractMap.SimpleEntry<String, ItemStack>> allCosmeticsItemsMap = new HashMap<>();
-
-        for (Map.Entry<Integer, AbstractMap.SimpleEntry<AbstractMap.SimpleEntry<String, String>, ItemStack>> entry : originalCosmeticsItemsMap.entrySet()) {
-            Integer key = entry.getKey();
-            AbstractMap.SimpleEntry<String, ItemStack> newEntry = getStringItemStackSimpleEntry(entry);
-
-            // Put the new entry in the converted map
-            allCosmeticsItemsMap.put(key, newEntry);
-        }
-
-
-        if (filterRegime.getValue() == 0) {
-            return allCosmeticsItemsMap;
-        } else {
-            return filterUnlockedCosmetics(player, allCosmeticsItemsMap);
-        }
-    }
-
-    private static AbstractMap.@NotNull SimpleEntry<String, ItemStack> getStringItemStackSimpleEntry(Map.Entry<Integer, AbstractMap.SimpleEntry<AbstractMap.SimpleEntry<String, String>, ItemStack>> entry) {
-        AbstractMap.SimpleEntry<AbstractMap.SimpleEntry<String, String>, ItemStack> value = entry.getValue();
-
-        String extractedString2 = value.getKey().getKey();
-        ItemStack itemStack = value.getValue();
-        return new AbstractMap.SimpleEntry<>(extractedString2, itemStack);
-    }
-
-    private static Map<Integer, AbstractMap.SimpleEntry<String, ItemStack>> filterUnlockedCosmetics(ServerPlayerEntity player, Map<Integer, AbstractMap.SimpleEntry<String, ItemStack>> allCosmeticsItemsMap) {
-        Map<Integer, AbstractMap.SimpleEntry<String, ItemStack>> cosmeticsItemsMap = new HashMap<>();
-        int itemId = 0;
-        for (Map.Entry<Integer, AbstractMap.SimpleEntry<String, ItemStack>> entry : allCosmeticsItemsMap.entrySet()) {
-            AbstractMap.SimpleEntry<String, ItemStack> itemEntry = entry.getValue();
-            String permission = itemEntry.getKey();
-            ItemStack itemStack = itemEntry.getValue();
-
-            if (Permissions.check(player, permission)) {
-                cosmeticsItemsMap.put(itemId, new AbstractMap.SimpleEntry<>(permission, itemStack.copy()));
-                itemId++;
-            }
-        }
-        return cosmeticsItemsMap;
-    }
 
     public static void colorPicker(ServerPlayerEntity player, ItemStack hatItemStack) {
-
         try {
-
-            var creator = new MutableObject<Supplier<SimpleGui>>();
-            creator.setValue(() -> {
-                var selectedColorSlot = new MutableInt();
-                var saturation = new MutableFloat(100F);
-                var isAlreadyGenerated = new MutableBoolean(false);
-                var viewSwitch = new MutableBoolean(true);
-
-                var gui = new ColorPickerScreen(player, selectedColorSlot, saturation, isAlreadyGenerated, viewSwitch, hatItemStack);
-
-                gui.setTitle(GuiTextures.COLOR_PICKER_MENU.apply(CosmeticsGUIConfig.getColorPickerGUIName()));
-                gui.setSlot(CosmeticsGUIConfig.getColorInputSlot(), GuiElementBuilder.from(hatItemStack));
-                gui.drawColorSlots(hatItemStack);
-                gui.setupBrightnessButtons();
-                gui.setupViewToggleButtons();
-                gui.setupColorInputButton(hatItemStack);
-
-                return gui;
-            });
-
-            creator.getValue().get().open();
-
+            ColorPickerScreen gui = new ColorPickerScreen(player, hatItemStack);
+            gui.setTitle(GuiTextures.COLOR_PICKER_MENU.apply(CosmeticsGUIConfig.getColorPickerGUIName()));
+            gui.open();
         } catch (Exception e) {
+            player.sendMessage(Text.literal("Error opening color picker."), false);
             throw new RuntimeException(e);
         }
     }
 
-    private static void colorInput(ServerPlayerEntity player, ItemStack is) {
+    private static void colorInput(ServerPlayerEntity player, ItemStack itemToColor) {
         try {
-            SignGui gui = new ColorInputSign(player, is);
+            ColorInputSign gui = new ColorInputSign(player, itemToColor);
             gui.open();
-
         } catch (Exception e) {
+            player.sendMessage(Text.literal("Error opening color input."), false);
             throw new RuntimeException(e);
         }
     }
 
     private static class ColorInputSign extends SignGui {
-        private final ItemStack is;
+        private final ItemStack itemToColor;
 
-        public ColorInputSign(ServerPlayerEntity player, ItemStack is) {
+        public ColorInputSign(ServerPlayerEntity player, ItemStack itemToColor) {
             super(player);
-            this.is = is;
+            this.itemToColor = itemToColor;
             this.setSignType(Registries.BLOCK.get(Identifier.of(CosmeticsGUIConfig.getSignType())));
             this.setColor(CosmeticsGUIConfig.getSignColor());
             List<String> lines = CosmeticsGUIConfig.getTextLines();
-            for (int i = 0; i < lines.size(); i++) {
-                this.setLine(i + 1, Text.literal(lines.get(i)));
+            for (int i = 0; i < lines.size() && i < 4; i++) {
+                this.setLine(i, Text.literal(lines.get(i)));
             }
-            this.setAutoUpdate(false);
         }
 
         @Override
         public void onClose() {
-            try {
-                String colorString = this.getLine(0).getString();
+            String colorString = this.getLine(0).getString().trim();
 
-                if (colorString != null) {
-                    if (colorString.length() == 6) {
+            if (!colorString.isEmpty()) {
+                try {
+                    if (colorString.length() == 6 && !colorString.startsWith("#")) {
                         colorString = "#" + colorString;
                     }
                     Color color = Color.decode(colorString);
 
-                    ItemStack is2 = is.copy();
-                    is.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(color.getRGB(), true));
+                    ItemStack coloredStack = itemToColor.copy();
+                    coloredStack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(color.getRGB(), true));
 
                     this.player.sendMessage(CosmeticsGUIConfig.getSuccessColorChangeMessage(), false);
 
-                    DatabaseManager.setHeadCosmetics(player.getUuid(), is2);
-                    ((CosmeticSlotExt) player.playerScreenHandler).setHeadCosmetics(is2);
-                    player.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(player.playerScreenHandler.syncId, player.playerScreenHandler.nextRevision(), 5, is2));
+                    DatabaseManager.setHeadCosmetics(player.getUuid(), coloredStack);
+                    ((CosmeticSlotExt) player.playerScreenHandler).setHeadCosmetics(coloredStack);
+                    player.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(player.playerScreenHandler.syncId, player.playerScreenHandler.nextRevision(), 5, coloredStack));
+
+                } catch (NumberFormatException e) {
+                    this.player.sendMessage(CosmeticsGUIConfig.getErrorColorChangeMessage(), false);
                 }
-            } catch (NumberFormatException e) {
-                this.player.sendMessage(CosmeticsGUIConfig.getErrorColorChangeMessage(), false);
             }
         }
     }
 
-    private static class CosmeticsScreen extends SimpleGui {
+    @FunctionalInterface
+    interface GuiDrawer {
+        void draw(ServerPlayerEntity player, MutableInt filterRegime, MutableInt currentPageNum);
+    }
 
-        public CosmeticsScreen(ServerPlayerEntity player) {
+    private static class CosmeticsScreen extends SimpleGui {
+        private final ServerPlayerEntity player;
+        private final MutableInt filterRegime;
+        private final MutableInt currentPageNum;
+        private final GuiDrawer redrawCallback;
+        private final int itemsPerPage;
+
+        public CosmeticsScreen(ServerPlayerEntity player, MutableInt filterRegime, MutableInt currentPageNum, GuiDrawer redrawCallback) {
             super(ScreenHandlerType.GENERIC_9X6, player, CosmeticsGUIConfig.isReplaceInventory());
+            this.player = player;
+            this.filterRegime = filterRegime;
+            this.currentPageNum = currentPageNum;
+            this.redrawCallback = redrawCallback;
+            this.itemsPerPage = CosmeticsGUIConfig.get().getDisplaySlots().length;
+
+            populateGui();
         }
 
-        public void drawCosmeticItems(Map<Integer, AbstractMap.SimpleEntry<String, ItemStack>> cosmeticsItemsMap, int pageNumber) {
-            for (int i = 0; i < Math.min(Math.min(cosmeticsItemsMap.size(), CosmeticsGUIConfig.getCosmeticSlots().length), (cosmeticsItemsMap.size() - CosmeticsGUIConfig.getCosmeticSlots().length * (pageNumber - 1))); i++) {
-                int finalI = Math.min(i + (CosmeticsGUIConfig.getCosmeticSlots().length * (pageNumber - 1)), cosmeticsItemsMap.size() - 1);
-                ItemStack is = cosmeticsItemsMap.get(finalI).getValue().copy(); // IMPORTANT TO USE .copy()!!!
+        private void populateGui() {
+            List<CustomItemEntry> displayableCosmetics = getFilteredAndSortedCosmetics();
+            drawCosmeticItems(displayableCosmetics);
+            setupNavigationButtons(displayableCosmetics.size());
+            setupCosmeticFilterButtons();
+            setupPageIndicator(displayableCosmetics.size());
+        }
 
-                String permission = cosmeticsItemsMap.get(finalI).getKey();
-                if (Permissions.check(player, permission)) {
-                    // loading unlocked item
-                    this.setSlot(CosmeticsGUIConfig.getCosmeticSlots()[i], GuiElementBuilder.from(is)
-                            .addLoreLine(CosmeticsGUIConfig.getTextUnlocked())
-                            .setCallback(() -> {
-                                if (Objects.equals(is.getItem().toString(), Items.LEATHER_HORSE_ARMOR.toString())) {
+        private List<CustomItemEntry> getFilteredAndSortedCosmetics() {
+            Collection<CustomItemEntry> allCosmetics = CustomItemRegistry.getAllStandaloneCosmetics();
+            List<CustomItemEntry> filteredCosmetics;
 
-                                    colorPicker(player, is);
-                                } else {
-                                    this.close();
-                                    DatabaseManager.setHeadCosmetics(player.getUuid(), is);
-                                    ((CosmeticSlotExt) player.playerScreenHandler).setHeadCosmetics(is);
-                                    player.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(player.playerScreenHandler.syncId, player.playerScreenHandler.nextRevision(), 5, is));
-                                }
-                            })
-                    );
+            if (filterRegime.getValue() == 0) { // Show all
+                filteredCosmetics = new ArrayList<>(allCosmetics);
+            } else {
+                filteredCosmetics = allCosmetics.stream()
+                        .filter(entry -> Permissions.check(player, entry.permission()))
+                        .collect(Collectors.toList());
+            }
+
+            filteredCosmetics.sort(Comparator.comparing(CustomItemEntry::id));
+            return filteredCosmetics;
+        }
+
+        public void drawCosmeticItems(List<CustomItemEntry> cosmeticsToDisplay) {
+            int[] displaySlots = CosmeticsGUIConfig.get().getDisplaySlots();
+            int startIndex = currentPageNum.getValue() * itemsPerPage;
+
+            for (int i = 0; i < itemsPerPage; i++) {
+                int cosmeticIndex = startIndex + i;
+                if (cosmeticIndex < cosmeticsToDisplay.size()) {
+                    CustomItemEntry entry = cosmeticsToDisplay.get(cosmeticIndex);
+                    ItemStack displayStack = entry.itemStack().copy();
+
+                    GuiElementBuilder element = GuiElementBuilder.from(displayStack);
+                    boolean hasPermission = Permissions.check(player, entry.permission());
+
+                    if (hasPermission) {
+                        element.addLoreLine(CosmeticsGUIConfig.get().getMessageUnlocked());
+                        element.setCallback(() -> {
+                            String baseMaterialId = entry.baseItemForModel();
+                            if (Items.LEATHER_HORSE_ARMOR.equals(Registries.ITEM.get(Identifier.tryParse(baseMaterialId)))) {
+                                colorPicker(player, displayStack);
+                            } else {
+                                this.close();
+                                DatabaseManager.setHeadCosmetics(player.getUuid(), displayStack);
+                                ((CosmeticSlotExt) player.playerScreenHandler).setHeadCosmetics(displayStack);
+                                player.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(player.playerScreenHandler.syncId, player.playerScreenHandler.nextRevision(), 5, displayStack));
+                            }
+                        });
+                    } else {
+                        element.addLoreLine(CosmeticsGUIConfig.get().getMessageLocked());
+                    }
+                    this.setSlot(displaySlots[i], element);
                 } else {
-                    // loading locked item
-                    this.setSlot(CosmeticsGUIConfig.getCosmeticSlots()[i], GuiElementBuilder.from(is)
-                            .addLoreLine(CosmeticsGUIConfig.getTextLocked()));
+                    this.clearSlot(displaySlots[i]);
                 }
             }
         }
 
-        public void setupNavigationButtons(MutableObject<Supplier<SimpleGui>> creator, SimpleGui previousGui, int pageNumber, Map<Integer, AbstractMap.SimpleEntry<String, ItemStack>> cosmeticsItemsMap) {
-            if (CosmeticsGUIConfig.getCosmeticSlots().length < (cosmeticsItemsMap.size() - CosmeticsGUIConfig.getCosmeticSlots().length * (pageNumber - 1))) {
-                GUIUtils.setUpButton(this, CosmeticsGUIConfig::getButtonConfig, "next", () -> {
-                    var next = new MutableObject<SimpleGui>();
-                    if (next.getValue() == null) {
-                        next.setValue(creator.getValue().get());
-                    }
-                    next.getValue().open();
+        public void setupNavigationButtons(int totalFilteredItems) {
+            // Next Button
+            if ((currentPageNum.getValue() + 1) * itemsPerPage < totalFilteredItems) {
+                GUIUtils.setUpButton(this, CosmeticsGUIConfig.get().getButtonConfig("next"), () -> {
+                    currentPageNum.increment();
+                    redrawCallback.draw(player, filterRegime, currentPageNum);
                 });
             }
 
-            if (pageNumber > 1 && previousGui != null) {
-                GUIUtils.setUpButton(this, CosmeticsGUIConfig::getButtonConfig, "previous", previousGui::open);
+            // Previous Button
+            if (currentPageNum.getValue() > 0) {
+                GUIUtils.setUpButton(this, CosmeticsGUIConfig.get().getButtonConfig("previous"), () -> {
+                    currentPageNum.decrement();
+                    redrawCallback.draw(player, filterRegime, currentPageNum);
+                });
             }
 
-            GUIUtils.setUpButton(this, CosmeticsGUIConfig::getButtonConfig, "removeItem", () -> {
+            // Remove Item Button
+            GUIUtils.setUpButton(this, CosmeticsGUIConfig.get().getButtonConfig("removeItem"), () -> {
                 this.close();
                 DatabaseManager.setHeadCosmetics(player.getUuid(), ItemStack.EMPTY);
                 ((CosmeticSlotExt) player.playerScreenHandler).setHeadCosmetics(ItemStack.EMPTY);
@@ -268,145 +237,176 @@ public class CosmeticsGUI {
             });
         }
 
-        public void setupCosmeticFilterButtons(MutableInt filterRegime) {
-            if (filterRegime.getValue() == 0) {
-                GUIUtils.setUpButton(this, CosmeticsGUIConfig::getButtonConfig, "cosmeticFilter.show-all-skins", () -> {
-                    filterRegime.setValue(1);
-                    CosmeticsGUI.drawCosmeticItems(player, filterRegime);
+        public void setupCosmeticFilterButtons() {
+            if (filterRegime.getValue() == 0) { // Currently showing all
+                GUIUtils.setUpButton(this, CosmeticsGUIConfig.get().getButtonConfig("cosmeticFilter.show-all-skins"), () -> {
+                    filterRegime.setValue(1); // Set to "owned"
+                    currentPageNum.setValue(0); // Reset to first page
+                    redrawCallback.draw(player, filterRegime, currentPageNum);
                 });
-            } else if (filterRegime.getValue() == 1) {
-                GUIUtils.setUpButton(this, CosmeticsGUIConfig::getButtonConfig, "cosmeticFilter.show-owned-skins", () -> {
-                    filterRegime.setValue(0);
-                    CosmeticsGUI.drawCosmeticItems(player, filterRegime);
+            } else { // Currently showing owned
+                GUIUtils.setUpButton(this, CosmeticsGUIConfig.get().getButtonConfig("cosmeticFilter.show-owned-skins"), () -> {
+                    filterRegime.setValue(0); // Set to "all"
+                    currentPageNum.setValue(0);
+                    redrawCallback.draw(player, filterRegime, currentPageNum);
                 });
             }
         }
 
-        public void setupPageIndicator(int pageNumber, Map<Integer, AbstractMap.SimpleEntry<String, ItemStack>> cosmeticsItemsMap) {
-            if (CosmeticsGUIConfig.getIsPageIndicatorEnabled()) {
-                GUIUtils.setUpButton(this, CosmeticsGUIConfig::getButtonConfig, "pageIndicator", () -> {});
-                this.setSlot(53, new GuiElementBuilder(Items.STICK).setCount(pageNumber));
+        public void setupPageIndicator(int totalFilteredItems) {
+            if (CosmeticsGUIConfig.get().isPageIndicatorEnabled()) {
+//                int totalPages = (totalFilteredItems == 0) ? 1 : (int) Math.ceil((double) totalFilteredItems / itemsPerPage);
+//                totalPages = Math.max(1, totalPages);
+//                int displayPageNum = currentPageNum.getValue() + 1;
+
+                if(ItemSkinsGUIConfig.get().isPageIndicatorEnabled()) {
+                    GUIUtils.setUpButton(this, ItemSkinsGUIConfig.get().getButtonConfig("pageIndicator"), () -> {});
+                }
             }
         }
     }
 
     private static class ColorPickerScreen extends SimpleGui {
-        private final MutableInt selectedColorSlot;
-        private final MutableFloat saturation;
-        private final MutableBoolean isAlreadyGenerated;
-        private final MutableBoolean viewSwitch;
+        private final ServerPlayerEntity player;
         private final ItemStack hatItemStack;
+        private final MutableFloat saturation = new MutableFloat(100F);
+        private final MutableInt selectedBaseColorSlotIndex = new MutableInt(0);
+        private boolean initialGradientDrawn = false;
+        private final MutableBoolean usePaintBrushView = new MutableBoolean(true);
 
-        public ColorPickerScreen(ServerPlayerEntity player, MutableInt selectedColorSlot, MutableFloat saturation, MutableBoolean isAlreadyGenerated, MutableBoolean viewSwitch, ItemStack hatItemStack) {
+        public ColorPickerScreen(ServerPlayerEntity player, ItemStack hatItemStack) {
             super(ScreenHandlerType.GENERIC_9X5, player, true);
-            this.selectedColorSlot = selectedColorSlot;
-            this.saturation = saturation;
-            this.isAlreadyGenerated = isAlreadyGenerated;
-            this.viewSwitch = viewSwitch;
-            this.hatItemStack = hatItemStack;
+            this.player = player;
+            this.hatItemStack = hatItemStack.copy();
+
+            populateGui();
         }
 
-        public void drawColorSlots(ItemStack hatItemStack) {
-            ItemStack is;
-            if (viewSwitch.getValue()) {
-                is = new ItemStack(Items.LEATHER_HORSE_ARMOR);
-                is.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(CosmeticsGUIConfig.getPaintItemPolymerModelData().value()));
+        private void populateGui() {
+            this.setSlot(CosmeticsGUIConfig.getColorInputSlot(), GuiElementBuilder.from(hatItemStack));
+            drawBaseColorSlots();
+            if (!initialGradientDrawn && CosmeticsGUIConfig.getColorSlots().length > 0) {
+                selectedBaseColorSlotIndex.setValue(CosmeticsGUIConfig.getColorSlots()[0]);
+                drawGradientSlots();
+                initialGradientDrawn = true;
+            }
+            setupBrightnessButtons();
+            setupViewToggleButtons();
+            setupColorInputButton();
+        }
+
+
+        public void drawBaseColorSlots() {
+            ItemStack templateStack;
+            if (usePaintBrushView.getValue() && CosmeticsGUIConfig.getPaintItemPolymerModelData() != null) {
+                templateStack = new ItemStack(Items.LEATHER_HORSE_ARMOR);
+                templateStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(CosmeticsGUIConfig.getPaintItemPolymerModelData().value()));
             } else {
-                is = hatItemStack;
+                templateStack = hatItemStack.copy();
+                templateStack.remove(DataComponentTypes.DYED_COLOR);
             }
 
-            int[] colorSlots = CosmeticsGUIConfig.getColorSlots();
+            int[] baseColorDisplaySlots = CosmeticsGUIConfig.getColorSlots();
             String[] colorHexValues = CosmeticsGUIConfig.getColorHexValues();
-            for (int i = 0; i < colorSlots.length; i++) {
 
-                int decimal = Integer.parseInt(colorHexValues[i], 16);
+            for (int i = 0; i < baseColorDisplaySlots.length && i < colorHexValues.length; i++) {
+                ItemStack displayColorStack = templateStack.copy();
+                try {
+                    int decimalColor = Integer.parseInt(colorHexValues[i], 16);
+                    displayColorStack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(decimalColor, true));
 
-                is.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(decimal, true));
-                int finalI = i;
-                is.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbt -> nbt.putInt("index", finalI)));
+                    NbtCompound nbt = new NbtCompound();
+                    nbt.putInt("baseColorHexIndex", i);
+                    displayColorStack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
 
-                this.setSlot(colorSlots[i], GuiElementBuilder.from(is)
-                        .setCallback((index, clickType, actionType) -> {
-                            selectedColorSlot.setValue(index);
 
-                            drawGradientSlots(selectedColorSlot);
-                        })
-                );
-
-                if (!isAlreadyGenerated.getValue()) {
-                    selectedColorSlot.setValue(colorSlots[i]);
-                    drawGradientSlots(selectedColorSlot);
-                    isAlreadyGenerated.setValue(true);
+                    this.setSlot(baseColorDisplaySlots[i], GuiElementBuilder.from(displayColorStack)
+                            .setCallback((clickIndex, clickType, actionType) -> {
+                                ItemStack clickedStack = Objects.requireNonNull(this.getSlot(clickIndex)).getItemStack();
+                                NbtCompound clickedNbt = clickedStack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT).copyNbt();
+                                if(clickedNbt.contains("baseColorHexIndex")){
+                                    selectedBaseColorSlotIndex.setValue(clickedNbt.getInt("baseColorHexIndex"));
+                                } else {
+                                    for(int k=0; k < baseColorDisplaySlots.length; k++){
+                                        if(baseColorDisplaySlots[k] == clickIndex){
+                                            selectedBaseColorSlotIndex.setValue(k);
+                                            break;
+                                        }
+                                    }
+                                }
+                                drawGradientSlots();
+                            })
+                    );
+                } catch (NumberFormatException e) {
+                    ServerCosmetics.LOGGER.warn("Invalid hex color in config: {}", colorHexValues[i]);
                 }
-
+            }
+            if (!initialGradientDrawn && baseColorDisplaySlots.length > 0) {
+                selectedBaseColorSlotIndex.setValue(0);
+                drawGradientSlots();
+                initialGradientDrawn = true;
             }
         }
 
-        private void drawGradientSlots(MutableInt selectedColorSlot) {
-            ItemStack currentColorItemStack = new ItemStack(Items.LEATHER_HORSE_ARMOR);
-            ItemStack sourceStack = Objects.requireNonNull(this.getSlot(selectedColorSlot.getValue())).getItemStack();
-            currentColorItemStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbt -> {
-                NbtComponent sourceCustomData = sourceStack.get(DataComponentTypes.CUSTOM_DATA);
-                if (sourceCustomData != null) {
-                    NbtCompound sourceNbt = sourceCustomData.copyNbt();
-                    if (sourceNbt.contains("itemSkinsID")) {
-                        nbt.putString("itemSkinsID", sourceNbt.getString("itemSkinsID"));
-                    }
-                    if (sourceNbt.contains("index")) {
-                        nbt.putInt("index", sourceNbt.getInt("index"));
-                    }
-                }
-            }));
-            currentColorItemStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, sourceStack.getOrDefault(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(0)));
+        private void drawGradientSlots() {
+            if (selectedBaseColorSlotIndex.getValue() < 0 || selectedBaseColorSlotIndex.getValue() >= CosmeticsGUIConfig.getColorHexValues().length) {
+                return;
+            }
 
-            int slotIndex = currentColorItemStack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT)
-                    .copyNbt().getInt("index");
+            String baseHex = CosmeticsGUIConfig.getColorHexValues()[selectedBaseColorSlotIndex.getValue()];
+            Color baseColor;
+            try {
+                baseColor = new Color(Integer.parseInt(baseHex, 16));
+            } catch (NumberFormatException e) {
+                ServerCosmetics.LOGGER.warn("Invalid base hex for gradient: {}", baseHex);
+                return;
+            }
 
-            int decimal = (Integer.parseInt(CosmeticsGUIConfig.getColorHexValues()[slotIndex], 16));
+            ItemStack gradientTemplateStack = hatItemStack.copy();
+
+            CustomModelDataComponent modelData = hatItemStack.get(DataComponentTypes.CUSTOM_MODEL_DATA);
+            if (modelData != null) {
+                gradientTemplateStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, modelData);
+            }
+
+            NbtComponent originalCustomData = hatItemStack.get(DataComponentTypes.CUSTOM_DATA);
+            if (originalCustomData != null) {
+                gradientTemplateStack.set(DataComponentTypes.CUSTOM_DATA, originalCustomData);
+            }
 
 
-            Color color = new Color(decimal);
+            float[] hsv = Color.RGBtoHSB(baseColor.getRed(), baseColor.getGreen(), baseColor.getBlue(), null);
+            int[] gradientDisplaySlots = CosmeticsGUIConfig.getColorGradientSlots();
 
-            float[] hsv = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
+            for (int j = 0; j < gradientDisplaySlots.length; j++) {
 
-            int[] colorGradientSlots = CosmeticsGUIConfig.getColorGradientSlots();
-            for (int j = 0; j < colorGradientSlots.length; j++) {
+                float brightnessFactor = (1.0f / (gradientDisplaySlots.length +1 )) * (j + 1.0f);
+                brightnessFactor = Math.min(Math.max(brightnessFactor, 0.1f), 1.0f);
 
-                float luminance = Math.min(
-                        (1F / (7F + 1F) * ((float) j + 1)),
-                        1F);
+                Color gradientStepColor;
 
-                Color color2;
-                if (color.getRed() == color.getGreen() && color.getRed() == color.getBlue()) {
-                    color2 = new Color(Color.HSBtoRGB(hsv[0], hsv[1], saturation.getValue() / 100F));
+                if (baseColor.getRed() == baseColor.getGreen() && baseColor.getRed() == baseColor.getBlue()) {
+                    gradientStepColor = new Color(Color.HSBtoRGB(hsv[0], 0, brightnessFactor));
                 } else {
-                    color2 = new Color(Color.HSBtoRGB(hsv[0], 1F - luminance, saturation.getValue() / 100F));
+                    gradientStepColor = new Color(Color.HSBtoRGB(hsv[0], saturation.getValue() / 100F, brightnessFactor));
                 }
-                int[] rgb = {color2.getRed(), color2.getGreen(), color2.getBlue()};
 
 
-                ItemStack is = currentColorItemStack.copy();
-                int decimal2 = rgb[0];
-                decimal2 = (decimal2 << 8) + rgb[1];
-                decimal2 = (decimal2 << 8) + rgb[2];
+                ItemStack gradientItem = gradientTemplateStack.copy();
+                int stepColorRgb = gradientStepColor.getRGB();
+                gradientItem.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(stepColorRgb, true));
 
-                is.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(decimal2, true));
-
-
-                int finalDecimal2 = decimal2;
-                this.setSlot(colorGradientSlots[j], GuiElementBuilder.from(is)
-
+                this.setSlot(gradientDisplaySlots[j], GuiElementBuilder.from(gradientItem)
                         .setCallback(() -> {
-                            ItemStack is4 = hatItemStack.copy();
-                            is4.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(finalDecimal2, true));
+                            ItemStack finalColoredHat = hatItemStack.copy();
+                            finalColoredHat.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(stepColorRgb, true));
 
-                            this.setSlot(CosmeticsGUIConfig.getColorOutputSlot(), GuiElementBuilder.from(is4)
-
+                            this.setSlot(CosmeticsGUIConfig.getColorOutputSlot(), GuiElementBuilder.from(finalColoredHat.copy())
                                     .setCallback(() -> {
                                         this.close();
-                                        DatabaseManager.setHeadCosmetics(player.getUuid(), is4);
-                                        ((CosmeticSlotExt) player.playerScreenHandler).setHeadCosmetics(is4);
-                                        player.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(player.playerScreenHandler.syncId, player.playerScreenHandler.nextRevision(), 5, is4));
+                                        DatabaseManager.setHeadCosmetics(player.getUuid(), finalColoredHat);
+                                        ((CosmeticSlotExt) player.playerScreenHandler).setHeadCosmetics(finalColoredHat);
+                                        player.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(player.playerScreenHandler.syncId, player.playerScreenHandler.nextRevision(), 5, finalColoredHat));
                                     })
                             );
                         })
@@ -414,33 +414,36 @@ public class CosmeticsGUI {
             }
         }
 
+
         public void setupBrightnessButtons() {
-            GUIUtils.setUpButton(this, CosmeticsGUIConfig::getButtonConfig, "decreaseBrightness", () -> {
+            GUIUtils.setUpButton(this, CosmeticsGUIConfig.get().getButtonConfig("decreaseBrightness"), () -> {
                 if (saturation.getValue() > CosmeticsGUIConfig.getSaturationAdjustmentValue()) {
                     saturation.subtract(CosmeticsGUIConfig.getSaturationAdjustmentValue());
-                    saturation.setValue(Math.max(saturation.getValue(), 0F));
-                    drawGradientSlots(selectedColorSlot);
+                } else {
+                    saturation.setValue(0F);
                 }
+                drawGradientSlots();
             });
 
-            GUIUtils.setUpButton(this, CosmeticsGUIConfig::getButtonConfig, "increaseBrightness", () -> {
-                if (saturation.getValue() < 100F) {
+            GUIUtils.setUpButton(this, CosmeticsGUIConfig.get().getButtonConfig("increaseBrightness"), () -> {
+                if (saturation.getValue() < 100F - CosmeticsGUIConfig.getSaturationAdjustmentValue()) {
                     saturation.add(CosmeticsGUIConfig.getSaturationAdjustmentValue());
-                    saturation.setValue(Math.min(saturation.getValue(), 100F));
-                    drawGradientSlots(selectedColorSlot);
+                } else {
+                    saturation.setValue(100F);
                 }
+                drawGradientSlots();
             });
         }
 
         public void setupViewToggleButtons() {
-            GUIUtils.setUpButton(this, CosmeticsGUIConfig::getButtonConfig, "toggleColorView", () -> {
-                viewSwitch.setValue(!viewSwitch.getValue());
-                drawColorSlots(hatItemStack);
+            GUIUtils.setUpButton(this, CosmeticsGUIConfig.get().getButtonConfig("toggleColorView"), () -> {
+                usePaintBrushView.setValue(!usePaintBrushView.getValue());
+                drawBaseColorSlots();
             });
         }
 
-        public void setupColorInputButton(ItemStack hatItemStack) {
-            GUIUtils.setUpButton(this, CosmeticsGUIConfig::getButtonConfig, "enterColor", () -> colorInput(player, hatItemStack));
+        public void setupColorInputButton() {
+            GUIUtils.setUpButton(this, CosmeticsGUIConfig.get().getButtonConfig("enterColor"), () -> colorInput(player, hatItemStack));
         }
     }
 
@@ -449,52 +452,41 @@ public class CosmeticsGUI {
         try {
             player = EntityArgumentType.getPlayer(context, "player");
         } catch (CommandSyntaxException e) {
-            throw new RuntimeException(e);
-        }
-
-        if (player == null) {
-            context.getSource().sendFeedback(() -> Text.literal("Player not found"), false);
-            System.out.println("Player not found");
+            context.getSource().sendError(Text.literal("Invalid player specified."));
             return 1;
         }
 
         String id = StringArgumentType.getString(context, "cosmeticId");
 
         if (id == null || id.isEmpty()) {
-            context.getSource().sendFeedback(() -> Text.literal("Invalid cosmetic ID"), false);
-            System.out.println("Invalid cosmetic ID");
+            context.getSource().sendError(Text.literal("Invalid cosmetic ID."));
             return 1;
         }
 
-        // Search for the cosmetic by ID
-        Optional<AbstractMap.SimpleEntry<AbstractMap.SimpleEntry<String, String>, ItemStack>> optionalEntry = CosmeticsGUIConfig.getCosmeticsItemsMap().values().stream()
-                    .filter(entry -> id.equals(entry.getKey().getValue()))
-                    .findFirst();
+        CustomItemEntry entry = CustomItemRegistry.getStandaloneCosmetic(id);
 
-        if (optionalEntry.isPresent()) {
-            AbstractMap.SimpleEntry<AbstractMap.SimpleEntry<String, String>, ItemStack> cosmeticEntry = optionalEntry.get();
-            String permission = cosmeticEntry.getKey().getKey();
-
-            if (!Permissions.check(player, permission)) {
-                context.getSource().sendFeedback(() -> Text.literal("Selected player do not have permission to use this cosmetic"), false);
+        if (entry != null) {
+            if (!Permissions.check(player, entry.permission())) {
+                context.getSource().sendFeedback(() -> Text.literal("Selected player does not have permission to use this cosmetic."), false);
                 return 1;
             }
 
-            ItemStack cosmeticItem = cosmeticEntry.getValue();
+            ItemStack cosmeticItem = entry.itemStack();
             if (cosmeticItem == null || cosmeticItem.isEmpty()) {
-                context.getSource().sendFeedback(() -> Text.literal("Cosmetic item is empty"), false);
+                context.getSource().sendError(Text.literal("Cosmetic item definition is empty or invalid."));
                 return 1;
             }
 
-            // If the cosmetic's material is LEATHER_HORSE_ARMOR, open the color picker menu
-            if (cosmeticItem.getItem() == Items.LEATHER_HORSE_ARMOR) {
-                colorPicker(player, cosmeticItem);
+            String baseMaterialId = entry.baseItemForModel();
+            if (Items.LEATHER_HORSE_ARMOR.equals(Registries.ITEM.get(Identifier.tryParse(baseMaterialId)))) {
+                ItemStack itemForColorPicker = cosmeticItem.copy();
+                itemForColorPicker.remove(DataComponentTypes.DYED_COLOR);
+                colorPicker(player, itemForColorPicker);
             } else {
-                // Equip the cosmetic
                 DatabaseManager.setHeadCosmetics(player.getUuid(), cosmeticItem);
                 ((CosmeticSlotExt) player.playerScreenHandler).setHeadCosmetics(cosmeticItem);
                 player.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(player.playerScreenHandler.syncId, player.playerScreenHandler.nextRevision(), 5, cosmeticItem));
-                context.getSource().sendFeedback(() -> Text.literal("You are now wearing the cosmetic"), false);
+                context.getSource().sendFeedback(() -> Text.literal("Equipped cosmetic: " + entry.displayName().getString()), false);
             }
             return 0;
         } else {
