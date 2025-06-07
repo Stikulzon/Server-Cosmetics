@@ -51,7 +51,6 @@ public class ConfigManager {
     private static Text successConfigReloadMessage;
     private static Text errorConfigReloadMessage;
     private static Boolean legacyMode;
-    private static Boolean HMCCosmeticsSupport;
 
     public static void registerConfigs() {
         createAndLoadConfig();
@@ -209,7 +208,6 @@ public class ConfigManager {
             successConfigReloadMessage = Utils.formatDisplayName(yamlFile.getString("configReload.message.success"));
             errorConfigReloadMessage = Utils.formatDisplayName(yamlFile.getString("configReload.message.error"));
             legacyMode = yamlFile.getBoolean("legacyMode");
-            HMCCosmeticsSupport = yamlFile.getBoolean("HMCCosmeticsSupport");
 
         } catch (IOException e) {
             throw new RuntimeException("Failed to create or load configuration file", e);
@@ -218,7 +216,6 @@ public class ConfigManager {
     public static boolean isLegacyMode() {
         return legacyMode;
     }
-    public static boolean isHMCCosmeticsSupport() {return HMCCosmeticsSupport;}
 
     private static void initializeConfigDefaults(YamlFile yamlFile) {
         yamlFile.setCommentFormat(YamlCommentFormat.PRETTY);
@@ -239,7 +236,6 @@ public class ConfigManager {
         yamlFile.addDefault("configReload.message.success", "&aConfig successfully reload!");
         yamlFile.addDefault("configReload.message.error", "&cAn error occurred during configs reload!");
         yamlFile.path("legacyMode").addDefault(false).commentSide("If you don't know what it is, you want it to be false");
-        yamlFile.path("HMCCosmeticsSupport").addDefault(false).commentSide("Adds HMCCosmetics and HMCSkins folder");
 
         try {
             yamlFile.save();

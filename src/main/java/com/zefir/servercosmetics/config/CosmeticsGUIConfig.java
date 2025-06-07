@@ -63,9 +63,6 @@ public class CosmeticsGUIConfig {
     public static void serverCosmeticsInit(){
         loadConfig();
         loadCosmeticItems();
-        if(ConfigManager.isHMCCosmeticsSupport()){
-            loadHMCCosmetics();
-        }
     }
 
     public static void loadConfig() {
@@ -338,70 +335,6 @@ public class CosmeticsGUIConfig {
 
         for (Path file : files) {
             loadCosmeticItem(file);
-        }
-    }
-
-    public static void loadHMCCosmetics() {
-        Path cosmeticsDir = ConfigManager.SERVER_COSMETICS_DIR.resolve("HMCCosmetics");
-        try {
-            Files.createDirectories(cosmeticsDir);
-        } catch (IOException e){
-            throw new RuntimeException("Failed to create cosmetics folder", e);
-        }
-        List<Path> files = ConfigManager.listFiles(cosmeticsDir);
-
-        for (Path file : files) {
-            loadHMCCosmeticItem(file);
-        }
-    }
-    private static void loadHMCCosmeticItem(Path file) {
-        YamlFile yamlFile = new YamlFile(file.toAbsolutePath().toString());
-        try {
-            yamlFile.load();
-
-            Set<String> keys =  yamlFile.getKeys(false);
-//            System.out.println("keys: " + keys);
-
-            for(String str : keys){
-                ConfigurationSection section = yamlFile.getConfigurationSection(str);
-//                System.out.println("section: " + str);
-
-                if(Objects.equals(section.getString("slot"), "HELMET")) {
-                    String material = section.getString("item.material");
-                    if (material == null) {
-                        ServerCosmetics.LOGGER.error("Error loading {}: you do not defined \"material\"", file.getFileName().toString());
-                        return;
-                    }
-                    if (!material.contains(":")) {
-                        material = "minecraft:" + material.toLowerCase();
-                    }
-
-                    String permission = section.getString("permission");
-                    if (permission == null) {
-                        ServerCosmetics.LOGGER.error("Error loading {}: you do not defined \"permission\"", file.getFileName().toString());
-                        return;
-                    }
-
-                    String id = section.getString("id");
-
-                    List<Text> lore = section.getStringList("item.lore").stream().map(Utils::formatDisplayName).toList();
-
-                    String tempName = section.getString("item.name");
-                    Text displayName;
-                    if (tempName != null) {
-                        displayName = Utils.formatDisplayName(tempName);
-                    } else {
-                        ServerCosmetics.LOGGER.warn("[WARN] You do not defined \"display-name\" in {}", file.getFileName().toString());
-                        displayName = Utils.formatDisplayName("");
-                    }
-
-                    ItemStack itemStack = ConfigManager.createItemStack(material, displayName, file.getFileName().toString().substring(0, file.getFileName().toString().lastIndexOf('.')), lore);
-
-                    addCosmeticItem(itemStack, permission, id);
-                }
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to load cosmetic item from file: " + file, e);
         }
     }
 

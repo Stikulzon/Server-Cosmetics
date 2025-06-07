@@ -33,9 +33,6 @@ public class ItemSkinsGUIConfig {
     public static void itemSkinsInit(){
         loadConfig();
         loadItemSkins();
-        if(ConfigManager.isHMCCosmeticsSupport()){
-            loadHMCSkins();
-        }
     }
 
     public static void loadConfig() {
@@ -182,80 +179,6 @@ public class ItemSkinsGUIConfig {
 
         for (Path file : files) {
             loadItemSkin(file);
-        }
-    }
-    public static void loadHMCSkins() {
-        Path itemSkinsDir = ConfigManager.SERVER_COSMETICS_DIR.resolve("HMCSkins");
-        try {
-            Files.createDirectories(itemSkinsDir);
-        } catch (IOException e){
-            throw new RuntimeException("Failed to create HMCSkins folder", e);
-        }
-        List<Path> files = ConfigManager.listFiles(itemSkinsDir);
-
-        for (Path file : files) {
-            loadHMCSkin(file);
-        }
-    }
-    private static void loadHMCSkin(Path file) {
-        YamlFile yamlFile = new YamlFile(file.toAbsolutePath().toString());
-        try {
-            yamlFile.load();
-            ConfigurationSection items = yamlFile.getConfigurationSection("items");
-
-            Set<String> keys = items.getKeys(false);
-//            System.out.println("keys: " + keys);
-
-            for(String mat : keys) {
-                ConfigurationSection skins = items.getConfigurationSection(mat + ".wraps");
-                Set<String> skinsKeys = skins.getKeys(false);
-//                System.out.println("skinsKeys: " + skinsKeys);
-
-                for(String skin : skinsKeys) {
-                    ConfigurationSection skinSection = skins.getConfigurationSection(skin);
-//                    System.out.println("section: " + skinSection);
-
-                    List<String> materials = new ArrayList<>();
-                    if (mat != null) {
-                        materials.add(mat);
-                    } else {
-                        ServerCosmetics.LOGGER.error("Error loading {}: you do not defined \"material\"", file.getFileName().toString());
-                        return;
-                    }
-
-                    String uuid = skinSection.getString("uuid");
-
-                    String permission = skinSection.getString("permission");
-                    if (permission == null) {
-                        ServerCosmetics.LOGGER.error("Error loading {}: you do not defined \"permission\"", file.getFileName().toString());
-                        return;
-                    }
-
-                    String tempName = skinSection.getString("name");
-                    Text displayName;
-                    if (tempName != null) {
-                        displayName = Utils.formatDisplayName(Objects.requireNonNull(tempName));
-                    } else {
-                        ServerCosmetics.LOGGER.warn("You do not defined \"display-name\" in {}", file.getFileName().toString());
-                        displayName = Utils.formatDisplayName("");
-                    }
-
-                    List<Text> lore = skinSection.getStringList("lore").stream().map(Utils::formatDisplayName).toList();
-
-                    for (int i = 0; i < materials.size(); i++) {
-                        String materialKey = materials.get(i);
-                        if (!materialKey.contains(":")) {
-                            materialKey = "minecraft:" + materialKey.toLowerCase();
-                            materials.set(i, materialKey);
-                        }
-
-                        ItemStack itemStack = ConfigManager.createItemStack(materialKey, displayName, file.getFileName().toString().substring(0, file.getFileName().toString().lastIndexOf('.')), lore);
-                        addItemSkin(materialKey, itemStack, permission, uuid);
-                    }
-                }
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to load item skin from file: " + file, e);
         }
     }
 
