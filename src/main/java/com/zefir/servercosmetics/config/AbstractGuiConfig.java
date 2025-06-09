@@ -7,6 +7,8 @@ import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import lombok.Getter;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
+import net.minecraft.screen.GenericContainerScreenHandler;
+import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.simpleyaml.configuration.ConfigurationSection;
@@ -34,6 +36,10 @@ public abstract class AbstractGuiConfig {
     protected String messageLockedString;
     @Getter
     protected boolean pageIndicatorEnabled;
+    @Getter
+    protected boolean replaceInventory;
+    @Getter
+    ScreenHandlerType<GenericContainerScreenHandler> screenHandlerType;
 
     @Getter
     protected final Map<String, ConfigManager.NavigationButton> navigationButtons = new HashMap<>();
@@ -90,6 +96,7 @@ public abstract class AbstractGuiConfig {
         this.messageUnlockedString = file.getString("messages.unlocked");
         this.messageLockedString = file.getString("messages.locked");
         this.pageIndicatorEnabled = file.getBoolean("pageIndicatorEnabled", false);
+        this.replaceInventory = file.getBoolean("replaceInventory");
     }
 
     protected void addCommonDefaults(YamlFile file) {
@@ -99,6 +106,23 @@ public abstract class AbstractGuiConfig {
         file.addDefault("messages.unlocked", "&a(Unlocked)");
         file.addDefault("messages.locked", "&c(Locked)");
         file.addDefault("pageIndicatorEnabled", false);
+        file.addDefault("replaceInventory", false);
+        loadGuiSize(file.getInt("guiRows", 6));
+    }
+
+    private void loadGuiSize(int guiRows) {
+        if (guiRows < 1 || guiRows > 6) {
+            ServerCosmetics.LOGGER.warn("Invalid guiRows value '{}' in {}. Must be between 1 and 6. Defaulting to 6.", guiRows, this.configFilePath.getFileName());
+            guiRows = 6;
+        }
+        this.screenHandlerType = switch (guiRows) {
+            case 1 -> ScreenHandlerType.GENERIC_9X1;
+            case 2 -> ScreenHandlerType.GENERIC_9X2;
+            case 3 -> ScreenHandlerType.GENERIC_9X3;
+            case 4 -> ScreenHandlerType.GENERIC_9X4;
+            case 5 -> ScreenHandlerType.GENERIC_9X5;
+            default -> ScreenHandlerType.GENERIC_9X6;
+        };
     }
 
     protected void loadNavigationButton(YamlFile yamlFile, String buttonKey) {
@@ -131,6 +155,8 @@ public abstract class AbstractGuiConfig {
                     ServerCosmetics.LOGGER.error("Failed to request model for button '{}' (item: {}, texture: {}): {}", buttonKey, complitedItemString, textureName, e.getMessage());
                 }
             }
+        } else {
+            ServerCosmetics.LOGGER.error("Texture name for '{}' is undefined!", buttonKey);
         }
 
         List<String> loreStrings = yamlFile.getStringList(basePath + ".lore");
@@ -169,6 +195,8 @@ public abstract class AbstractGuiConfig {
     public Text getMessageLocked() {
         return Utils.formatDisplayName(this.messageLockedString);
     }
+
+
 
     public ConfigManager.NavigationButton getButtonConfig(String buttonKey) {
         ConfigManager.NavigationButton button = navigationButtons.get(buttonKey);

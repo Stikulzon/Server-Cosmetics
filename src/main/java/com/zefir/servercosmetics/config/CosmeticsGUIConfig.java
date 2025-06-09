@@ -3,6 +3,7 @@ package com.zefir.servercosmetics.config;
 import com.zefir.servercosmetics.ServerCosmetics;
 import com.zefir.servercosmetics.config.entries.CustomItemEntry;
 import com.zefir.servercosmetics.config.entries.CustomItemRegistry;
+import com.zefir.servercosmetics.gui.resources.GuiTextures;
 import com.zefir.servercosmetics.util.Utils;
 import eu.pb4.polymer.resourcepack.api.PolymerModelData;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
@@ -35,8 +36,6 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
     private static String colorPickerGUINameString;
     @Getter
     private static float saturationAdjustmentValue;
-    @Getter
-    private static boolean replaceInventory;
     @Getter
     private static String signType;
     @Getter
@@ -74,7 +73,6 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
 
     @Override
     protected void addSpecificDefaults(YamlFile file) {
-        file.addDefault("replaceInventory", true);
         file.addDefault("slots.colorInput", 28);
         file.addDefault("slots.colorOutput", 34);
         file.addDefault("paintItemModelPath", "paint_button");
@@ -90,6 +88,7 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
         file.addDefault("colorInput.messages.success", "&aColor successfully changed!");
         file.addDefault("colorInput.messages.error", "&cIncorrect color format!");
 
+
         if (!file.contains("displaySlots")) {
             file.set("displaySlots", List.of(
                     19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41, 42, 43
@@ -99,7 +98,6 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
 
     @Override
     protected void loadSpecificConfig(YamlFile file) {
-        replaceInventory = file.getBoolean("replaceInventory");
         colorSlots = file.getIntegerList("slots.color").stream().mapToInt(Integer::intValue).toArray();
         colorGradientSlots = file.getIntegerList("slots.colorGradient").stream().mapToInt(Integer::intValue).toArray();
         colorInputSlot = file.getInt("slots.colorInput");
@@ -141,8 +139,8 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
                 "name", "Next", "item", "minecraft:paper", "textureName", "next", "slotIndex", 51));
         buttonDefaults.put("previous", Map.of(
                 "name", "Back", "item", "minecraft:paper", "textureName", "previous", "slotIndex", 47));
-        buttonDefaults.put("removeItem", Map.of(
-                "name", "Remove item", "item", "minecraft:paper", "textureName", "remove", "slotIndex", 49));
+        buttonDefaults.put("removeSkin", Map.of(
+                "name", "Remove skin", "item", "minecraft:paper", "textureName", "remove", "slotIndex", 49));
         buttonDefaults.put("toggleColorView", Map.of(
                 "name", "Toggle view", "item", "minecraft:diamond_chestplate", "slotIndex", 10));
         buttonDefaults.put("enterColor", Map.of(
@@ -152,11 +150,11 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
                 "name", "Decrease brightness", "item", "minecraft:paper", "textureName", "previous", "slotIndex", 15));
         buttonDefaults.put("increaseBrightness", Map.of(
                 "name", "Increase brightness", "item", "minecraft:paper", "textureName", "next", "slotIndex", 16));
-        buttonDefaults.put("cosmeticFilter.show-all-skins", Map.of(
-                "name", "&bCosmetic Filter", "item", "minecraft:diamond_chestplate", "slotIndex", 4,
+        buttonDefaults.put("filter.show-all-skins", Map.of(
+                "name", "&bCosmetic Filter", "item", "minecraft:diamond_chestplate", "slotIndex", 10,
                 "lore", List.of("&aAll cosmetics &7(Selected)", "&7Available cosmetics", "", "&aClick to change mode!")));
-        buttonDefaults.put("cosmeticFilter.show-owned-skins", Map.of(
-                "name", "&bCosmetic Filter", "item", "minecraft:golden_chestplate", "slotIndex", 4,
+        buttonDefaults.put("filter.show-owned-skins", Map.of(
+                "name", "&bCosmetic Filter", "item", "minecraft:golden_chestplate", "slotIndex", 10,
                 "lore", List.of("&7All cosmetics", "&aAvailable cosmetics &7(Selected)", "", "&aClick to change mode!")));
         buttonDefaults.put("pageIndicator", Map.of(
                 "name", "Page", "item", "minecraft:paper", "slotIndex", 53));
@@ -168,17 +166,15 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
     protected void loadAllNavigationButtons(YamlFile file) {
         loadNavigationButton(file, "next");
         loadNavigationButton(file, "previous");
-        loadNavigationButton(file, "removeItem");
+        loadNavigationButton(file, "removeSkin");
         loadNavigationButton(file, "toggleColorView");
         loadNavigationButton(file, "enterColor");
         loadNavigationButton(file, "decreaseBrightness");
         loadNavigationButton(file, "increaseBrightness");
-        loadNavigationButton(file, "cosmeticFilter.show-all-skins");
-        loadNavigationButton(file, "cosmeticFilter.show-owned-skins");
+        loadNavigationButton(file, "filter.show-all-skins");
+        loadNavigationButton(file, "filter.show-owned-skins");
         loadNavigationButton(file, "pageIndicator");
     }
-
-    // --- Static accessors proxying to instance ---
 
     public static List<String> getTextLines() { // For sign
         return new ArrayList<>(textLines); // Return a copy
@@ -196,7 +192,9 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
         return Utils.formatDisplayName(colorPickerGUINameString);
     }
 
-    // --- Methods to retrieve cosmetic data from CustomItemRegistry ---
+    public Text getGuiName() {
+        return GuiTextures.COSMETICS_MENU.apply(Utils.formatDisplayName(this.guiNameString));
+    }
 
     public static ItemStack getItemStackFromCosmeticId(String cosmeticId) {
         CustomItemEntry entry = CustomItemRegistry.getStandaloneCosmetic(cosmeticId);

@@ -2,10 +2,13 @@ package com.zefir.servercosmetics.config;
 
 import com.zefir.servercosmetics.config.entries.CustomItemEntry;
 import com.zefir.servercosmetics.config.entries.CustomItemRegistry;
+import com.zefir.servercosmetics.gui.resources.GuiTextures;
+import com.zefir.servercosmetics.util.Utils;
 import lombok.Getter;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
+import net.minecraft.text.Text;
 import org.simpleyaml.configuration.ConfigurationSection;
 import org.simpleyaml.configuration.file.YamlFile;
 
@@ -65,12 +68,12 @@ public class ItemSkinsGUIConfig extends AbstractGuiConfig {
                 "name", "Next", "item", "minecraft:paper", "textureName", "next", "slotIndex", 51));
         buttonDefaults.put("previous", Map.of(
                 "name", "Back", "item", "minecraft:paper", "textureName", "previous", "slotIndex", 47));
-        buttonDefaults.put("removeItem", Map.of(
-                "name", "Remove item", "item", "minecraft:paper", "textureName", "remove", "slotIndex", 49));
-        buttonDefaults.put("skinFilter.show-all-skins", Map.of(
+        buttonDefaults.put("removeSkin", Map.of(
+                "name", "Remove skin", "item", "minecraft:paper", "textureName", "remove", "slotIndex", 49));
+        buttonDefaults.put("filter.show-all-skins", Map.of(
                 "name", "&bCosmetic Filter", "item", "minecraft:diamond_chestplate", "slotIndex", 10,
                 "lore", List.of("&aAll skins &7(Selected)", "&7Available skins", "", "&aClick to change mode!")));
-        buttonDefaults.put("skinFilter.show-owned-skins", Map.of(
+        buttonDefaults.put("filter.show-owned-skins", Map.of(
                 "name", "&bCosmetic Filter", "item", "minecraft:golden_chestplate", "slotIndex", 10,
                 "lore", List.of("&7All skins", "&aAvailable skins &7(Selected)", "", "&aClick to change mode!")));
         buttonDefaults.put("pageIndicator", Map.of(
@@ -82,14 +85,14 @@ public class ItemSkinsGUIConfig extends AbstractGuiConfig {
     protected void loadAllNavigationButtons(YamlFile file) {
         loadNavigationButton(file, "next");
         loadNavigationButton(file, "previous");
-        loadNavigationButton(file, "removeItem");
-        loadNavigationButton(file, "skinFilter.show-all-skins");
-        loadNavigationButton(file, "skinFilter.show-owned-skins");
+        loadNavigationButton(file, "removeSkin");
+        loadNavigationButton(file, "filter.show-all-skins");
+        loadNavigationButton(file, "filter.show-owned-skins");
         loadNavigationButton(file, "pageIndicator");
     }
 
-    public static int[] getCosmeticSlots() {
-        return get().getDisplaySlots();
+    public Text getGuiName() {
+        return GuiTextures.ITEM_SKINS_MENU.apply(Utils.formatDisplayName(this.guiNameString));
     }
 
     public static ItemStack getItemStackFromSkinIdAndItem(String skinId, Item item) {
