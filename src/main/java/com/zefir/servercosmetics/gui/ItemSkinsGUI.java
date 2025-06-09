@@ -8,6 +8,7 @@ import com.zefir.servercosmetics.gui.filters.PermissionFilter;
 import com.zefir.servercosmetics.gui.providers.ItemSkinProvider;
 import com.zefir.servercosmetics.util.GUIUtils;
 import eu.pb4.sgui.api.ClickType;
+import eu.pb4.sgui.api.GuiHelpers;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
@@ -46,13 +47,12 @@ public class ItemSkinsGUI {
                 if (idx >= this.getVirtualSize()) {
                     ItemStack newClicked = this.player.currentScreenHandler.getSlot(idx).getStack();
                     if (!newClicked.isEmpty()) {
+                        GuiHelpers.sendPlayerScreenHandler(this.player);
                         var newProvider = new ItemSkinProvider(newClicked.getItem());
                         var newAction = new ApplySkinAction(newClicked, ItemSkinsGUIConfig.getItemSlot());
                         this.reinitialize(newProvider, newAction);
 
                         setupDynamicSlots(this, newClicked);
-
-                        return true;
                     }
                 }
                 return super.onAnyClick(idx, ct, sa);

@@ -5,10 +5,12 @@
   "mixins": [
     "ArmorHeadSlotMixin",
     "EntityDataSaverMixin",
+    "EntityPassengersSetS2CPacketAccessor",
     "LivingEntityMixin",
     "PlayerInventoryMixin",
     "PlayerManagerMixin",
     "ScreenHandlerMixin",
+    "ServerPlayerEntityBackPackTestMixin",
     "ServerPlayerEntityMixin",
     "ServerPlayNetworkHandlerMixin"
   ],
