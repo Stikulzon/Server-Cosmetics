@@ -1,5 +1,6 @@
+type: HAT
 cosmetic-item:
   material: PAPER
   display-name: "&bPirate Crab"
 
-permission: "cosmetics.helmet.pirate_crab"
+permission: "cosmetics.hat.pirate_crab"

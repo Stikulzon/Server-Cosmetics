@@ -2,6 +2,7 @@ package com.zefir.servercosmetics.config;
 
 import com.zefir.servercosmetics.config.entries.CustomItemEntry;
 import com.zefir.servercosmetics.config.entries.CustomItemRegistry;
+import com.zefir.servercosmetics.config.entries.ItemType;
 import com.zefir.servercosmetics.gui.resources.GuiTextures;
 import com.zefir.servercosmetics.util.Utils;
 import lombok.Getter;
@@ -23,18 +24,6 @@ public class ItemSkinsGUIConfig extends AbstractGuiConfig {
 
     public ItemSkinsGUIConfig() {
         super("ItemSkinsGUI.yml");
-    }
-
-    public static void itemSkinsInit() {
-        instance = new ItemSkinsGUIConfig();
-        instance.init();
-    }
-
-    public static ItemSkinsGUIConfig get() {
-        if (instance == null) {
-            itemSkinsInit();
-        }
-        return instance;
     }
 
     @Override
@@ -95,24 +84,4 @@ public class ItemSkinsGUIConfig extends AbstractGuiConfig {
         return GuiTextures.ITEM_SKINS_MENU.apply(Utils.formatDisplayName(this.guiNameString));
     }
 
-    public static ItemStack getItemStackFromSkinIdAndItem(String skinId, Item item) {
-        String targetMaterialId = Registries.ITEM.getId(item).toString();
-        CustomItemEntry entry = CustomItemRegistry.getItemSkin(targetMaterialId, skinId);
-        return entry != null ? entry.itemStack() : null;
-    }
-
-    public static Map<String, CustomItemEntry> getAllSkinsForMaterial(Item item) {
-        String targetMaterialId = Registries.ITEM.getId(item).toString();
-        return CustomItemRegistry.getAllSkinsForMaterial(targetMaterialId);
-    }
-
-//    /**
-//     * Gets a paginated map of skin entries for the given item.
-//     * The key is an integer index (0 to itemsPerPage-1) for display purposes on the current page.
-//     * The value is the CustomItemEntry.
-//     */
-//    public static Map<Integer, CustomItemEntry> getPaginatedSkinsForMaterial(Item item, int page, int itemsPerPage) {
-//        String targetMaterialId = Registries.ITEM.getId(item).toString();
-//        return CustomItemRegistry.getPaginatedSkinsForMaterial(targetMaterialId, page, itemsPerPage);
-//    }
 }

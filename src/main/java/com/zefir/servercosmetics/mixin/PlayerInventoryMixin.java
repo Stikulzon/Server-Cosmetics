@@ -59,7 +59,7 @@ public class PlayerInventoryMixin {
                 Item baseItem = stack.getItem();
                 String targetMaterialId = Registries.ITEM.getId(baseItem).toString();
 
-                CustomItemEntry skinEntry = CustomItemRegistry.getItemSkin(targetMaterialId, itemSkinId);
+                CustomItemEntry skinEntry = CustomItemRegistry.getCosmetic(itemSkinId);
 
                 if (skinEntry == null) {
                     stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(currentNbt -> currentNbt.remove("cosmeticItemId")));

@@ -4,7 +4,9 @@ import com.zefir.servercosmetics.ServerCosmetics;
 import com.zefir.servercosmetics.config.ConfigManager;
 import com.zefir.servercosmetics.util.Utils;
 import lombok.Setter;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
 import org.simpleyaml.configuration.file.YamlFile;
 
@@ -12,12 +14,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class CustomItemRegistry {
 
-    private static final Map<String, CustomItemEntry> standaloneCosmeticsMap = new ConcurrentHashMap<>();
-    private static final Map<String, Map<String, CustomItemEntry>> itemSkinsByTargetMap = new ConcurrentHashMap<>();
+    private static final List<CustomItemEntry> cosmeticsList = new CopyOnWriteArrayList<>();
 
     @Setter
     private static boolean legacyMode = false;
@@ -33,31 +34,30 @@ public class CustomItemRegistry {
     }
 
     public static void reloadCosmetics() {
-        standaloneCosmeticsMap.clear();
+        cosmeticsList.clear();
         loadAllCosmetics();
     }
 
     public static void reloadItemSkins() {
-        itemSkinsByTargetMap.clear();
+        cosmeticsList.clear();
         loadAllItemSkins();
     }
 
     private static void clearAll() {
-        standaloneCosmeticsMap.clear();
-        itemSkinsByTargetMap.clear();
+        cosmeticsList.clear();
     }
 
     private static void loadAllCosmetics() {
         Path cosmeticsDir = ConfigManager.SERVER_COSMETICS_DIR.resolve("Cosmetics");
-        loadItemsFromDirectory(cosmeticsDir, ItemType.COSMETIC, "cosmetic-item");
+        loadItemsFromDirectory(cosmeticsDir, "cosmetic-item");
     }
 
     private static void loadAllItemSkins() {
         Path itemSkinsDir = ConfigManager.SERVER_COSMETICS_DIR.resolve("ItemSkins");
-        loadItemsFromDirectory(itemSkinsDir, ItemType.ITEM_SKIN, null);
+        loadItemsFromDirectory(itemSkinsDir, null);
     }
 
-    private static void loadItemsFromDirectory(Path directory, ItemType type, String itemPropertiesRootNode) {
+    private static void loadItemsFromDirectory(Path directory, String itemPropertiesRootNode) {
         try {
             if (Files.notExists(directory)) {
                 Files.createDirectories(directory);
@@ -93,7 +93,9 @@ public class CustomItemRegistry {
                 Text displayName;
                 List<Text> lore;
 
-                if (type == ItemType.COSMETIC) {
+                String type = yamlFile.getString("type");
+
+                if (!type.isEmpty()) {
                     String namePath = itemPropertiesRootNode + ".display-name";
                     String lorePath = "lore";
                     String legacyLorePath = itemPropertiesRootNode + ".lore";
@@ -130,7 +132,7 @@ public class CustomItemRegistry {
                 }
 
 
-                if (type == ItemType.COSMETIC) {
+                if (!type.isEmpty()) {
                     String materialPath = itemPropertiesRootNode + ".material";
                     String baseItemMaterial = yamlFile.getString(materialPath);
                     if (baseItemMaterial == null) {
@@ -142,8 +144,8 @@ public class CustomItemRegistry {
                     }
 
                     ItemStack itemStack = ConfigManager.createItemStack(baseItemMaterial, displayName, itemId, lore);
-                    CustomItemEntry entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.COSMETIC, baseItemMaterial);
-                    standaloneCosmeticsMap.put(itemId, entry);
+                    CustomItemEntry entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial);
+                    cosmeticsList.add(entry);
 
                 } else { // ITEM_SKIN
                     List<String> targetMaterials = yamlFile.getStringList("material");
@@ -165,80 +167,54 @@ public class CustomItemRegistry {
                         ItemStack itemStack = ConfigManager.createItemStack(materialKey, displayName, itemId, lore);
                         CustomItemEntry entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.ITEM_SKIN, materialKey);
 
-                        itemSkinsByTargetMap.computeIfAbsent(materialKey, k -> new ConcurrentHashMap<>()).put(itemId, entry);
+                        cosmeticsList.add(entry);
                     }
                 }
             } catch (Exception e) {
-                ServerCosmetics.LOGGER.error("Failed to load custom item from file: " + filePath, e);
+                ServerCosmetics.LOGGER.error("Failed to load custom item from file: {}", filePath, e);
             }
         }
     }
 
     // --- Accessor methods ---
 
-    public static CustomItemEntry getStandaloneCosmetic(String id) {
-        return standaloneCosmeticsMap.get(id);
+    public static CustomItemEntry getCosmetic(String id) {
+        CustomItemEntry cosmetic = null;
+        for (CustomItemEntry entry : cosmeticsList) {
+            if(entry.id().equals(id)){
+                cosmetic = entry;
+            }
+        }
+        return cosmetic;
     }
 
-    public static Collection<CustomItemEntry> getAllStandaloneCosmetics() {
-        return Collections.unmodifiableCollection(standaloneCosmeticsMap.values());
+    public static List<CustomItemEntry> getAllCosmetics(ItemType type) {
+        List<CustomItemEntry> filteredList = new ArrayList<>();
+        for (CustomItemEntry entry : cosmeticsList) {
+            if(entry.type() == type){
+                filteredList.add(entry);
+            }
+        }
+        return filteredList;
     }
 
-    public static Map<String, CustomItemEntry> getStandaloneCosmeticsMap() {
-        return Collections.unmodifiableMap(standaloneCosmeticsMap);
+    public static List<CustomItemEntry> getCosmeticsList() {
+        return Collections.unmodifiableList(cosmeticsList);
     }
 
-    public static CustomItemEntry getItemSkin(String targetMaterialId, String skinId) {
-        Map<String, CustomItemEntry> skinsForMaterial = itemSkinsByTargetMap.get(targetMaterialId);
-        return skinsForMaterial != null ? skinsForMaterial.get(skinId) : null;
+    public static List<CustomItemEntry> getAllCosmeticsForMaterial(ItemType type, String targetMaterialId) {
+        List<CustomItemEntry> filteredList = new ArrayList<>();
+        for (CustomItemEntry entry : cosmeticsList) {
+            if(entry.type() == type && entry.id().equals(targetMaterialId)){
+                filteredList.add(entry);
+            }
+        }
+        return filteredList;
     }
 
-    public static Map<String, CustomItemEntry> getAllSkinsForMaterial(String targetMaterialId) {
-        return Collections.unmodifiableMap(itemSkinsByTargetMap.getOrDefault(targetMaterialId, Collections.emptyMap()));
+    public static List<CustomItemEntry> getAllCosmeticsForMaterial(ItemType type, Item item) {
+        String targetMaterialId = Registries.ITEM.getId(item).toString();
+        return CustomItemRegistry.getAllCosmeticsForMaterial(type, targetMaterialId);
     }
 
-//    public static Map<Integer, CustomItemEntry> getPaginatedSkinsForMaterial(String targetMaterialId, int page, int itemsPerPage) {
-//        Map<String, CustomItemEntry> skinsForMaterial = itemSkinsByTargetMap.get(targetMaterialId);
-//        if (skinsForMaterial == null || skinsForMaterial.isEmpty()) {
-//            return Collections.emptyMap();
-//        }
-//
-//        List<CustomItemEntry> sortedSkins = skinsForMaterial.values().stream()
-//                .sorted(Comparator.comparing(CustomItemEntry::getId))
-//                .toList();
-//
-//        Map<Integer, CustomItemEntry> pagedResult = new LinkedHashMap<>();
-//        int startIndex = page * itemsPerPage;
-//        for (int i = 0; i < itemsPerPage; i++) {
-//            int currentIndex = startIndex + i;
-//            if (currentIndex < sortedSkins.size()) {
-//                pagedResult.put(i, sortedSkins.get(currentIndex));
-//            } else {
-//                break;
-//            }
-//        }
-//        return pagedResult;
-//    }
-
-//    public static Map<Integer, CustomItemEntry> getPaginatedStandaloneCosmetics(int page, int itemsPerPage) {
-//        if (standaloneCosmeticsMap.isEmpty()) {
-//            return Collections.emptyMap();
-//        }
-//
-//        List<CustomItemEntry> sortedCosmetics = standaloneCosmeticsMap.values().stream()
-//                .sorted(Comparator.comparing(CustomItemEntry::getId))
-//                .toList();
-//
-//        Map<Integer, CustomItemEntry> pagedResult = new LinkedHashMap<>();
-//        int startIndex = page * itemsPerPage;
-//        for (int i = 0; i < itemsPerPage; i++) {
-//            int currentIndex = startIndex + i;
-//            if (currentIndex < sortedCosmetics.size()) {
-//                pagedResult.put(i, sortedCosmetics.get(currentIndex));
-//            } else {
-//                break;
-//            }
-//        }
-//        return pagedResult;
-//    }
 }

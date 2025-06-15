@@ -27,6 +27,8 @@ import java.awt.Color;
 import java.util.List;
 import java.util.function.Consumer;
 
+import static com.zefir.servercosmetics.config.ConfigManager.COSMETICS_GUI_CONFIG;
+
 // TODO: remove mutable variables
 public class ColorPickerComponent {
 
@@ -177,13 +179,13 @@ public class ColorPickerComponent {
         }
 
         public void setupBrightnessButtons() {
-            GUIUtils.setUpButton(this, CosmeticsGUIConfig.get().getButtonConfig("decreaseBrightness"), () -> {
+            GUIUtils.setUpButton(this, COSMETICS_GUI_CONFIG.getButtonConfig("decreaseBrightness"), () -> {
                 saturation.subtract(CosmeticsGUIConfig.getSaturationAdjustmentValue());
                 if (saturation.getValue() < 15F) saturation.setValue(15F);
                 drawGradientSlots();
             });
 
-            GUIUtils.setUpButton(this, CosmeticsGUIConfig.get().getButtonConfig("increaseBrightness"), () -> {
+            GUIUtils.setUpButton(this, COSMETICS_GUI_CONFIG.getButtonConfig("increaseBrightness"), () -> {
                 saturation.add(CosmeticsGUIConfig.getSaturationAdjustmentValue());
                 if (saturation.getValue() > 100F) saturation.setValue(100F);
                 drawGradientSlots();
@@ -191,14 +193,14 @@ public class ColorPickerComponent {
         }
 
         public void setupViewToggleButtons() {
-            GUIUtils.setUpButton(this, CosmeticsGUIConfig.get().getButtonConfig("toggleColorView"), () -> {
+            GUIUtils.setUpButton(this, COSMETICS_GUI_CONFIG.getButtonConfig("toggleColorView"), () -> {
                 usePaintBrushView.setValue(!usePaintBrushView.getValue());
                 drawBaseColorSlots();
             });
         }
 
         public void setupColorInputButton() {
-            GUIUtils.setUpButton(this, CosmeticsGUIConfig.get().getButtonConfig("enterColor"),
+            GUIUtils.setUpButton(this, COSMETICS_GUI_CONFIG.getButtonConfig("enterColor"),
                     () -> new ColorInputSign(player, hatItemStack, onColorSelectCallback).open()
             );
         }

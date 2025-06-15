@@ -6,7 +6,10 @@ import com.zefir.servercosmetics.gui.PagedItemDisplayGui;
 import com.zefir.servercosmetics.gui.core.IFilter;
 import com.zefir.servercosmetics.util.GUIUtils;
 import net.minecraft.server.network.ServerPlayerEntity;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -15,6 +18,7 @@ public class FilterManager {
     private final ServerPlayerEntity player;
     private final Map<String, FilterRegistration> registeredFilters = new HashMap<>();
     private final Map<String, Boolean> activeStates = new HashMap<>();
+    private final List<List<String>> canBeActiveOnlyOne = new ArrayList<>();
 
     private record FilterRegistration(IFilter filter, ConfigManager.NavigationButton activeButton, ConfigManager.NavigationButton inactiveButton) {}
 
@@ -26,6 +30,29 @@ public class FilterManager {
     public void addFilter(String key, IFilter filter, ConfigManager.NavigationButton inactiveButton, ConfigManager.NavigationButton activeButton, boolean initiallyActive) {
         registeredFilters.put(key, new FilterRegistration(filter, inactiveButton, activeButton));
         activeStates.put(key, initiallyActive);
+    }
+
+    public void canBeActiveOnlyOne(List<String> keys) {
+        canBeActiveOnlyOne.add(keys);
+    }
+
+    private void ifCanBeActiveOnlyOne(String key){
+        for (List<String> list : canBeActiveOnlyOne) {
+            if(list.contains(key)){
+                for (String s : list) {
+                    activeStates.put(s, false);
+                }
+                activeStates.put(key, true);
+                return;
+            }
+        }
+    }
+
+    private boolean isCanBeActiveOnlyOne(String key){
+        for (List<String> list : canBeActiveOnlyOne) {
+            return list.contains(key);
+        }
+        return false;
     }
 
     public Predicate<CustomItemEntry> getCombinedPredicate() {
@@ -48,7 +75,12 @@ public class FilterManager {
             ConfigManager.NavigationButton button = isActive ?  reg.inactiveButton: reg.activeButton;
 
             GUIUtils.setUpButton(gui, button, () -> {
+                if(isCanBeActiveOnlyOne(key)){
+                    gui.populateGui();
+                    return;
+                }
                 activeStates.put(key, !isActive);
+                ifCanBeActiveOnlyOne(key);
                 gui.onFilterStateChanged();
             });
         }

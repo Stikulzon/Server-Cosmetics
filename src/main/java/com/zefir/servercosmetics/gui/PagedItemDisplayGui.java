@@ -2,6 +2,7 @@ package com.zefir.servercosmetics.gui;
 
 import com.zefir.servercosmetics.config.AbstractGuiConfig;
 import com.zefir.servercosmetics.config.entries.CustomItemEntry;
+import com.zefir.servercosmetics.config.entries.ItemType;
 import com.zefir.servercosmetics.gui.actions.OpenColorPickerAction;
 import com.zefir.servercosmetics.gui.core.ICosmeticProvider;
 import com.zefir.servercosmetics.gui.core.IItemAction;
@@ -49,7 +50,7 @@ public class PagedItemDisplayGui extends SimpleGui {
     }
 
     public void populateGui() {
-        List<CustomItemEntry> allItems = provider.getItems(player);
+        List<CustomItemEntry> allItems = provider.getItems(ItemType.ITEM_SKIN);
 
         Predicate<CustomItemEntry> combinedFilter = filterManager.getCombinedPredicate();
         List<CustomItemEntry> filteredItems = allItems.stream()

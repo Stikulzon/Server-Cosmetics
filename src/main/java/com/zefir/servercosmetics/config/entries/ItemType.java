@@ -1,6 +1,7 @@
 package com.zefir.servercosmetics.config.entries;
 
 public enum ItemType {
-    COSMETIC,
+    HAT,
+    BODY_COSMETIC,
     ITEM_SKIN
 }

@@ -93,7 +93,7 @@ public class DatabaseManager {
             }
 
             PlayerEntity player = Objects.requireNonNull(ServerCosmetics.SERVER.getPlayerManager().getPlayer(playerUUID));
-            CustomItemEntry entry = CustomItemRegistry.getStandaloneCosmetic(cosmetic.getName());
+            CustomItemEntry entry = CustomItemRegistry.getCosmetic(cosmetic.getName());
             ItemStack cosmeticStack;
 
             if (entry != null && Permissions.check(player, entry.permission())) {

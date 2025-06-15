@@ -183,7 +183,6 @@ public abstract class AbstractGuiConfig {
         });
     }
 
-
     public Text getGuiName() {
         return Utils.formatDisplayName(this.guiNameString);
     }
@@ -195,8 +194,6 @@ public abstract class AbstractGuiConfig {
     public Text getMessageLocked() {
         return Utils.formatDisplayName(this.messageLockedString);
     }
-
-
 
     public ConfigManager.NavigationButton getButtonConfig(String buttonKey) {
         ConfigManager.NavigationButton button = navigationButtons.get(buttonKey);

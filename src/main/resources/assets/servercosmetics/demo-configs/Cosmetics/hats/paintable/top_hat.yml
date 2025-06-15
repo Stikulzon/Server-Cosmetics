@@ -1,5 +1,6 @@
+type: HAT
 cosmetic-item:
   material: leather_horse_armor
   display-name: "&bFancy Paintable Hat"
 
-permission: "cosmetics.helmet.top_hat_white"
+permission: "cosmetics.hat.top_hat_white"

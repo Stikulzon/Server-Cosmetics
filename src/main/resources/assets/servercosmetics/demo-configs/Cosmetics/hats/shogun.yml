@@ -1,5 +1,6 @@
+type: HAT
 cosmetic-item:
   material: PAPER
   display-name: "&bShogun"
 
-permission: "cosmetics.helmet.shogun"
+permission: "cosmetics.hat.shogun"

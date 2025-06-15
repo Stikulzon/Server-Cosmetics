@@ -1,0 +1,8 @@
+type: BODY_COSMETIC
+cosmetic-item:
+  material: PAPER
+  display-name: "<blue>Body cosmetic"
+  lore:
+    - "Some description"
+
+permission: "cosmetics.body.beekeeper"

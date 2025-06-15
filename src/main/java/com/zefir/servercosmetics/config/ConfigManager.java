@@ -6,6 +6,7 @@ import com.zefir.servercosmetics.config.entries.CustomItemRegistry;
 import com.zefir.servercosmetics.util.Utils;
 import eu.pb4.polymer.resourcepack.api.PolymerModelData;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
+import lombok.Getter;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.CustomModelDataComponent;
@@ -39,19 +40,25 @@ public class ConfigManager {
 
     public record NavigationButton(Text name, Item baseItem, PolymerModelData polymerModelData, int slotIndex, List<String> lore) {}
 
-    public static String configReloadPermission;
-    public static String itemSkinsReloadPermission;
-    public static String cosmeticsReloadPermission;
+    @Getter
+    private static String configReloadPermission;
+    @Getter
+    private static String itemSkinsReloadPermission;
+    @Getter
+    private static String cosmeticsReloadPermission;
     private static Text successConfigReloadMessage;
     private static Text errorConfigReloadMessage;
     private static boolean legacyMode;
+
+    public static final AbstractGuiConfig ITEM_SKINS_GUI_CONFIG = new ItemSkinsGUIConfig();
+    public static final AbstractGuiConfig COSMETICS_GUI_CONFIG = new CosmeticsGUIConfig();
 
     public static void registerConfigs() {
         createAndLoadMainConfig();
         CustomItemRegistry.setLegacyMode(legacyMode);
 
-        ItemSkinsGUIConfig.itemSkinsInit();
-        CosmeticsGUIConfig.serverCosmeticsInit();
+        ITEM_SKINS_GUI_CONFIG.init();
+        COSMETICS_GUI_CONFIG.init();
         CustomItemRegistry.initialize();
 
         registerResourcePackListener();
@@ -176,8 +183,8 @@ public class ConfigManager {
             createAndLoadMainConfig();
             CustomItemRegistry.setLegacyMode(legacyMode);
 
-            ItemSkinsGUIConfig.itemSkinsInit();
-            CosmeticsGUIConfig.serverCosmeticsInit();
+            ITEM_SKINS_GUI_CONFIG.init();
+            COSMETICS_GUI_CONFIG.init();
             CustomItemRegistry.reloadAll();
 
             context.getSource().sendFeedback(() -> successConfigReloadMessage, false);
@@ -192,7 +199,7 @@ public class ConfigManager {
             createAndLoadMainConfig();
             CustomItemRegistry.setLegacyMode(legacyMode);
 
-            ItemSkinsGUIConfig.itemSkinsInit();
+            ITEM_SKINS_GUI_CONFIG.init();
             CustomItemRegistry.reloadItemSkins();
 
             context.getSource().sendFeedback(() -> successConfigReloadMessage, false);
@@ -208,7 +215,7 @@ public class ConfigManager {
             createAndLoadMainConfig();
             CustomItemRegistry.setLegacyMode(legacyMode);
 
-            CosmeticsGUIConfig.serverCosmeticsInit();
+            COSMETICS_GUI_CONFIG.init();
             CustomItemRegistry.reloadCosmetics();
 
             context.getSource().sendFeedback(() -> successConfigReloadMessage, false);

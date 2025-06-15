@@ -48,22 +48,8 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
     @Getter
     private static String errorMessageString;
 
-    private static CosmeticsGUIConfig instance;
-
     public CosmeticsGUIConfig() {
         super("CosmeticsGUI.yml");
-    }
-
-    public static void serverCosmeticsInit() {
-        instance = new CosmeticsGUIConfig();
-        instance.init();
-    }
-
-    public static CosmeticsGUIConfig get() {
-        if (instance == null) {
-            serverCosmeticsInit();
-        }
-        return instance;
     }
 
     @Override
@@ -150,12 +136,28 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
                 "name", "Decrease brightness", "item", "minecraft:paper", "textureName", "previous", "slotIndex", 15));
         buttonDefaults.put("increaseBrightness", Map.of(
                 "name", "Increase brightness", "item", "minecraft:paper", "textureName", "next", "slotIndex", 16));
+
         buttonDefaults.put("filter.show-all-skins", Map.of(
-                "name", "&bCosmetic Filter", "item", "minecraft:diamond_chestplate", "slotIndex", 10,
+                "name", "<blue>Cosmetic Filter", "item", "minecraft:diamond_chestplate", "slotIndex", 10,
                 "lore", List.of("&aAll cosmetics &7(Selected)", "&7Available cosmetics", "", "&aClick to change mode!")));
         buttonDefaults.put("filter.show-owned-skins", Map.of(
-                "name", "&bCosmetic Filter", "item", "minecraft:golden_chestplate", "slotIndex", 10,
+                "name", "<blue>Cosmetic Filter", "item", "minecraft:golden_chestplate", "slotIndex", 10,
                 "lore", List.of("&7All cosmetics", "&aAvailable cosmetics &7(Selected)", "", "&aClick to change mode!")));
+        
+        buttonDefaults.put("filter.hats-disabled", Map.of(
+                "name", "<blue>Hats", "item", "minecraft:diamond_chestplate", "slotIndex", 12,
+                "lore", List.of()));
+        buttonDefaults.put("filter.hats-enabled", Map.of(
+                "name", "<blue>Hats", "item", "minecraft:golden_chestplate", "slotIndex", 12,
+                "lore", List.of()));
+        
+        buttonDefaults.put("body-cosmetics-disabled", Map.of(
+                "name", "<blue>Body Cosmetics", "item", "minecraft:diamond_chestplate", "slotIndex", 15,
+                "lore", List.of()));
+        buttonDefaults.put("filter.body-cosmetics-enabled", Map.of(
+                "name", "<blue>Body Cosmetics", "item", "minecraft:golden_chestplate", "slotIndex", 15,
+                "lore", List.of()));
+
         buttonDefaults.put("pageIndicator", Map.of(
                 "name", "Page", "item", "minecraft:paper", "slotIndex", 53));
 
@@ -196,24 +198,4 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
         return GuiTextures.COSMETICS_MENU.apply(Utils.formatDisplayName(this.guiNameString));
     }
 
-    public static ItemStack getItemStackFromCosmeticId(String cosmeticId) {
-        CustomItemEntry entry = CustomItemRegistry.getStandaloneCosmetic(cosmeticId);
-        return entry != null ? entry.itemStack() : null;
-    }
-
-    public static ItemStack getItemStackFromCosmeticIdWithPermissionCheck(String cosmeticId, PlayerEntity player) {
-        CustomItemEntry entry = CustomItemRegistry.getStandaloneCosmetic(cosmeticId);
-        if (entry != null && Permissions.check(player, entry.permission())) {
-            return entry.itemStack();
-        }
-        return null;
-    }
-
-    public static Map<String, CustomItemEntry> getAllCosmeticEntries() {
-        return CustomItemRegistry.getStandaloneCosmeticsMap();
-    }
-
-//    public static Map<Integer, CustomItemEntry> getPaginatedCosmeticEntries(int page, int itemsPerPage) {
-//        return CustomItemRegistry.getPaginatedStandaloneCosmetics(page, itemsPerPage);
-//    }
 }
