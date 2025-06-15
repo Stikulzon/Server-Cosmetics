@@ -37,7 +37,7 @@ public class PagedItemDisplayGui extends SimpleGui {
         this.guiConfig = config;
         this.provider = provider;
         this.defaultClickAction = defaultClickAction;
-        this.filterManager = new FilterManager(this, player);
+        this.filterManager = new FilterManager(this);
         setTitle(config.getGuiName());
         populateGui();
     }
@@ -50,7 +50,7 @@ public class PagedItemDisplayGui extends SimpleGui {
     }
 
     public void populateGui() {
-        List<CustomItemEntry> allItems = provider.getItems(ItemType.ITEM_SKIN);
+        List<CustomItemEntry> allItems = provider.getItems();
 
         Predicate<CustomItemEntry> combinedFilter = filterManager.getCombinedPredicate();
         List<CustomItemEntry> filteredItems = allItems.stream()

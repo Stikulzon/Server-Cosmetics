@@ -33,8 +33,8 @@ public class ItemSkinsGUI {
             ItemStack handStack = player.getMainHandStack();
             var config = ITEM_SKINS_GUI_CONFIG;
             var provider = new ItemSkinProvider(handStack.getItem());
-            var applyAction = new ApplySkinAction(handStack, ItemSkinsGUIConfig.getItemSlot());
-            PagedItemDisplayGui gui = new PagedItemDisplayGui(player, config, provider, applyAction) {
+            var action = new ApplySkinAction(handStack, ItemSkinsGUIConfig.getItemSlot());
+            PagedItemDisplayGui gui = new PagedItemDisplayGui(player, config, provider, action) {
                 @Override
                 public boolean onAnyClick(int idx, ClickType ct, SlotActionType sa) {
                     if (idx >= this.getVirtualSize()) {
@@ -53,7 +53,7 @@ public class ItemSkinsGUI {
             };
             gui.getFilterManager().addFilter(
                     "permission",
-                    new PermissionFilter(),
+                    new PermissionFilter(player),
                     config.getButtonConfig("filter.show-all-skins"),
                     config.getButtonConfig("filter.show-owned-skins"),
                     false
@@ -64,7 +64,7 @@ public class ItemSkinsGUI {
                     .addLoreLine(Text.literal("Click an item in your inventory below.")));
 
             setupDynamicSlots(gui, handStack);
-            gui.reinitialize(provider, applyAction);
+            gui.reinitialize(provider, action);
 
             gui.setLockPlayerInventory(true);
             gui.open();

@@ -95,7 +95,7 @@ public class CustomItemRegistry {
 
                 String type = yamlFile.getString("type");
 
-                if (!type.isEmpty()) {
+                if (type != null) {
                     String namePath = itemPropertiesRootNode + ".display-name";
                     String lorePath = "lore";
                     String legacyLorePath = itemPropertiesRootNode + ".lore";
@@ -131,8 +131,7 @@ public class CustomItemRegistry {
                     }
                 }
 
-
-                if (!type.isEmpty()) {
+                if (type != null) {
                     String materialPath = itemPropertiesRootNode + ".material";
                     String baseItemMaterial = yamlFile.getString(materialPath);
                     if (baseItemMaterial == null) {
@@ -205,7 +204,7 @@ public class CustomItemRegistry {
     public static List<CustomItemEntry> getAllCosmeticsForMaterial(ItemType type, String targetMaterialId) {
         List<CustomItemEntry> filteredList = new ArrayList<>();
         for (CustomItemEntry entry : cosmeticsList) {
-            if(entry.type() == type && entry.id().equals(targetMaterialId)){
+            if(entry.type() == type && entry.baseItemForModel().equals(targetMaterialId)){
                 filteredList.add(entry);
             }
         }

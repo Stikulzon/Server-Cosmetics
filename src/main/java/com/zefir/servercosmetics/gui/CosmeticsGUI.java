@@ -2,9 +2,11 @@ package com.zefir.servercosmetics.gui;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.zefir.servercosmetics.ServerCosmetics;
+import com.zefir.servercosmetics.config.entries.ItemType;
 import com.zefir.servercosmetics.database.DatabaseManager;
 import com.zefir.servercosmetics.ext.CosmeticSlotExt;
 import com.zefir.servercosmetics.gui.actions.EquipCosmeticAction;
+import com.zefir.servercosmetics.gui.filters.ItemTypeFilter;
 import com.zefir.servercosmetics.gui.filters.PermissionFilter;
 import com.zefir.servercosmetics.gui.providers.StandaloneCosmeticProvider;
 import com.zefir.servercosmetics.util.GUIUtils;
@@ -37,29 +39,29 @@ public class CosmeticsGUI {
 
             gui.getFilterManager().addFilter(
                     "permission",
-                    new PermissionFilter(),
+                    new PermissionFilter(player),
                     config.getButtonConfig("filter.show-all-skins"),
                     config.getButtonConfig("filter.show-owned-skins"),
                     false
             );
 
             gui.getFilterManager().addFilter(
-                    "hats",
-                    new PermissionFilter(),
+                    "hat",
+                    new ItemTypeFilter(ItemType.HAT),
                     config.getButtonConfig("filter.hats-disabled"),
                     config.getButtonConfig("filter.hats-enabled"),
                     true
             );
 
             gui.getFilterManager().addFilter(
-                    "body-cosmetics",
-                    new PermissionFilter(),
+                    "body-cosmetic",
+                    new ItemTypeFilter(ItemType.BODY_COSMETIC),
                     config.getButtonConfig("filter.body-cosmetics-disabled"),
                     config.getButtonConfig("filter.body-cosmetics-enabled"),
                     false
             );
 
-            gui.getFilterManager().canBeActiveOnlyOne(Arrays.asList("body-cosmetics", "hats"));
+            gui.getFilterManager().canBeActiveOnlyOne(Arrays.asList("body-cosmetic", "hat"));
 
             GUIUtils.setUpButton(gui, config.getButtonConfig("removeSkin"), () -> {
                 gui.close();
@@ -73,6 +75,7 @@ public class CosmeticsGUI {
                 ));
             });
 
+            gui.reinitialize(provider, action);
             gui.open();
 
         } catch (Exception e) {

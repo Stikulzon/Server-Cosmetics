@@ -3,9 +3,7 @@ package com.zefir.servercosmetics.gui.filters;
 import com.zefir.servercosmetics.config.ConfigManager;
 import com.zefir.servercosmetics.config.entries.CustomItemEntry;
 import com.zefir.servercosmetics.gui.PagedItemDisplayGui;
-import com.zefir.servercosmetics.gui.core.IFilter;
 import com.zefir.servercosmetics.util.GUIUtils;
-import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,19 +13,17 @@ import java.util.function.Predicate;
 
 public class FilterManager {
     private final PagedItemDisplayGui gui;
-    private final ServerPlayerEntity player;
     private final Map<String, FilterRegistration> registeredFilters = new HashMap<>();
     private final Map<String, Boolean> activeStates = new HashMap<>();
     private final List<List<String>> canBeActiveOnlyOne = new ArrayList<>();
 
-    private record FilterRegistration(IFilter filter, ConfigManager.NavigationButton activeButton, ConfigManager.NavigationButton inactiveButton) {}
+    private record FilterRegistration(Predicate<CustomItemEntry> filter, ConfigManager.NavigationButton activeButton, ConfigManager.NavigationButton inactiveButton) {}
 
-    public FilterManager(PagedItemDisplayGui gui, ServerPlayerEntity player) {
+    public FilterManager(PagedItemDisplayGui gui) {
         this.gui = gui;
-        this.player = player;
     }
 
-    public void addFilter(String key, IFilter filter, ConfigManager.NavigationButton inactiveButton, ConfigManager.NavigationButton activeButton, boolean initiallyActive) {
+    public void addFilter(String key, Predicate<CustomItemEntry> filter, ConfigManager.NavigationButton inactiveButton, ConfigManager.NavigationButton activeButton, boolean initiallyActive) {
         registeredFilters.put(key, new FilterRegistration(filter, inactiveButton, activeButton));
         activeStates.put(key, initiallyActive);
     }
@@ -57,13 +53,8 @@ public class FilterManager {
 
     public Predicate<CustomItemEntry> getCombinedPredicate() {
         return entry -> registeredFilters.entrySet().stream()
-                .allMatch(mapEntry -> {
-                    String key = mapEntry.getKey();
-                    IFilter filter = mapEntry.getValue().filter();
-                    boolean isActive = activeStates.getOrDefault(key, false);
-
-                    return !isActive || filter.test(player, entry);
-                });
+                .filter(mapEntry -> activeStates.getOrDefault(mapEntry.getKey(), false)) // Consider only active filters
+                .allMatch(mapEntry -> mapEntry.getValue().filter().test(entry));         // Check if the entry passes all of them
     }
 
     public void drawFilterButtons() {
@@ -72,15 +63,17 @@ public class FilterManager {
             FilterRegistration reg = entry.getValue();
             boolean isActive = activeStates.getOrDefault(key, false);
 
-            ConfigManager.NavigationButton button = isActive ?  reg.inactiveButton: reg.activeButton;
+            ConfigManager.NavigationButton button = isActive ? reg.activeButton : reg.inactiveButton;
 
             GUIUtils.setUpButton(gui, button, () -> {
-                if(isCanBeActiveOnlyOne(key)){
-                    gui.populateGui();
-                    return;
+                if (isCanBeActiveOnlyOne(key)) {
+                    if (isActive) {
+                        return;
+                    }
+                    ifCanBeActiveOnlyOne(key);
+                } else {
+                    activeStates.put(key, !isActive);
                 }
-                activeStates.put(key, !isActive);
-                ifCanBeActiveOnlyOne(key);
                 gui.onFilterStateChanged();
             });
         }

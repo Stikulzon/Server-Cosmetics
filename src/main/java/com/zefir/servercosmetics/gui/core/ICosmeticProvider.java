@@ -7,5 +7,5 @@ import java.util.List;
 
 @FunctionalInterface
 public interface ICosmeticProvider {
-    List<CustomItemEntry> getItems(ItemType type);
+    List<CustomItemEntry> getItems();
 }

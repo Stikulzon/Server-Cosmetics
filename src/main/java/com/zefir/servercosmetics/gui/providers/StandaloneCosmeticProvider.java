@@ -7,10 +7,17 @@ import com.zefir.servercosmetics.gui.core.ICosmeticProvider;
 import net.minecraft.server.network.ServerPlayerEntity;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class StandaloneCosmeticProvider implements ICosmeticProvider {
+
+//    public final ItemType type;
+//    public StandaloneCosmeticProvider(ItemType type) {
+//        this.type = type;
+//    }
+//
     @Override
-    public List<CustomItemEntry> getItems(ItemType type) {
-        return CustomItemRegistry.getAllCosmetics(type);
+    public List<CustomItemEntry> getItems() {
+        return Stream.concat(CustomItemRegistry.getAllCosmetics(ItemType.HAT).stream(), CustomItemRegistry.getAllCosmetics(ItemType.BODY_COSMETIC).stream()).toList();
     }
 }

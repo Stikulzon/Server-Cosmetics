@@ -5,7 +5,6 @@ import io.netty.buffer.Unpooled;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.decoration.DisplayEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.s2c.play.EntityS2CPacket;
 import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
@@ -22,11 +21,10 @@ public class BodyCosmetics {
     public BodyCosmetics(ServerPlayerEntity player){
         bodyCosmetics = new DisplayEntity.ItemDisplayEntity(EntityType.ITEM_DISPLAY, player.getServerWorld());
         this.player = player;
-        createCosmetics();
     }
 
-    public void createCosmetics() {
-            cosmeticsModel = new ItemStack(Items.STICK); // TODO: Actual cosmetics will go here
+    public void equipCosmetics(ItemStack is) {
+            cosmeticsModel = is; // TODO: Actual cosmetics will go here
 
             bodyCosmetics.setPosition(player.getX(), player.getY(), player.getZ());
 

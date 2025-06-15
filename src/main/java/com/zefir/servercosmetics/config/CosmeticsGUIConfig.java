@@ -151,7 +151,7 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
                 "name", "<blue>Hats", "item", "minecraft:golden_chestplate", "slotIndex", 12,
                 "lore", List.of()));
         
-        buttonDefaults.put("body-cosmetics-disabled", Map.of(
+        buttonDefaults.put("filter.body-cosmetics-disabled", Map.of(
                 "name", "<blue>Body Cosmetics", "item", "minecraft:diamond_chestplate", "slotIndex", 15,
                 "lore", List.of()));
         buttonDefaults.put("filter.body-cosmetics-enabled", Map.of(
@@ -173,8 +173,16 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
         loadNavigationButton(file, "enterColor");
         loadNavigationButton(file, "decreaseBrightness");
         loadNavigationButton(file, "increaseBrightness");
+
         loadNavigationButton(file, "filter.show-all-skins");
         loadNavigationButton(file, "filter.show-owned-skins");
+
+        loadNavigationButton(file, "filter.hats-disabled");
+        loadNavigationButton(file, "filter.hats-enabled");
+
+        loadNavigationButton(file, "filter.body-cosmetics-disabled");
+        loadNavigationButton(file, "filter.body-cosmetics-enabled");
+
         loadNavigationButton(file, "pageIndicator");
     }
 
