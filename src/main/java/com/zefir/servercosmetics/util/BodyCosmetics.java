@@ -24,7 +24,7 @@ public class BodyCosmetics {
     }
 
     public void equipCosmetics(ItemStack is) {
-            cosmeticsModel = is; // TODO: Actual cosmetics will go here
+            cosmeticsModel = is;
 
             bodyCosmetics.setPosition(player.getX(), player.getY(), player.getZ());
 
@@ -47,7 +47,7 @@ public class BodyCosmetics {
         bodyCosmetics.setPosition(player.getX(), player.getY()+1.8, player.getZ());
 
         player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
-                new EntityS2CPacket.Rotate(bodyCosmetics.getId(), (byte) MathHelper.floor(player.getYaw() * 256.0F / 360.0F), (byte) MathHelper.floor(player.getPitch() * 256.0F / 360.0F), false));
+                new EntityS2CPacket.Rotate(bodyCosmetics.getId(), (byte) MathHelper.floor(player.getYaw() * 256.0F / 360.0F), (byte) MathHelper.floor(bodyCosmetics.getPitch() * 256.0F / 360.0F), false));
     }
 
     private void sendPassengersPacket(ServerPlayerEntity player, DisplayEntity bodyCosmetics){

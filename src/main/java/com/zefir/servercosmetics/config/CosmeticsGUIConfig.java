@@ -145,17 +145,17 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
                 "lore", List.of("&7All cosmetics", "&aAvailable cosmetics &7(Selected)", "", "&aClick to change mode!")));
         
         buttonDefaults.put("filter.hats-disabled", Map.of(
-                "name", "<blue>Hats", "item", "minecraft:diamond_chestplate", "slotIndex", 12,
+                "name", "<blue>Hats", "item", "minecraft:leather_helmet", "slotIndex", 13,
                 "lore", List.of()));
         buttonDefaults.put("filter.hats-enabled", Map.of(
-                "name", "<blue>Hats", "item", "minecraft:golden_chestplate", "slotIndex", 12,
+                "name", "<blue>Hats", "item", "minecraft:diamond_helmet", "slotIndex", 13,
                 "lore", List.of()));
         
         buttonDefaults.put("filter.body-cosmetics-disabled", Map.of(
-                "name", "<blue>Body Cosmetics", "item", "minecraft:diamond_chestplate", "slotIndex", 15,
+                "name", "<blue>Body Cosmetics", "item", "minecraft:leather_chestplate", "slotIndex", 15,
                 "lore", List.of()));
         buttonDefaults.put("filter.body-cosmetics-enabled", Map.of(
-                "name", "<blue>Body Cosmetics", "item", "minecraft:golden_chestplate", "slotIndex", 15,
+                "name", "<blue>Body Cosmetics", "item", "minecraft:diamond_chestplate", "slotIndex", 15,
                 "lore", List.of()));
 
         buttonDefaults.put("pageIndicator", Map.of(
