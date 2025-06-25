@@ -1,8 +1,7 @@
 package com.zefir.servercosmetics.mixin;
 
-import com.zefir.servercosmetics.ext.CosmeticSlotExt;
+import com.zefir.servercosmetics.ext.ICosmetics;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket;
 import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -27,10 +26,8 @@ public class ServerPlayerEntityMixin {
     )
     void modifyHeadSlotItem (ScreenHandler handler, int slot, ItemStack _stack, CallbackInfo ci) {
         if(handler instanceof PlayerScreenHandler) {
-            if (((CosmeticSlotExt) handler).getHeadCosmetics() != ItemStack.EMPTY && slot == 5) {
-                ItemStack itemStack = ((CosmeticSlotExt) handler).getHeadCosmetics();
-
-                this.field_29183.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(handler.syncId, handler.nextRevision(), 5, itemStack));
+            if(slot == 5) {
+                ((ICosmetics) field_29183).getHatCosmetic().tick();
             }
         }
     }

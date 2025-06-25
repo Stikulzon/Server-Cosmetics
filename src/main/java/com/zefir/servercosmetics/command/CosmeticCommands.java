@@ -1,6 +1,7 @@
 package com.zefir.servercosmetics.command;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.context.CommandContext;
 import com.zefir.servercosmetics.config.ConfigManager;
 import com.zefir.servercosmetics.gui.CosmeticsGUI;
 import com.zefir.servercosmetics.gui.ItemSkinsGUI;
@@ -9,6 +10,7 @@ import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.CommandManager;
+import net.minecraft.server.command.ServerCommandSource;
 
 import java.util.Objects;
 
@@ -30,6 +32,10 @@ public class CosmeticCommands {
                                     .requires(Permissions.require(Objects.requireNonNullElse(ConfigManager.getCosmeticsReloadPermission(), "servercosmetics.reload.cosmetics"), 4))
                                     .executes(ConfigManager::reloadCosmeticsConfigsCommand))
             );
+            dispatcher.register(literal("test")
+                    .requires(Permissions.require("servercosmetics.wearcosmetic", 4))
+                    .executes(CosmeticCommands::debugCommand)
+            );
             dispatcher.register(literal("wearcosmetic")
                     .requires(Permissions.require("servercosmetics.wearcosmetic", 4))
                     .then(CommandManager.argument("player", EntityArgumentType.player())
@@ -44,5 +50,12 @@ public class CosmeticCommands {
                                     .executes(ConfigManager::reloadItemSkinsConfigsCommand))
             );
         });
+    }
+
+    public static boolean test = false;
+
+    private static int debugCommand(CommandContext<ServerCommandSource> serverCommandSourceCommandContext) {
+        test = !test;
+        return 1;
     }
 }

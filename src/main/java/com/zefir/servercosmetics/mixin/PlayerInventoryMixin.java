@@ -56,8 +56,6 @@ public class PlayerInventoryMixin {
             NbtCompound nbt = customDataComponent.copyNbt();
             if (nbt.contains("cosmeticItemId", NbtCompound.STRING_TYPE)) {
                 String itemSkinId = nbt.getString("cosmeticItemId");
-                Item baseItem = stack.getItem();
-                String targetMaterialId = Registries.ITEM.getId(baseItem).toString();
 
                 CustomItemEntry skinEntry = CustomItemRegistry.getCosmetic(itemSkinId);
 

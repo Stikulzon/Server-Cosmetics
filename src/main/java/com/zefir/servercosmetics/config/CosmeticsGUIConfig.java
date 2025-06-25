@@ -126,7 +126,7 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
         buttonDefaults.put("previous", Map.of(
                 "name", "Back", "item", "minecraft:paper", "textureName", "previous", "slotIndex", 47));
         buttonDefaults.put("removeSkin", Map.of(
-                "name", "Remove skin", "item", "minecraft:paper", "textureName", "remove", "slotIndex", 49));
+                "name", "Remove cosmetic", "item", "minecraft:paper", "textureName", "remove", "slotIndex", 49));
         buttonDefaults.put("toggleColorView", Map.of(
                 "name", "Toggle view", "item", "minecraft:diamond_chestplate", "slotIndex", 10));
         buttonDefaults.put("enterColor", Map.of(

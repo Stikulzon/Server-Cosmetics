@@ -1,11 +1,7 @@
 package com.zefir.servercosmetics.mixin;
 
-import com.zefir.servercosmetics.database.DatabaseManager;
-import com.zefir.servercosmetics.ext.CosmeticSlotExt;
-import net.minecraft.item.ItemStack;
+import com.zefir.servercosmetics.ext.ICosmetics;
 import net.minecraft.network.ClientConnection;
-import net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket;
-import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -20,12 +16,9 @@ public class PlayerManagerMixin {
             method = "onPlayerConnect",
             at = @At( value = "TAIL" )
     )
-    void modifyHeadSlotItem (ClientConnection connection, ServerPlayerEntity player, ConnectedClientData clientData, CallbackInfo ci) {
-        ScreenHandler handler = player.currentScreenHandler;
-        ItemStack itemStack = DatabaseManager.getHeadCosmetics(player.getUuid());
-        if(itemStack != ItemStack.EMPTY ) {
-            ((CosmeticSlotExt) handler).setHeadCosmetics(itemStack);
-            player.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(handler.syncId, handler.nextRevision(), 5, itemStack));
-        }
+    void modifyHeadSlotItem(ClientConnection connection, ServerPlayerEntity player, ConnectedClientData clientData, CallbackInfo ci) {
+        ((ICosmetics) player).getHatCosmetic().initItemStack();
+        ((ICosmetics) player).getHatCosmetic().tick();
+        ((ICosmetics) player).getBodyCosmetics().initNewCosmetic();
     }
 }

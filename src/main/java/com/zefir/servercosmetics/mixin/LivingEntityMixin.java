@@ -1,10 +1,12 @@
 package com.zefir.servercosmetics.mixin;
 
+import com.zefir.servercosmetics.config.entries.ItemType;
 import com.zefir.servercosmetics.database.DatabaseManager;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -22,11 +24,9 @@ public class LivingEntityMixin {
             )
     )
     ItemStack modifyHeadSlotItem (ItemStack instance, List list, EquipmentSlot slot, ItemStack stack) {
-        if ((LivingEntity) (Object) this instanceof PlayerEntity){
+        if ((LivingEntity) (Object) this instanceof ServerPlayerEntity player){
             if(slot.getEntitySlotId() == 3) {
-                LivingEntity livingEntity = (LivingEntity) (Object) this;
-                PlayerEntity playerEntity = (PlayerEntity) livingEntity;
-                ItemStack cosmeticsIS = DatabaseManager.getHeadCosmetics(playerEntity.getUuid());
+                ItemStack cosmeticsIS = DatabaseManager.getCosmetic(player, ItemType.HAT);;
                 if (cosmeticsIS != ItemStack.EMPTY) {
                     return cosmeticsIS;
                 }

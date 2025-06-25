@@ -2,12 +2,12 @@ package com.zefir.servercosmetics.gui.filters;
 
 import com.zefir.servercosmetics.config.ConfigManager;
 import com.zefir.servercosmetics.config.entries.CustomItemEntry;
+import com.zefir.servercosmetics.config.entries.ItemType;
 import com.zefir.servercosmetics.gui.PagedItemDisplayGui;
 import com.zefir.servercosmetics.util.GUIUtils;
+import lombok.Getter;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -15,7 +15,8 @@ public class FilterManager {
     private final PagedItemDisplayGui gui;
     private final Map<String, FilterRegistration> registeredFilters = new HashMap<>();
     private final Map<String, Boolean> activeStates = new HashMap<>();
-    private final List<List<String>> canBeActiveOnlyOne = new ArrayList<>();
+    @Getter
+    private ItemType targetType;
 
     private record FilterRegistration(Predicate<CustomItemEntry> filter, ConfigManager.NavigationButton activeButton, ConfigManager.NavigationButton inactiveButton) {}
 
@@ -28,33 +29,18 @@ public class FilterManager {
         activeStates.put(key, initiallyActive);
     }
 
-    public void canBeActiveOnlyOne(List<String> keys) {
-        canBeActiveOnlyOne.add(keys);
-    }
-
-    private void ifCanBeActiveOnlyOne(String key){
-        for (List<String> list : canBeActiveOnlyOne) {
-            if(list.contains(key)){
-                for (String s : list) {
-                    activeStates.put(s, false);
-                }
-                activeStates.put(key, true);
-                return;
+    private void disableOtherItemTypeFilters(String key) {
+        for (Map.Entry<String, FilterRegistration> entry : registeredFilters.entrySet()) {
+            if(entry.getValue().filter() instanceof ItemTypeFilter && !entry.getKey().equals(key)){
+                activeStates.put(entry.getKey(), false);
             }
         }
     }
 
-    private boolean isCanBeActiveOnlyOne(String key){
-        for (List<String> list : canBeActiveOnlyOne) {
-            return list.contains(key);
-        }
-        return false;
-    }
-
     public Predicate<CustomItemEntry> getCombinedPredicate() {
         return entry -> registeredFilters.entrySet().stream()
-                .filter(mapEntry -> activeStates.getOrDefault(mapEntry.getKey(), false)) // Consider only active filters
-                .allMatch(mapEntry -> mapEntry.getValue().filter().test(entry));         // Check if the entry passes all of them
+                .filter(mapEntry -> activeStates.getOrDefault(mapEntry.getKey(), false))
+                .allMatch(mapEntry -> mapEntry.getValue().filter().test(entry));
     }
 
     public void drawFilterButtons() {
@@ -63,14 +49,20 @@ public class FilterManager {
             FilterRegistration reg = entry.getValue();
             boolean isActive = activeStates.getOrDefault(key, false);
 
-            ConfigManager.NavigationButton button = isActive ? reg.activeButton : reg.inactiveButton;
+            ConfigManager.NavigationButton button = isActive ? reg.inactiveButton : reg.activeButton;
+
+            if (registeredFilters.get(key).filter() instanceof ItemTypeFilter targetFilter && isActive) {
+                this.targetType = targetFilter.type();
+            }
 
             GUIUtils.setUpButton(gui, button, () -> {
-                if (isCanBeActiveOnlyOne(key)) {
+                if (registeredFilters.get(key).filter() instanceof ItemTypeFilter targetFilter) {
                     if (isActive) {
                         return;
                     }
-                    ifCanBeActiveOnlyOne(key);
+                    this.targetType = targetFilter.type();
+                    disableOtherItemTypeFilters(key);
+                    activeStates.put(key, true);
                 } else {
                     activeStates.put(key, !isActive);
                 }

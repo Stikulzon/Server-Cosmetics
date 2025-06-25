@@ -1,5 +1,7 @@
 package com.zefir.servercosmetics.util;
 
+import com.zefir.servercosmetics.config.entries.ItemType;
+import com.zefir.servercosmetics.database.DatabaseManager;
 import com.zefir.servercosmetics.mixin.EntityPassengersSetS2CPacketAccessor;
 import io.netty.buffer.Unpooled;
 import net.minecraft.entity.EntityType;
@@ -12,35 +14,42 @@ import net.minecraft.network.packet.s2c.play.EntityTrackerUpdateS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.MathHelper;
 
-public class BodyCosmetics {
+import static com.zefir.servercosmetics.database.DatabaseManager.setCosmetic;
+
+public class BodyCosmetic {
 
     private final DisplayEntity.ItemDisplayEntity bodyCosmetics;
-    private ItemStack cosmeticsModel;
+    private ItemStack cosmeticItemStack = ItemStack.EMPTY;
     private final ServerPlayerEntity player;
 
-    public BodyCosmetics(ServerPlayerEntity player){
-        bodyCosmetics = new DisplayEntity.ItemDisplayEntity(EntityType.ITEM_DISPLAY, player.getServerWorld());
+    public BodyCosmetic(ServerPlayerEntity player){
+        this.bodyCosmetics = new DisplayEntity.ItemDisplayEntity(EntityType.ITEM_DISPLAY, player.getServerWorld());
         this.player = player;
     }
 
-    public void equipCosmetics(ItemStack is) {
-            cosmeticsModel = is;
+    public void equip(ItemStack is) {
+        setCosmetic(player, ItemType.BODY_COSMETIC, is);
+        this.cosmeticItemStack = is;
+        initNewCosmetic();
+    }
 
-            bodyCosmetics.setPosition(player.getX(), player.getY(), player.getZ());
+    public void initNewCosmetic() {
+        this.cosmeticItemStack = DatabaseManager.getCosmetic(player, ItemType.BODY_COSMETIC);
+        bodyCosmetics.setPosition(player.getX(), player.getY(), player.getZ());
 
-            bodyCosmetics.setItemStack(cosmeticsModel);
-            bodyCosmetics.setInvulnerable(true);
-            bodyCosmetics.setNoGravity(true);
+        bodyCosmetics.setItemStack(cosmeticItemStack);
+        bodyCosmetics.setInvulnerable(true);
+        bodyCosmetics.setNoGravity(true);
 
-            player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
-                    new EntitySpawnS2CPacket(bodyCosmetics, 1, bodyCosmetics.getBlockPos()));
+        player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
+                new EntitySpawnS2CPacket(bodyCosmetics, 1, bodyCosmetics.getBlockPos()));
 
-            player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
-                    new EntityTrackerUpdateS2CPacket(bodyCosmetics.getId(),
-                            bodyCosmetics.getDataTracker().getChangedEntries()));
+        player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
+                new EntityTrackerUpdateS2CPacket(bodyCosmetics.getId(),
+                        bodyCosmetics.getDataTracker().getChangedEntries()));
 
-            sendPassengersPacket(player, bodyCosmetics);
-            bodyCosmetics.startRiding(player);
+        sendPassengersPacket(player, bodyCosmetics);
+        bodyCosmetics.startRiding(player);
     }
 
     public void tick() {

@@ -156,7 +156,7 @@ public abstract class AbstractGuiConfig {
                 }
             }
         } else {
-            ServerCosmetics.LOGGER.error("Texture name for '{}' is undefined!", buttonKey);
+//            ServerCosmetics.LOGGER.error("Texture name for '{}' is undefined!", buttonKey);
         }
 
         List<String> loreStrings = yamlFile.getStringList(basePath + ".lore");

@@ -1,8 +1,7 @@
 package com.zefir.servercosmetics.mixin;
 
-import com.zefir.servercosmetics.ext.CosmeticSlotExt;
+import com.zefir.servercosmetics.ext.ICosmetics;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket;
 import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -26,8 +25,8 @@ public class ArmorHeadSlotMixin {
             argsOnly = true
     )
     private ItemStack modifyHeadSlotItem(ItemStack stack, ScreenHandler handler, int slot) {
-        if(handler instanceof PlayerScreenHandler && ((CosmeticSlotExt) handler).getHeadCosmetics() != ItemStack.EMPTY && slot == 5){
-            return ((CosmeticSlotExt) handler).getHeadCosmetics();
+        if(slot == 5) {
+            ((ICosmetics) field_29182).getHatCosmetic().tick();
         }
         return stack;
     }
@@ -38,9 +37,8 @@ public class ArmorHeadSlotMixin {
             )
     )
     void modifyHeadSlotItem (ScreenHandler handler, DefaultedList<ItemStack> stacks, ItemStack cursorStack, int[] properties, CallbackInfo ci) {
-        if(handler instanceof PlayerScreenHandler && ((CosmeticSlotExt) handler).getHeadCosmetics() != ItemStack.EMPTY) {
-            ItemStack itemStack = ((CosmeticSlotExt) handler).getHeadCosmetics();
-            this.field_29182.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(handler.syncId, handler.nextRevision(), 5, itemStack));
+        if(handler instanceof PlayerScreenHandler) {
+            ((ICosmetics) field_29182).getHatCosmetic().tick();
         }
     }
 }

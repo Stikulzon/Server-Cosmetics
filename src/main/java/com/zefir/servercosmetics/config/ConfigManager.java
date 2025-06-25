@@ -90,7 +90,7 @@ public class ConfigManager {
 
                                     if (filenameLower.endsWith(".png")) {
                                         targetBaseDir = TARGET_TEXTURE_PATH;
-                                    } else if (filenameLower.endsWith(".json")) {
+                                    } else if (filenameLower.endsWith(".json") || filenameLower.endsWith(".mcmeta")) {
                                         targetBaseDir = TARGET_MODEL_PATH;
                                         try {
                                             String content = new String(data, StandardCharsets.UTF_8);
