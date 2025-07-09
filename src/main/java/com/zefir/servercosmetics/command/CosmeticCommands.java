@@ -32,6 +32,14 @@ public class CosmeticCommands {
                                     .requires(Permissions.require(Objects.requireNonNullElse(ConfigManager.getCosmeticsReloadPermission(), "servercosmetics.reload.cosmetics"), 4))
                                     .executes(ConfigManager::reloadCosmeticsConfigsCommand))
             );
+            dispatcher.register(
+                    literal("cosmetics").executes(CosmeticsGUI::openGui)
+                            .requires(Permissions.require(COSMETICS_GUI_CONFIG.getPermissionOpenGui(), 0))
+                            .then(literal("reload")
+                                    .requires(Permissions.require(Objects.requireNonNullElse(ConfigManager.getCosmeticsReloadPermission(), "servercosmetics.reload.cosmetics"), 4))
+                                    .executes(ConfigManager::reloadCosmeticsConfigsCommand))
+            );
+
             dispatcher.register(literal("test")
                     .requires(Permissions.require("servercosmetics.wearcosmetic", 4))
                     .executes(CosmeticCommands::debugCommand)
@@ -44,6 +52,13 @@ public class CosmeticCommands {
             );
             dispatcher.register(
                     literal("is").executes(ItemSkinsGUI::openItemSkinsGui)
+                            .requires(Permissions.require(ITEM_SKINS_GUI_CONFIG.getPermissionOpenGui(), 0))
+                            .then(literal("reload")
+                                    .requires(Permissions.require(Objects.requireNonNullElse(ConfigManager.getItemSkinsReloadPermission(), "servercosmetics.reload.itemskins"), 4))
+                                    .executes(ConfigManager::reloadItemSkinsConfigsCommand))
+            );
+            dispatcher.register(
+                    literal("itemskins").executes(ItemSkinsGUI::openItemSkinsGui)
                             .requires(Permissions.require(ITEM_SKINS_GUI_CONFIG.getPermissionOpenGui(), 0))
                             .then(literal("reload")
                                     .requires(Permissions.require(Objects.requireNonNullElse(ConfigManager.getItemSkinsReloadPermission(), "servercosmetics.reload.itemskins"), 4))

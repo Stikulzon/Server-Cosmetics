@@ -6,7 +6,6 @@ import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import com.zefir.servercosmetics.ServerCosmetics;
-import com.zefir.servercosmetics.config.ConfigManager;
 import com.zefir.servercosmetics.config.entries.CustomItemEntry;
 import com.zefir.servercosmetics.config.entries.CustomItemRegistry;
 import com.zefir.servercosmetics.config.entries.ItemType;
@@ -14,7 +13,6 @@ import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.DyedColorComponent;
 import net.minecraft.component.type.NbtComponent;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -22,8 +20,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
 
 public class DatabaseManager {
     private static final String DATABASE_URL = "jdbc:sqlite:cosmetics.db";
@@ -31,10 +27,11 @@ public class DatabaseManager {
 
     static {
         try {
+            Class.forName("org.sqlite.JDBC");
             ConnectionSource connectionSource = new JdbcConnectionSource(DATABASE_URL);
             TableUtils.createTableIfNotExists(connectionSource, CosmeticTable.class);
             cosmeticDao = DaoManager.createDao(connectionSource, CosmeticTable.class);
-        } catch (SQLException e) {
+        } catch (Exception e) {
             ServerCosmetics.LOGGER.error("Failed to initialize database", e);
             throw new RuntimeException("Error initializing database", e);
         }
@@ -77,7 +74,7 @@ public class DatabaseManager {
                 cosmeticDao.create(newEntry);
             }
         } catch (SQLException e) {
-            ServerCosmetics.LOGGER.error("Error saving cosmetic data for player {} and type {}", player.getUuidAsString(), type.toString(), e);
+            ServerCosmetics.LOGGER.error("Error saving cosmetic data for player {} and type {}", player.getUuidAsString(), type, e);
             throw new RuntimeException("Error saving cosmetic data", e);
         }
     }
