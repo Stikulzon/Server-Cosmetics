@@ -6,6 +6,7 @@ import eu.pb4.sgui.api.gui.SimpleGui;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.component.type.NbtComponent;
+import net.minecraft.item.ArmorItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 
@@ -26,6 +27,9 @@ public class ApplySkinAction implements IItemAction {
         );
         targetItemStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, entry.itemStack().getOrDefault(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(0)));
 
+        if (entry.itemStack().getItem() instanceof ArmorItem armorItem && armorItem.getType() != ArmorItem.Type.BODY) {
+            // TODO: Rewrite the whole itemskins thing
+        }
 
         gui.setSlot(itemDisplaySlot, targetItemStack.copy());
     }

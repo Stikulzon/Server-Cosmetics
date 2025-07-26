@@ -3,17 +3,22 @@ package com.zefir.servercosmetics.config;
 import com.mojang.brigadier.context.CommandContext;
 import com.zefir.servercosmetics.ServerCosmetics;
 import com.zefir.servercosmetics.config.entries.CustomItemRegistry;
+import com.zefir.servercosmetics.datagen.RuntimeModelManager;
 import com.zefir.servercosmetics.util.Utils;
+import eu.pb4.polymer.resourcepack.api.PolymerArmorModel;
 import eu.pb4.polymer.resourcepack.api.PolymerModelData;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import lombok.Getter;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.CustomModelDataComponent;
+import net.minecraft.component.type.DyedColorComponent;
 import net.minecraft.component.type.LoreComponent;
 import net.minecraft.component.type.NbtComponent;
+import net.minecraft.item.ArmorItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
@@ -32,10 +37,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.zefir.servercosmetics.ServerCosmetics.id;
+
 public class ConfigManager {
     public static final Path SERVER_COSMETICS_DIR = FabricLoader.getInstance().getConfigDir().resolve("ServerCosmetics");
 
-    private static final String TARGET_TEXTURE_PATH = "assets/servercosmetics/textures/item/";
+    private static final String TARGET_TEXTURE_PATH = "assets/servercosmetics/textures/";
     private static final String TARGET_MODEL_PATH = "assets/servercosmetics/models/item/";
 
     public record NavigationButton(Text name, Item baseItem, PolymerModelData polymerModelData, int slotIndex, List<String> lore) {}
@@ -66,6 +73,9 @@ public class ConfigManager {
 
     public static void registerResourcePackListener() {
         PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register((builder) -> {
+            // Generate and add runtime armor models
+            RuntimeModelManager.generateAndProvideModels(builder::addData);
+
             Path resourcePackSourceDir = SERVER_COSMETICS_DIR.resolve("Assets");
 
             if (Files.isDirectory(resourcePackSourceDir)) {
@@ -89,7 +99,13 @@ public class ConfigManager {
                                     data = Files.readAllBytes(filePath);
 
                                     if (filenameLower.endsWith(".png")) {
-                                        targetBaseDir = TARGET_TEXTURE_PATH;
+                                        if(filenameLower.endsWith("_helmet.png") || filenameLower.endsWith("_chestplate.png") || filenameLower.endsWith("_leggings.png") || filenameLower.endsWith("_boots.png")){
+                                            targetBaseDir = TARGET_TEXTURE_PATH + "item/armor/";
+                                        } else if (filenameLower.endsWith("_layer_1.png") || filenameLower.endsWith("_layer_2.png")) {
+                                            targetBaseDir = TARGET_TEXTURE_PATH + "models/armor/";
+                                        } else {
+                                            targetBaseDir = TARGET_TEXTURE_PATH + "item/";
+                                        }
                                     } else if (filenameLower.endsWith(".json") || filenameLower.endsWith(".mcmeta")) {
                                         targetBaseDir = TARGET_MODEL_PATH;
                                         try {
@@ -97,7 +113,7 @@ public class ConfigManager {
                                             JSONObject jsonObject = new JSONObject(content);
 
                                             if (jsonObject.has("animation")) {
-                                                targetBaseDir = TARGET_TEXTURE_PATH;
+                                                targetBaseDir = TARGET_TEXTURE_PATH + "item/";
                                                 ServerCosmetics.LOGGER.debug("JSON file {} has 'animation' key, targeting TEXTURE_PATH.", fileNameString);
                                             }
                                         } catch (JSONException e) {
@@ -285,7 +301,15 @@ public class ConfigManager {
 
         PolymerModelData polymerModel;
         try {
-            polymerModel = PolymerResourcePackUtils.requestModel(baseItem, Identifier.of(ServerCosmetics.MOD_ID, "item/" + cosmeticOrSkinId));
+            if (baseItem instanceof ArmorItem armorItem && armorItem.getType() != ArmorItem.Type.BODY) {
+//                System.out.println("Requesting armor model for " + baseItem + " with id " + cosmeticOrSkinId + " and type " + armorItem.getType());
+                RuntimeModelManager.requestArmorModel(cosmeticOrSkinId, armorItem.getType());
+
+                String modelIdPath = "item/armor/" + cosmeticOrSkinId + "_" + armorItem.getType().getName().toLowerCase();
+                polymerModel = PolymerResourcePackUtils.requestModel(getItemFor(armorItem.getType()), id(modelIdPath));
+            } else {
+                polymerModel = PolymerResourcePackUtils.requestModel(baseItem, Identifier.of(ServerCosmetics.MOD_ID, "item/" + cosmeticOrSkinId));
+            }
         } catch (Exception e) {
             ServerCosmetics.LOGGER.error("Failed to request model for item id '{}' with base item '{}': {}", cosmeticOrSkinId, baseMaterialId, e.getMessage());
             ItemStack errorStack = new ItemStack(baseItem);
@@ -300,6 +324,11 @@ public class ConfigManager {
             nbt.putString("cosmeticItemId", cosmeticOrSkinId);
         }));
 
+        if (baseItem instanceof ArmorItem armorItem && armorItem.getType() != ArmorItem.Type.BODY) {
+            PolymerArmorModel armorModel = PolymerResourcePackUtils.requestArmor(id(cosmeticOrSkinId));
+            itemStack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(armorModel.color(), true));
+        }
+
         if (loreTexts != null && !loreTexts.isEmpty()) {
             itemStack.set(DataComponentTypes.LORE, new LoreComponent(loreTexts));
         } else {
@@ -310,6 +339,16 @@ public class ConfigManager {
         itemStack.set(DataComponentTypes.CUSTOM_NAME, displayName);
 
         return itemStack;
+    }
+
+    private static Item getItemFor(ArmorItem.Type type) {
+        return switch (type) {
+            case ArmorItem.Type.HELMET -> Items.LEATHER_HELMET;
+            case ArmorItem.Type.CHESTPLATE -> Items.LEATHER_CHESTPLATE;
+            case ArmorItem.Type.LEGGINGS -> Items.LEATHER_LEGGINGS;
+            case ArmorItem.Type.BOOTS -> Items.LEATHER_BOOTS;
+            default -> Items.STONE;
+        };
     }
 
     public static List<Path> listFiles(Path dir) {
