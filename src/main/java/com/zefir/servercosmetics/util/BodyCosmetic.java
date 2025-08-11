@@ -56,7 +56,7 @@ public class BodyCosmetic {
                 new EntitySpawnS2CPacket(bodyCosmeticsModel, 1, bodyCosmeticsModel.getBlockPos()));
 
         if(useArmorStand) {
-//            bodyCosmeticsModel.setInvisible(true);
+            bodyCosmeticsModel.setInvisible(true);
             ((ArmorStandEntity) bodyCosmeticsModel).setHeadRotation(new EulerAngle(0.0F, 0f, 0f));
         } else {
             ((DisplayEntity.ItemDisplayEntity) bodyCosmeticsModel).setBillboardMode(DisplayEntity.BillboardMode.FIXED);
