@@ -1,29 +1,42 @@
 package com.zefir.servercosmetics.util;
 
+import com.google.common.collect.ImmutableList;
 import com.zefir.servercosmetics.config.entries.ItemType;
 import com.zefir.servercosmetics.database.DatabaseManager;
-import com.zefir.servercosmetics.mixin.EntityPassengersSetS2CPacketAccessor;
-import io.netty.buffer.Unpooled;
+import lombok.Getter;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.entity.decoration.DisplayEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.packet.s2c.play.EntityS2CPacket;
-import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
-import net.minecraft.network.packet.s2c.play.EntityTrackerUpdateS2CPacket;
+import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.server.network.ServerPlayerEntity;
+import com.mojang.datafixers.util.Pair;
+import net.minecraft.util.math.EulerAngle;
 import net.minecraft.util.math.MathHelper;
+
+import java.util.List;
 
 import static com.zefir.servercosmetics.database.DatabaseManager.setCosmetic;
 
+// TODO: Refactor
 public class BodyCosmetic {
-
-    private final DisplayEntity.ItemDisplayEntity bodyCosmetics;
-    private ItemStack cosmeticItemStack = ItemStack.EMPTY;
     private final ServerPlayerEntity player;
+    @Getter
+    private final Entity bodyCosmeticsModel;
+    @Getter
+    private ItemStack cosmeticItemStack = ItemStack.EMPTY;
+    private boolean useArmorStand = true;
+    private boolean isHidden = false;
+    private boolean isTilted = false;
 
     public BodyCosmetic(ServerPlayerEntity player){
-        this.bodyCosmetics = new DisplayEntity.ItemDisplayEntity(EntityType.ITEM_DISPLAY, player.getServerWorld());
+        if(useArmorStand){
+            this.bodyCosmeticsModel = new ArmorStandEntity(EntityType.ARMOR_STAND, player.getServerWorld());
+        } else {
+            this.bodyCosmeticsModel = new DisplayEntity.ItemDisplayEntity(EntityType.ITEM_DISPLAY, player.getServerWorld());
+        }
         this.player = player;
     }
 
@@ -34,89 +47,73 @@ public class BodyCosmetic {
     }
 
     public void initNewCosmetic() {
-        this.cosmeticItemStack = DatabaseManager.getCosmetic(player, ItemType.BODY_COSMETIC);
-        bodyCosmetics.setPosition(player.getX(), player.getY(), player.getZ());
-
-        bodyCosmetics.setItemStack(cosmeticItemStack);
-        bodyCosmetics.setInvulnerable(true);
-        bodyCosmetics.setNoGravity(true);
+        cosmeticItemStack = DatabaseManager.getCosmetic(player, ItemType.BODY_COSMETIC);
+        bodyCosmeticsModel.setPosition(player.getX(), player.getY(), player.getZ());
+        bodyCosmeticsModel.setInvulnerable(true);
+        bodyCosmeticsModel.setNoGravity(true);
 
         player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
-                new EntitySpawnS2CPacket(bodyCosmetics, 1, bodyCosmetics.getBlockPos()));
+                new EntitySpawnS2CPacket(bodyCosmeticsModel, 1, bodyCosmeticsModel.getBlockPos()));
+
+        if(useArmorStand) {
+//            bodyCosmeticsModel.setInvisible(true);
+            ((ArmorStandEntity) bodyCosmeticsModel).setHeadRotation(new EulerAngle(0.0F, 0f, 0f));
+        } else {
+            ((DisplayEntity.ItemDisplayEntity) bodyCosmeticsModel).setBillboardMode(DisplayEntity.BillboardMode.FIXED);
+        }
+        setItem(cosmeticItemStack);
 
         player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
-                new EntityTrackerUpdateS2CPacket(bodyCosmetics.getId(),
-                        bodyCosmetics.getDataTracker().getChangedEntries()));
+                new EntityTrackerUpdateS2CPacket(bodyCosmeticsModel.getId(),
+                        bodyCosmeticsModel.getDataTracker().getChangedEntries()));
 
-        sendPassengersPacket(player, bodyCosmetics);
-        bodyCosmetics.startRiding(player);
+        player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
+                new EntityPassengersSetS2CPacket(player));
+        bodyCosmeticsModel.startRiding(player);
     }
 
     public void tick() {
-        // We still position the cosmetic at the player's location.
-        // The Y-offset might need adjustment based on the pose (e.g., sneaking).
-        double yOffset = player.isSneaking() ? 1.55 : 1.8;
-        bodyCosmetics.setPosition(player.getX(), player.getY() + yOffset, player.getZ());
-
-        // --- YAW PREDICTION ---
-        // This is the core logic for replicating the client's rendered body yaw.
-
-        float yawToUse;
-        // Get horizontal velocity squared. Using squared values avoids a square root calculation.
-        double velX = player.getVelocity().getX();
-        double velZ = player.getVelocity().getZ();
-        double horizontalVelocitySq = velX * velX + velZ * velZ;
-
-        // Check if the player is moving horizontally.
-        // The threshold (1.0E-6) is small to detect any meaningful movement but ignore tiny jitters.
-        if (horizontalVelocitySq > 1.0E-6) {
-            // If moving, the client renders the body facing the same direction as the head.
-            // So, we use the player's head yaw.
-            yawToUse = player.getYaw();
-        } else {
-            // If not moving, the client uses the standard body yaw logic (lagging behind the head).
-            // The server's getBodyYaw() is perfect for this.
-            yawToUse = player.getBodyYaw();
-        }
-
-
-        // --- PITCH PREDICTION ---
-        // We need to handle several player states for accurate vertical rotation.
-
-        float pitchToUse;
-        if (player.isSwimming() || player.isCrawling()) {
-            // When swimming or crawling, the player's body is horizontal.
-            pitchToUse = 90.0F;
-        } else if (player.isSneaking()) {
-            // Your original logic for sneaking pitch is good.
-            pitchToUse = 28.0F;
-        } else {
-            // When standing/walking, the body doesn't pitch with the head.
-            // A pitch of 0.0F keeps the cosmetic upright.
-            // If you want a subtle tilt when the player looks up/down, you can use:
-            // pitchToUse = player.getPitch() * 0.4f; // Sclae it down to avoid extreme tilting
-            pitchToUse = 0.0F;
-        }
-
-
-        // --- SENDING THE PACKET ---
-        // Now we send the update packet with our predicted yaw and pitch.
+        (bodyCosmeticsModel).setYaw(player.bodyYaw);
         player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
-                new EntityS2CPacket.Rotate(
-                        bodyCosmetics.getId(),
-                        (byte) MathHelper.floor(yawToUse * 256.0F / 360.0F),
-                        (byte) MathHelper.floor(pitchToUse * 256.0F / 360.0F),
-                        false // onGround status doesn't matter much for a DisplayEntity
+                new EntitySetHeadYawS2CPacket(
+                        bodyCosmeticsModel,
+                        (byte) MathHelper.floor(bodyCosmeticsModel.getYaw() * 256.0F / 360.0F)
                 )
         );
+
+        if (player.isSneaking() && !isTilted) {
+            ((ArmorStandEntity) bodyCosmeticsModel).setHeadRotation(new EulerAngle(4.0F, 0f, 0f));
+            player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
+                    new EntityTrackerUpdateS2CPacket(bodyCosmeticsModel.getId(),
+                            bodyCosmeticsModel.getDataTracker().getDirtyEntries()));
+            isTilted = true;
+        } else if (!player.isSneaking() && isTilted) {
+            ((ArmorStandEntity) bodyCosmeticsModel).setHeadRotation(new EulerAngle(0.0F, 0f, 0f));
+            player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
+                    new EntityTrackerUpdateS2CPacket(bodyCosmeticsModel.getId(),
+                            bodyCosmeticsModel.getDataTracker().getDirtyEntries()));
+            isTilted = false;
+        }
+
+        if(player.isSwimming() || player.isCrawling() && !isHidden) {
+            setItem(ItemStack.EMPTY);
+            isHidden = true;
+        } else if(!player.isSwimming() && !player.isCrawling() && isHidden) {
+            setItem(cosmeticItemStack);
+            isHidden = false;
+        }
     }
 
-    private void sendPassengersPacket(ServerPlayerEntity player, DisplayEntity bodyCosmetics){
-        PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
-        buf.writeVarInt(player.getId()); // Entity ID
-        buf.writeIntArray(new int[]{bodyCosmetics.getId()}); // Passenger IDs
-
-        player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
-                EntityPassengersSetS2CPacketAccessor.invokeInit(buf));
+    private void setItem(ItemStack itemStack) {
+        if(useArmorStand) {
+            List<Pair<EquipmentSlot, ItemStack>> equipmentList = ImmutableList.of(
+                    new Pair<>(EquipmentSlot.HEAD, itemStack)
+            );
+            player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
+                    new EntityEquipmentUpdateS2CPacket(bodyCosmeticsModel.getId(), equipmentList));
+        } else {
+            ((DisplayEntity.ItemDisplayEntity) bodyCosmeticsModel).setItemStack(itemStack);
+        }
     }
+
 }
