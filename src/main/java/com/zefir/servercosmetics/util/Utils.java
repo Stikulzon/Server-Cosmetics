@@ -5,6 +5,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.zefir.servercosmetics.config.entries.CustomItemEntry;
 import com.zefir.servercosmetics.config.entries.CustomItemRegistry;
+import com.zefir.servercosmetics.config.entries.ItemType;
 import com.zefir.servercosmetics.gui.ColorPickerComponent;
 import com.zefir.servercosmetics.gui.actions.EquipCosmeticAction;
 import me.lucko.fabric.api.permissions.v0.Permissions;
@@ -108,5 +109,16 @@ public class Utils {
             context.getSource().sendFeedback(() -> Text.literal("Equipped cosmetic: " + entry.displayName().getString()), false);
         }
         return 0;
+    }
+    
+    public static int getSlotForType(ItemType type) {
+        return switch (type) {
+            case HAT -> 5;
+            case CHESTPLATE -> 6;
+            case LEGGINGS -> 7;
+            case BOOTS -> 8;
+            default -> throw new IllegalStateException("Unsupported item type for slot calculation: " + type);
+        };
+
     }
 }

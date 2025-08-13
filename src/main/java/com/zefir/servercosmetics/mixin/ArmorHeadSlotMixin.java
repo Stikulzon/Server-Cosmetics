@@ -27,6 +27,12 @@ public class ArmorHeadSlotMixin {
     private ItemStack modifyHeadSlotItem(ItemStack stack, ScreenHandler handler, int slot) {
         if(slot == 5) {
             ((ICosmetics) field_29182).getHatCosmetic().tick();
+        } else if(slot == 6) {
+            ((ICosmetics) field_29182).getChestCosmetic().tickItem();
+        } else if(slot == 7) {
+            ((ICosmetics) field_29182).getLeggingsCosmetic().tickItem();
+        } else if(slot == 8) {
+            ((ICosmetics) field_29182).getBootsCosmetic().tickItem();
         }
         return stack;
     }
@@ -39,6 +45,9 @@ public class ArmorHeadSlotMixin {
     void modifyHeadSlotItem (ScreenHandler handler, DefaultedList<ItemStack> stacks, ItemStack cursorStack, int[] properties, CallbackInfo ci) {
         if(handler instanceof PlayerScreenHandler) {
             ((ICosmetics) field_29182).getHatCosmetic().tick();
+            ((ICosmetics) field_29182).getChestCosmetic().tickItem();
+            ((ICosmetics) field_29182).getLeggingsCosmetic().tickItem();
+            ((ICosmetics) field_29182).getBootsCosmetic().tickItem();
         }
     }
 }

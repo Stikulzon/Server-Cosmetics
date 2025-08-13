@@ -18,7 +18,9 @@ public class PlayerManagerMixin {
     )
     void modifyHeadSlotItem(ClientConnection connection, ServerPlayerEntity player, ConnectedClientData clientData, CallbackInfo ci) {
         ((ICosmetics) player).getHatCosmetic().initItemStack();
-        ((ICosmetics) player).getHatCosmetic().tick();
         ((ICosmetics) player).getBodyCosmetics().initNewCosmetic();
+        ((ICosmetics) player).getChestCosmetic().initNewCosmetic();
+        ((ICosmetics) player).getLeggingsCosmetic().initNewCosmetic();
+        ((ICosmetics) player).getBootsCosmetic().initNewCosmetic();
     }
 }

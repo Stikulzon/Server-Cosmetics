@@ -21,8 +21,19 @@ public class EntityPassengersSetS2CPacketMixin {
     )
     private List<Entity> modifyPassengers(Entity instance, Operation<List<Entity>> original) {
         List<Entity> modifiedList = new ArrayList<>(original.call(instance));
-        if(instance instanceof ServerPlayerEntity player && ((ICosmetics) player).getBodyCosmetics().getCosmeticItemStack() != ItemStack.EMPTY) {
-            modifiedList.add(((ICosmetics) player).getBodyCosmetics().getBodyCosmeticsModel());
+        if(instance instanceof ServerPlayerEntity player) {
+            if( ((ICosmetics) player).getBodyCosmetics().getCosmeticItemStack() != ItemStack.EMPTY) {
+                modifiedList.add(((ICosmetics) player).getBodyCosmetics().getBodyCosmeticsModel());
+            }
+            if( ((ICosmetics) player).getChestCosmetic().getCosmeticItemStack() != ItemStack.EMPTY) {
+                modifiedList.add(((ICosmetics) player).getChestCosmetic().getBodyCosmeticsModel());
+            }
+            if( ((ICosmetics) player).getLeggingsCosmetic().getCosmeticItemStack() != ItemStack.EMPTY) {
+            modifiedList.add(((ICosmetics) player).getLeggingsCosmetic().getBodyCosmeticsModel());
+            }
+            if( ((ICosmetics) player).getBootsCosmetic().getCosmeticItemStack() != ItemStack.EMPTY) {
+                modifiedList.add(((ICosmetics) player).getBootsCosmetic().getBodyCosmeticsModel());
+            }
         }
         return modifiedList;
     }

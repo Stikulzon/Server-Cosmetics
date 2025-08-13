@@ -2,7 +2,9 @@ package com.zefir.servercosmetics.config;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.zefir.servercosmetics.ServerCosmetics;
+import com.zefir.servercosmetics.config.entries.CustomItemEntry;
 import com.zefir.servercosmetics.config.entries.CustomItemRegistry;
+import com.zefir.servercosmetics.config.entries.ItemType;
 import com.zefir.servercosmetics.datagen.RuntimeModelManager;
 import com.zefir.servercosmetics.util.Utils;
 import eu.pb4.polymer.resourcepack.api.PolymerArmorModel;
@@ -23,6 +25,7 @@ import net.minecraft.registry.Registries;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.simpleyaml.configuration.comments.format.YamlCommentFormat;
@@ -79,7 +82,7 @@ public class ConfigManager {
             Path resourcePackSourceDir = SERVER_COSMETICS_DIR.resolve("Assets");
 
             if (Files.isDirectory(resourcePackSourceDir)) {
-                ServerCosmetics.LOGGER.info("Scanning for .png and .json files in: {}", resourcePackSourceDir.toAbsolutePath());
+//                ServerCosmetics.LOGGER.info("Scanning for .png and .json files in: {}", resourcePackSourceDir.toAbsolutePath());
 
                 try (Stream<Path> pathStream = Files.walk(resourcePackSourceDir)) {
                     pathStream
@@ -106,19 +109,34 @@ public class ConfigManager {
                                         } else {
                                             targetBaseDir = TARGET_TEXTURE_PATH + "item/";
                                         }
-                                    } else if (filenameLower.endsWith(".json") || filenameLower.endsWith(".mcmeta")) {
+                                    } else if (filenameLower.endsWith(".json")) {
                                         targetBaseDir = TARGET_MODEL_PATH;
-                                        try {
                                             String content = new String(data, StandardCharsets.UTF_8);
                                             JSONObject jsonObject = new JSONObject(content);
 
-                                            if (jsonObject.has("animation")) {
-                                                targetBaseDir = TARGET_TEXTURE_PATH + "item/";
-                                                ServerCosmetics.LOGGER.debug("JSON file {} has 'animation' key, targeting TEXTURE_PATH.", fileNameString);
+                                            CustomItemEntry cosmeticEntry = CustomItemRegistry.getCosmetic(filenameLower.substring(0, filenameLower.lastIndexOf('.')));
+                                            if(cosmeticEntry != null){
+                                                if (cosmeticEntry.type() == ItemType.BODY_COSMETIC && CosmeticsGUIConfig.isBodyCosmeticsAutoAlignment()) {
+                                                    JSONObject displayObject = jsonObject.optJSONObject("display");
+                                                    if (displayObject == null) {
+                                                        displayObject = new JSONObject();
+                                                        jsonObject.put("display", displayObject);
+                                                    }
+
+                                                    JSONObject headObject = new JSONObject();
+                                                    headObject.put("rotation", new JSONArray(Arrays.asList(0, -180, 0)));
+                                                    headObject.put("translation", new JSONArray(Arrays.asList(0, -56.5, 2.15)));
+                                                    headObject.put("scale", new JSONArray(Arrays.asList(1.45, 1.45, 1.45)));
+
+                                                    displayObject.put("head", headObject);
+
+                                                    data = jsonObject.toString().getBytes(StandardCharsets.UTF_8);
+
+                                                }
                                             }
-                                        } catch (JSONException e) {
-                                            ServerCosmetics.LOGGER.warn("Could not parse JSON file {} to check for 'animation' key. Assuming it's a model. Error: {}", fileNameString, e.getMessage());
-                                        }
+                                    } else if (filenameLower.endsWith(".mcmeta")) {
+                                        targetBaseDir = TARGET_TEXTURE_PATH + "item/";
+                                        ServerCosmetics.LOGGER.debug("JSON file {} has 'animation' key, targeting TEXTURE_PATH.", fileNameString);
                                     }
 
                                     if (targetBaseDir == null) {
@@ -136,7 +154,7 @@ public class ConfigManager {
                                     ServerCosmetics.LOGGER.error("Failed to read file {} for resource pack", filePath, e);
                                 }
                             });
-                    ServerCosmetics.LOGGER.info("Finished adding custom .png and .json resources from {}", resourcePackSourceDir.toAbsolutePath());
+//                    ServerCosmetics.LOGGER.info("Finished adding custom .png and .json resources from {}", resourcePackSourceDir.toAbsolutePath());
                 } catch (IOException e) {
                     ServerCosmetics.LOGGER.error("Error walking directory {} for resource pack generation", resourcePackSourceDir.toAbsolutePath(), e);
                 }

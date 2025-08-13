@@ -28,6 +28,12 @@ public class ServerPlayerEntityMixin {
         if(handler instanceof PlayerScreenHandler) {
             if(slot == 5) {
                 ((ICosmetics) field_29183).getHatCosmetic().tick();
+            } else if(slot == 6) {
+                ((ICosmetics) field_29183).getChestCosmetic().tickItem();
+            } else if(slot == 7) {
+                ((ICosmetics) field_29183).getLeggingsCosmetic().tickItem();
+            } else if(slot == 8) {
+                ((ICosmetics) field_29183).getBootsCosmetic().tickItem();
             }
         }
     }

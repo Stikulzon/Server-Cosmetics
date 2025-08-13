@@ -22,26 +22,28 @@ import static com.zefir.servercosmetics.database.DatabaseManager.setCosmetic;
 
 // TODO: Refactor
 public class BodyCosmetic {
-    private final ServerPlayerEntity player;
+    final ServerPlayerEntity player;
     @Getter
     private final Entity bodyCosmeticsModel;
     @Getter
-    private ItemStack cosmeticItemStack = ItemStack.EMPTY;
+    ItemStack cosmeticItemStack = ItemStack.EMPTY;
     private boolean useArmorStand = true;
     private boolean isHidden = false;
     private boolean isTilted = false;
+    public final ItemType itemType;
 
-    public BodyCosmetic(ServerPlayerEntity player){
+    public BodyCosmetic(ServerPlayerEntity player, ItemType itemType){
         if(useArmorStand){
             this.bodyCosmeticsModel = new ArmorStandEntity(EntityType.ARMOR_STAND, player.getServerWorld());
         } else {
             this.bodyCosmeticsModel = new DisplayEntity.ItemDisplayEntity(EntityType.ITEM_DISPLAY, player.getServerWorld());
         }
         this.player = player;
+        this.itemType = itemType;
     }
 
     public void equip(ItemStack is) {
-        setCosmetic(player, ItemType.BODY_COSMETIC, is);
+        setCosmetic(player, itemType, is);
         this.cosmeticItemStack = is;
         initNewCosmetic();
     }

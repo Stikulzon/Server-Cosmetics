@@ -26,6 +26,9 @@ public class ServerPlayNetworkHandlerMixin {
     )
     void modifyHeadSlotItem2 (PickFromInventoryC2SPacket packet, CallbackInfo ci) {
         ((ICosmetics) player).getHatCosmetic().tick();
+        ((ICosmetics) player).getChestCosmetic().tickItem();
+        ((ICosmetics) player).getLeggingsCosmetic().tickItem();
+        ((ICosmetics) player).getBootsCosmetic().tickItem();
     }
 
     @Inject(
@@ -40,6 +43,12 @@ public class ServerPlayNetworkHandlerMixin {
         if(handler instanceof PlayerScreenHandler) {
             if(packet.getSlot() == 5) {
                 ((ICosmetics) player).getHatCosmetic().tick();
+            } else if(packet.getSlot() == 6) {
+                ((ICosmetics) player).getChestCosmetic().tickItem();
+            } else if(packet.getSlot() == 7) {
+                ((ICosmetics) player).getLeggingsCosmetic().tickItem();
+            } else if(packet.getSlot() == 8) {
+                ((ICosmetics) player).getBootsCosmetic().tickItem();
             }
         }
     }

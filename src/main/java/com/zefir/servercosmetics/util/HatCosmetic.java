@@ -7,6 +7,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
 
+import static com.zefir.servercosmetics.util.PacketUtil.sendInventorySlotPacket;
+
 public class HatCosmetic {
     @Getter
     private ItemStack cosmeticItemStack = ItemStack.EMPTY;
@@ -18,6 +20,7 @@ public class HatCosmetic {
 
     public void initItemStack() {
         this.cosmeticItemStack = DatabaseManager.getCosmetic(player, ItemType.HAT);
+        tick();
     }
 
     public void equip(ItemStack cosmeticStack){
@@ -30,22 +33,13 @@ public class HatCosmetic {
         } else {
             targetItemStack = cosmeticStack;
         }
-        sendHeadCosmeticsPacket(targetItemStack);
+        sendInventorySlotPacket(player, 5, targetItemStack);
     }
 
     public void tick(){
         if(cosmeticItemStack.isEmpty() || cosmeticItemStack == ItemStack.EMPTY) {
             return;
         }
-        sendHeadCosmeticsPacket(cosmeticItemStack);
-    }
-
-    public void sendHeadCosmeticsPacket(ItemStack targetItemStack){
-        this.player.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(
-                this.player.playerScreenHandler.syncId,
-                this.player.playerScreenHandler.nextRevision(),
-                5, // Head Slot
-                targetItemStack
-        ));
+        sendInventorySlotPacket(player, 5, cosmeticItemStack);
     }
 }

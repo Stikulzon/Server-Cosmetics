@@ -21,7 +21,6 @@ import org.simpleyaml.configuration.file.YamlFile;
 import java.util.*;
 
 public class CosmeticsGUIConfig extends AbstractGuiConfig {
-
     @Getter
     private static int[] colorSlots;
     @Getter
@@ -47,6 +46,8 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
     private static String successMessageString;
     @Getter
     private static String errorMessageString;
+    @Getter
+    private static boolean bodyCosmeticsAutoAlignment;
 
     public CosmeticsGUIConfig() {
         super("CosmeticsGUI.yml");
@@ -73,7 +74,7 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
         file.addDefault("colorInput.textLines", List.of("Enter the color in", "HEX format", "Example: #FFFFFF"));
         file.addDefault("colorInput.messages.success", "&aColor successfully changed!");
         file.addDefault("colorInput.messages.error", "&cIncorrect color format!");
-
+        file.addDefault("bodyCosmeticsAutoAlignment", true);
 
         if (!file.contains("displaySlots")) {
             file.set("displaySlots", List.of(
@@ -91,6 +92,7 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
         colorHexValues = file.getStringList("colorPicker.hexValues").toArray(new String[0]);
         colorPickerGUINameString = file.getString("colorPicker.name");
         saturationAdjustmentValue = (float) file.getDouble("colorPicker.saturationAdjustmentValue", 20.0);
+        bodyCosmeticsAutoAlignment = file.getBoolean("bodyCosmeticsAutoAlignment", true);
 
 
         String paintItemModelPath = file.getString("paintItemModelPath");
@@ -158,6 +160,28 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
                 "name", "<blue>Body Cosmetics", "item", "minecraft:diamond_chestplate", "slotIndex", 15,
                 "lore", List.of()));
 
+
+        buttonDefaults.put("filter.chestplate-cosmetics-disabled", Map.of(
+                "name", "<blue>Body Cosmetics", "item", "minecraft:leather_chestplate", "slotIndex", 16,
+                "lore", List.of()));
+        buttonDefaults.put("filter.chestplate-cosmetics-enabled", Map.of(
+                "name", "<blue>Body Cosmetics", "item", "minecraft:diamond_chestplate", "slotIndex", 16,
+                "lore", List.of()));
+
+        buttonDefaults.put("filter.leggings-cosmetics-disabled", Map.of(
+                "name", "<blue>Body Cosmetics", "item", "minecraft:leather_chestplate", "slotIndex", 17,
+                "lore", List.of()));
+        buttonDefaults.put("filter.leggings-cosmetics-enabled", Map.of(
+                "name", "<blue>Body Cosmetics", "item", "minecraft:diamond_chestplate", "slotIndex", 17,
+                "lore", List.of()));
+
+        buttonDefaults.put("filter.boots-cosmetics-disabled", Map.of(
+                "name", "<blue>Body Cosmetics", "item", "minecraft:leather_chestplate", "slotIndex", 18,
+                "lore", List.of()));
+        buttonDefaults.put("filter.boots-cosmetics-enabled", Map.of(
+                "name", "<blue>Body Cosmetics", "item", "minecraft:diamond_chestplate", "slotIndex", 18,
+                "lore", List.of()));
+
         buttonDefaults.put("pageIndicator", Map.of(
                 "name", "Page", "item", "minecraft:paper", "slotIndex", 53));
 
@@ -182,6 +206,16 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
 
         loadNavigationButton(file, "filter.body-cosmetics-disabled");
         loadNavigationButton(file, "filter.body-cosmetics-enabled");
+
+        loadNavigationButton(file, "filter.chestplate-cosmetics-disabled");
+        loadNavigationButton(file, "filter.chestplate-cosmetics-enabled");
+
+        loadNavigationButton(file, "filter.leggings-cosmetics-disabled");
+        loadNavigationButton(file, "filter.leggings-cosmetics-enabled");
+
+        loadNavigationButton(file, "filter.boots-cosmetics-disabled");
+        loadNavigationButton(file, "filter.boots-cosmetics-enabled");
+
 
         loadNavigationButton(file, "pageIndicator");
     }
