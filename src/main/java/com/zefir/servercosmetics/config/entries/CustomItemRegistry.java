@@ -2,12 +2,16 @@ package com.zefir.servercosmetics.config.entries;
 
 import com.zefir.servercosmetics.ServerCosmetics;
 import com.zefir.servercosmetics.config.ConfigManager;
+import com.zefir.servercosmetics.config.entries.data.BodyCosmeticsData;
 import com.zefir.servercosmetics.util.Utils;
+import eu.pb4.polymer.resourcepack.api.PolymerModelData;
+import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import lombok.Setter;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import org.simpleyaml.configuration.file.YamlFile;
 
 import java.io.IOException;
@@ -73,7 +77,7 @@ public class CustomItemRegistry {
             return;
         }
 
-        List<Path> files = ConfigManager.listFiles(directory);
+        List<Path> files = Utils.listFiles(directory);
         for (Path filePath : files) {
             if (!filePath.toString().toLowerCase().endsWith(".yml")) continue;
 
@@ -142,8 +146,14 @@ public class CustomItemRegistry {
                         baseItemMaterial = "minecraft:" + baseItemMaterial.toLowerCase();
                     }
 
-                    ItemStack itemStack = ConfigManager.createItemStack(baseItemMaterial, displayName, itemId, lore);
-                    CustomItemEntry entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial);
+                    ItemStack itemStack = Utils.createItemStack(baseItemMaterial, displayName, itemId, lore);
+                    CustomItemEntry entry;
+                    if (ItemType.valueOf(type.toUpperCase()) == ItemType.BODY_COSMETIC || ItemType.valueOf(type.toUpperCase()) == ItemType.CHESTPLATE || ItemType.valueOf(type.toUpperCase()) == ItemType.LEGGINGS || ItemType.valueOf(type.toUpperCase()) == ItemType.BOOTS) {
+                        PolymerModelData polymerModelData = PolymerResourcePackUtils.requestModel(Registries.ITEM.get(Identifier.of(baseItemMaterial)), Identifier.of(ServerCosmetics.MOD_ID, "item/" + itemId + "_sneaking"));
+                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, new BodyCosmeticsData(polymerModelData));
+                    } else {
+                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, null);
+                    }
                     cosmeticsList.add(entry);
 
                 } else { // ITEM_SKIN
@@ -163,8 +173,8 @@ public class CustomItemRegistry {
                             materialKey = "minecraft:" + materialKey.toLowerCase();
                         }
 
-                        ItemStack itemStack = ConfigManager.createItemStack(materialKey, displayName, itemId, lore);
-                        CustomItemEntry entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.ITEM_SKIN, materialKey);
+                        ItemStack itemStack = Utils.createItemStack(materialKey, displayName, itemId, lore);
+                        CustomItemEntry entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.ITEM_SKIN, materialKey, null);
 
                         cosmeticsList.add(entry);
                     }

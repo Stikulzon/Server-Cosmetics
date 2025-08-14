@@ -18,6 +18,7 @@ public class StandaloneCosmeticProvider implements ICosmeticProvider {
 //
     @Override
     public List<CustomItemEntry> getItems() {
-        return Stream.concat(CustomItemRegistry.getAllCosmetics(ItemType.HAT).stream(), CustomItemRegistry.getAllCosmetics(ItemType.BODY_COSMETIC).stream()).toList();
+//        return Stream.concat(CustomItemRegistry.getAllCosmetics(ItemType.HAT).stream(), CustomItemRegistry.getAllCosmetics(ItemType.BODY_COSMETIC).stream()).toList();
+        return CustomItemRegistry.getCosmeticsList();
     }
 }

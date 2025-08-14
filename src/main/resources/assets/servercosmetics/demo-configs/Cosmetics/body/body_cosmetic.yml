@@ -5,4 +5,4 @@ cosmetic-item:
   lore:
     - "Some description"
 
-permission: "cosmetics.body.beekeeper"
+permission: "cosmetics.body.body_cosmetic"

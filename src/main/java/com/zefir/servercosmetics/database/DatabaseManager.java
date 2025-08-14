@@ -79,7 +79,7 @@ public class DatabaseManager {
         }
     }
 
-    public static ItemStack getCosmetic(ServerPlayerEntity player, ItemType type) {
+    public static ItemStack getCosmeticItemStack(ServerPlayerEntity player, ItemType type) {
         try {
             CosmeticTable cosmeticData = findEntry(player.getUuidAsString(), type);
 
@@ -102,6 +102,21 @@ public class DatabaseManager {
                 cosmeticStack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(cosmeticData.getDyedColor(), true));
             }
             return cosmeticStack;
+        } catch (SQLException e) {
+            ServerCosmetics.LOGGER.error("Error loading cosmetic data for player {} and type {}", player.getUuidAsString(), type, e);
+            throw new RuntimeException("Error loading cosmetic data", e);
+        }
+    }
+
+    public static CustomItemEntry getCosmeticEntry(ServerPlayerEntity player, ItemType type) {
+        try {
+            CosmeticTable cosmeticData = findEntry(player.getUuidAsString(), type);
+
+            if (cosmeticData == null || cosmeticData.getCosmeticId() == null) {
+                return null;
+            }
+
+            return CustomItemRegistry.getCosmetic(cosmeticData.getCosmeticId());
         } catch (SQLException e) {
             ServerCosmetics.LOGGER.error("Error loading cosmetic data for player {} and type {}", player.getUuidAsString(), type, e);
             throw new RuntimeException("Error loading cosmetic data", e);

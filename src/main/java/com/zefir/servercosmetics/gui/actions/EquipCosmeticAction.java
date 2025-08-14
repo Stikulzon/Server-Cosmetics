@@ -20,6 +20,12 @@ public class EquipCosmeticAction implements IItemAction {
             ((ICosmetics) player).getHatCosmetic().equip(cosmeticStack);
         } else if(type == ItemType.BODY_COSMETIC) {
             ((ICosmetics) player).getBodyCosmetics().equip(cosmeticStack);
+        } else if(type == ItemType.CHESTPLATE) {
+            ((ICosmetics) player).getChestCosmetic().equip(cosmeticStack);
+        } else if(type == ItemType.LEGGINGS) {
+            ((ICosmetics) player).getLeggingsCosmetic().equip(cosmeticStack);
+        } else if(type == ItemType.BOOTS) {
+            ((ICosmetics) player).getBootsCosmetic().equip(cosmeticStack);
         }
     }
 }

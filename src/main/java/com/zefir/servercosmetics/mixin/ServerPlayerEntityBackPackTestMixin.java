@@ -39,6 +39,9 @@ public abstract class ServerPlayerEntityBackPackTestMixin implements ICosmetics 
     @Inject(method = "playerTick", at = @At("TAIL"))
     private void sendBackpackCosmeticPacket(CallbackInfo ci) {
         bodyCosmetic.tick();
+        chestCosmetic.tick();
+        leggingsCosmetic.tick();
+        bootsCosmetic.tick();
     }
 
     @Unique

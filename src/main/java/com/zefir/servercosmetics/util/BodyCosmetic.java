@@ -2,6 +2,7 @@ package com.zefir.servercosmetics.util;
 
 import com.google.common.collect.ImmutableList;
 import com.zefir.servercosmetics.config.entries.ItemType;
+import com.zefir.servercosmetics.config.entries.data.BodyCosmeticsData;
 import com.zefir.servercosmetics.database.DatabaseManager;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
@@ -17,8 +18,10 @@ import net.minecraft.util.math.EulerAngle;
 import net.minecraft.util.math.MathHelper;
 
 import java.util.List;
+import java.util.Objects;
 
 import static com.zefir.servercosmetics.database.DatabaseManager.setCosmetic;
+import static com.zefir.servercosmetics.util.Utils.getTiltedItemStack;
 
 // TODO: Refactor
 public class BodyCosmetic {
@@ -27,6 +30,7 @@ public class BodyCosmetic {
     private final Entity bodyCosmeticsModel;
     @Getter
     ItemStack cosmeticItemStack = ItemStack.EMPTY;
+    ItemStack cosmeticItemStackWhenSneaking = ItemStack.EMPTY;
     private boolean useArmorStand = true;
     private boolean isHidden = false;
     private boolean isTilted = false;
@@ -49,7 +53,13 @@ public class BodyCosmetic {
     }
 
     public void initNewCosmetic() {
-        cosmeticItemStack = DatabaseManager.getCosmetic(player, ItemType.BODY_COSMETIC);
+        cosmeticItemStack = DatabaseManager.getCosmeticItemStack(player, itemType);
+        if(DatabaseManager.getCosmeticEntry(player, itemType) != null) {
+            cosmeticItemStackWhenSneaking = getTiltedItemStack(cosmeticItemStack, ((BodyCosmeticsData) Objects.requireNonNull(DatabaseManager.getCosmeticEntry(player, itemType)).cosmeticData()).polymerModelWhenSneaking());
+        } else {
+            cosmeticItemStackWhenSneaking = cosmeticItemStack;
+        }
+
         bodyCosmeticsModel.setPosition(player.getX(), player.getY(), player.getZ());
         bodyCosmeticsModel.setInvulnerable(true);
         bodyCosmeticsModel.setNoGravity(true);
@@ -84,16 +94,19 @@ public class BodyCosmetic {
         );
 
         if (player.isSneaking() && !isTilted) {
-            ((ArmorStandEntity) bodyCosmeticsModel).setHeadRotation(new EulerAngle(4.0F, 0f, 0f));
+            setItem(cosmeticItemStackWhenSneaking);
+
             player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
                     new EntityTrackerUpdateS2CPacket(bodyCosmeticsModel.getId(),
-                            bodyCosmeticsModel.getDataTracker().getDirtyEntries()));
+                            bodyCosmeticsModel.getDataTracker().getChangedEntries()));
             isTilted = true;
+
         } else if (!player.isSneaking() && isTilted) {
-            ((ArmorStandEntity) bodyCosmeticsModel).setHeadRotation(new EulerAngle(0.0F, 0f, 0f));
+            setItem(cosmeticItemStack);
+
             player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
                     new EntityTrackerUpdateS2CPacket(bodyCosmeticsModel.getId(),
-                            bodyCosmeticsModel.getDataTracker().getDirtyEntries()));
+                            bodyCosmeticsModel.getDataTracker().getChangedEntries()));
             isTilted = false;
         }
 

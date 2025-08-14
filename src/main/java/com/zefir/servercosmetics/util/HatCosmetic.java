@@ -4,7 +4,6 @@ import com.zefir.servercosmetics.config.entries.ItemType;
 import com.zefir.servercosmetics.database.DatabaseManager;
 import lombok.Getter;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import static com.zefir.servercosmetics.util.PacketUtil.sendInventorySlotPacket;
@@ -19,7 +18,7 @@ public class HatCosmetic {
     }
 
     public void initItemStack() {
-        this.cosmeticItemStack = DatabaseManager.getCosmetic(player, ItemType.HAT);
+        this.cosmeticItemStack = DatabaseManager.getCosmeticItemStack(player, ItemType.HAT);
         tick();
     }
 

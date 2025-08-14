@@ -2,6 +2,8 @@ package com.zefir.servercosmetics.gui;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.zefir.servercosmetics.ServerCosmetics;
+import com.zefir.servercosmetics.config.ConfigManager;
+import com.zefir.servercosmetics.config.CosmeticsGUIConfig;
 import com.zefir.servercosmetics.config.entries.ItemType;
 import com.zefir.servercosmetics.gui.actions.EquipCosmeticAction;
 import com.zefir.servercosmetics.gui.filters.ItemTypeFilter;
@@ -56,29 +58,31 @@ public class CosmeticsGUI {
                     false
             );
 
-//            gui.getFilterManager().addFilter(
-//                    "chestplate",
-//                    new ItemTypeFilter(ItemType.CHESTPLATE),
-//                    config.getButtonConfig("filter.chestplate-cosmetics-disabled"),
-//                    config.getButtonConfig("filter.chestplate-cosmetics-enabled"),
-//                    false
-//            );
-//
-//            gui.getFilterManager().addFilter(
-//                    "leggings",
-//                    new ItemTypeFilter(ItemType.LEGGINGS),
-//                    config.getButtonConfig("filter.leggings-cosmetics-disabled"),
-//                    config.getButtonConfig("filter.leggings-cosmetics-enabled"),
-//                    false
-//            );
-//
-//            gui.getFilterManager().addFilter(
-//                    "boots",
-//                    new ItemTypeFilter(ItemType.BOOTS),
-//                    config.getButtonConfig("filter.boots-cosmetics-disabled"),
-//                    config.getButtonConfig("filter.boots-cosmetics-enabled"),
-//                    false
-//            );
+            if(ConfigManager.isEnableExperimentalFeatures()) {
+                gui.getFilterManager().addFilter(
+                        "chestplate",
+                        new ItemTypeFilter(ItemType.CHESTPLATE),
+                        config.getButtonConfig("filter.chestplate-cosmetics-disabled"),
+                        config.getButtonConfig("filter.chestplate-cosmetics-enabled"),
+                        false
+                );
+
+                gui.getFilterManager().addFilter(
+                        "leggings",
+                        new ItemTypeFilter(ItemType.LEGGINGS),
+                        config.getButtonConfig("filter.leggings-cosmetics-disabled"),
+                        config.getButtonConfig("filter.leggings-cosmetics-enabled"),
+                        false
+                );
+
+                gui.getFilterManager().addFilter(
+                        "boots",
+                        new ItemTypeFilter(ItemType.BOOTS),
+                        config.getButtonConfig("filter.boots-cosmetics-disabled"),
+                        config.getButtonConfig("filter.boots-cosmetics-enabled"),
+                        false
+                );
+            }
 
             GUIUtils.setUpButton(gui, config.getButtonConfig("removeSkin"), () -> {
                 gui.close();

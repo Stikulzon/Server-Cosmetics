@@ -10,6 +10,7 @@ import com.zefir.servercosmetics.util.Utils;
 import eu.pb4.polymer.resourcepack.api.PolymerArmorModel;
 import eu.pb4.polymer.resourcepack.api.PolymerModelData;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
+import eu.pb4.polymer.resourcepack.api.ResourcePackBuilder;
 import lombok.Getter;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.component.DataComponentTypes;
@@ -59,6 +60,8 @@ public class ConfigManager {
     private static Text successConfigReloadMessage;
     private static Text errorConfigReloadMessage;
     private static boolean legacyMode;
+    @Getter
+    private static boolean enableExperimentalFeatures;
 
     public static final AbstractGuiConfig ITEM_SKINS_GUI_CONFIG = new ItemSkinsGUIConfig();
     public static final AbstractGuiConfig COSMETICS_GUI_CONFIG = new CosmeticsGUIConfig();
@@ -116,22 +119,123 @@ public class ConfigManager {
 
                                             CustomItemEntry cosmeticEntry = CustomItemRegistry.getCosmetic(filenameLower.substring(0, filenameLower.lastIndexOf('.')));
                                             if(cosmeticEntry != null){
-                                                if (cosmeticEntry.type() == ItemType.BODY_COSMETIC && CosmeticsGUIConfig.isBodyCosmeticsAutoAlignment()) {
+                                                if (cosmeticEntry.type() == ItemType.BODY_COSMETIC || cosmeticEntry.type() == ItemType.CHESTPLATE) {
                                                     JSONObject displayObject = jsonObject.optJSONObject("display");
                                                     if (displayObject == null) {
                                                         displayObject = new JSONObject();
                                                         jsonObject.put("display", displayObject);
                                                     }
 
-                                                    JSONObject headObject = new JSONObject();
-                                                    headObject.put("rotation", new JSONArray(Arrays.asList(0, -180, 0)));
-                                                    headObject.put("translation", new JSONArray(Arrays.asList(0, -56.5, 2.15)));
-                                                    headObject.put("scale", new JSONArray(Arrays.asList(1.45, 1.45, 1.45)));
+                                                    // ---------- REGULAR VARIANT ----------
+                                                    JSONObject headNormal = new JSONObject();
+                                                    headNormal.put("rotation", new JSONArray(Arrays.asList(0, -180, 0)));
+                                                    headNormal.put("translation", new JSONArray(Arrays.asList(0, -56.5, 2.15)));
+                                                    headNormal.put("scale", new JSONArray(Arrays.asList(1.45, 1.45, 1.45)));
 
-                                                    displayObject.put("head", headObject);
+                                                    displayObject.put("head", headNormal);
 
-                                                    data = jsonObject.toString().getBytes(StandardCharsets.UTF_8);
+                                                    byte[] normalData = jsonObject.toString().getBytes(StandardCharsets.UTF_8);
+                                                    String finalTargetPathNormal = targetBaseDir + fileNameString;
 
+                                                    addData(builder, finalTargetPathNormal, fileNameString, normalData);
+
+                                                    // ---------- SNEAKING VARIANT ----------
+                                                    JSONObject jsonSneaking = new JSONObject(jsonObject.toString());
+                                                    JSONObject displaySneaking = jsonSneaking.getJSONObject("display");
+
+                                                    JSONObject headSneaking = new JSONObject();
+                                                    headSneaking.put("rotation", new JSONArray(Arrays.asList(-28, -180, 0)));
+                                                    headSneaking.put("translation", new JSONArray(Arrays.asList(0, -56.5, 4.15)));
+                                                    headSneaking.put("scale", new JSONArray(Arrays.asList(1.45, 1.45, 1.45)));
+
+                                                    displaySneaking.put("head", headSneaking);
+
+                                                    byte[] sneakingData = jsonSneaking.toString().getBytes(StandardCharsets.UTF_8);
+
+                                                    String sneakingFileName = fileNameString.replace(".json", "_sneaking.json");
+                                                    String finalTargetPathSneaking = targetBaseDir + sneakingFileName;
+
+                                                    addData(builder, finalTargetPathSneaking, sneakingFileName, sneakingData);
+
+                                                    return;
+                                                } else if (cosmeticEntry.type() == ItemType.LEGGINGS) {
+                                                    JSONObject displayObject = jsonObject.optJSONObject("display");
+                                                    if (displayObject == null) {
+                                                        displayObject = new JSONObject();
+                                                        jsonObject.put("display", displayObject);
+                                                    }
+
+                                                    // ---------- REGULAR VARIANT ----------
+                                                    JSONObject headNormal = new JSONObject();
+                                                    headNormal.put("rotation", new JSONArray(Arrays.asList(0, -180, 0)));
+                                                    headNormal.put("translation", new JSONArray(Arrays.asList(0, -69.25, 2.15)));
+                                                    headNormal.put("scale", new JSONArray(Arrays.asList(1.45, 1.45, 1.45)));
+
+                                                    displayObject.put("head", headNormal);
+
+                                                    byte[] normalData = jsonObject.toString().getBytes(StandardCharsets.UTF_8);
+                                                    String finalTargetPathNormal = targetBaseDir + fileNameString;
+
+                                                    addData(builder, finalTargetPathNormal, fileNameString, normalData);
+
+                                                    // ---------- SNEAKING VARIANT ----------
+                                                    JSONObject jsonSneaking = new JSONObject(jsonObject.toString());
+                                                    JSONObject displaySneaking = jsonSneaking.getJSONObject("display");
+
+                                                    JSONObject headSneaking = new JSONObject();
+                                                    headSneaking.put("rotation", new JSONArray(Arrays.asList(0, -180, 0)));
+                                                    headSneaking.put("translation", new JSONArray(Arrays.asList(0, -65, 8.15)));
+                                                    headSneaking.put("scale", new JSONArray(Arrays.asList(1.45, 1.45, 1.45)));
+
+                                                    displaySneaking.put("head", headSneaking);
+
+                                                    byte[] sneakingData = jsonSneaking.toString().getBytes(StandardCharsets.UTF_8);
+
+                                                    String sneakingFileName = fileNameString.replace(".json", "_sneaking.json");
+                                                    String finalTargetPathSneaking = targetBaseDir + sneakingFileName;
+
+                                                    addData(builder, finalTargetPathSneaking, sneakingFileName, sneakingData);
+
+                                                    return;
+                                                } else if (cosmeticEntry.type() == ItemType.BOOTS) {
+                                                    JSONObject displayObject = jsonObject.optJSONObject("display");
+                                                    if (displayObject == null) {
+                                                        displayObject = new JSONObject();
+                                                        jsonObject.put("display", displayObject);
+                                                    }
+
+                                                    // ---------- REGULAR VARIANT ----------
+                                                    JSONObject headNormal = new JSONObject();
+                                                    headNormal.put("rotation", new JSONArray(Arrays.asList(0, -180, 0)));
+                                                    headNormal.put("translation", new JSONArray(Arrays.asList(0, -79.25, 2.15)));
+                                                    headNormal.put("scale", new JSONArray(Arrays.asList(1.45, 1.45, 1.45)));
+
+                                                    displayObject.put("head", headNormal);
+
+                                                    byte[] normalData = jsonObject.toString().getBytes(StandardCharsets.UTF_8);
+                                                    String finalTargetPathNormal = targetBaseDir + fileNameString;
+
+                                                    addData(builder, finalTargetPathNormal, fileNameString, normalData);
+
+                                                    // ---------- SNEAKING VARIANT ----------
+                                                    JSONObject jsonSneaking = new JSONObject(jsonObject.toString());
+                                                    JSONObject displaySneaking = jsonSneaking.getJSONObject("display");
+
+                                                    JSONObject headSneaking = new JSONObject();
+                                                    headSneaking.put("rotation", new JSONArray(Arrays.asList(0, -180, 0)));
+                                                    headSneaking.put("translation", new JSONArray(Arrays.asList(0, -75, 8.15)));
+                                                    headSneaking.put("scale", new JSONArray(Arrays.asList(1.45, 1.45, 1.45)));
+
+                                                    displaySneaking.put("head", headSneaking);
+
+                                                    byte[] sneakingData = jsonSneaking.toString().getBytes(StandardCharsets.UTF_8);
+
+                                                    String sneakingFileName = fileNameString.replace(".json", "_sneaking.json");
+                                                    String finalTargetPathSneaking = targetBaseDir + sneakingFileName;
+
+                                                    addData(builder, finalTargetPathSneaking, sneakingFileName, sneakingData);
+
+                                                    return;
                                                 }
                                             }
                                     } else if (filenameLower.endsWith(".mcmeta")) {
@@ -145,11 +249,7 @@ public class ConfigManager {
 
                                     String finalTargetPath = targetBaseDir + fileNameString;
 
-                                    if (builder.addData(finalTargetPath, data)) {
-                                        ServerCosmetics.LOGGER.debug("Added {} -> {}", filePath.getFileName(), finalTargetPath);
-                                    } else {
-                                        ServerCosmetics.LOGGER.warn("Could not add {} as {} to resource pack (maybe already exists?)", filePath.getFileName(), finalTargetPath);
-                                    }
+                                    addData(builder, finalTargetPath, fileNameString, data);
                                 } catch (IOException e) {
                                     ServerCosmetics.LOGGER.error("Failed to read file {} for resource pack", filePath, e);
                                 }
@@ -168,6 +268,14 @@ public class ConfigManager {
                 }
             }
         });
+    }
+
+    private static void addData(ResourcePackBuilder builder, String path, String fileName, byte[] data){
+        if (builder.addData(path, data)) {
+            ServerCosmetics.LOGGER.debug("Added {} -> {}", fileName, path);
+        } else {
+            ServerCosmetics.LOGGER.warn("Could not add {} as {} to resource pack (maybe already exists?)", fileName, path);
+        }
     }
 
     public static void loadDemoConfigs() {
@@ -274,6 +382,7 @@ public class ConfigManager {
             configReloadPermission = yamlFile.getString("permissions.reloadAllConfigs");
             itemSkinsReloadPermission = yamlFile.getString("permissions.reloadItemSkins");
             cosmeticsReloadPermission = yamlFile.getString("permissions.reloadCosmetics");
+            enableExperimentalFeatures = yamlFile.getBoolean("enableExperimentalFeatures", false);
             successConfigReloadMessage = Utils.formatDisplayName(yamlFile.getString("configReload.message.success"));
             errorConfigReloadMessage = Utils.formatDisplayName(yamlFile.getString("configReload.message.error"));
             legacyMode = yamlFile.getBoolean("legacyMode");
@@ -301,84 +410,13 @@ public class ConfigManager {
         yamlFile.path("permissions").comment("If the mod cannot get permissions from config, the default one will be used");
         yamlFile.addDefault("configReload.message.success", "&aConfig successfully reload!");
         yamlFile.addDefault("configReload.message.error", "&cAn error occurred during configs reload!");
+        yamlFile.addDefault("enableExperimentalFeatures", false);
         yamlFile.path("legacyMode").addDefault(false).commentSide("If true, plugin will try to read some fields from older config structures for cosmetic/skin definitions. Recommended: false for new setups.");
 
         try {
             yamlFile.save();
         } catch (IOException e) {
             throw new RuntimeException("Failed to save default main yml configuration", e);
-        }
-    }
-
-    public static ItemStack createItemStack(String baseMaterialId, Text displayName, String cosmeticOrSkinId, List<Text> loreTexts) {
-        Item baseItem = Registries.ITEM.get(Identifier.of(baseMaterialId));
-        if (baseItem == Registries.ITEM.get(Registries.ITEM.getDefaultId()) && !baseMaterialId.equals(Registries.ITEM.getDefaultId().toString())) {
-            ServerCosmetics.LOGGER.warn("Invalid baseMaterialId '{}' for item '{}'. Defaulting to minecraft:paper.", baseMaterialId, cosmeticOrSkinId);
-            baseItem = Registries.ITEM.get(Identifier.of("minecraft:paper")); // Fallback
-        }
-
-        PolymerModelData polymerModel;
-        try {
-            if (baseItem instanceof ArmorItem armorItem && armorItem.getType() != ArmorItem.Type.BODY) {
-//                System.out.println("Requesting armor model for " + baseItem + " with id " + cosmeticOrSkinId + " and type " + armorItem.getType());
-                RuntimeModelManager.requestArmorModel(cosmeticOrSkinId, armorItem.getType());
-
-                String modelIdPath = "item/armor/" + cosmeticOrSkinId + "_" + armorItem.getType().getName().toLowerCase();
-                polymerModel = PolymerResourcePackUtils.requestModel(getItemFor(armorItem.getType()), id(modelIdPath));
-            } else {
-                polymerModel = PolymerResourcePackUtils.requestModel(baseItem, Identifier.of(ServerCosmetics.MOD_ID, "item/" + cosmeticOrSkinId));
-            }
-        } catch (Exception e) {
-            ServerCosmetics.LOGGER.error("Failed to request model for item id '{}' with base item '{}': {}", cosmeticOrSkinId, baseMaterialId, e.getMessage());
-            ItemStack errorStack = new ItemStack(baseItem);
-            errorStack.set(DataComponentTypes.CUSTOM_NAME, Text.literal("Error: " + cosmeticOrSkinId));
-            return errorStack;
-        }
-
-
-        ItemStack itemStack = new ItemStack(polymerModel.item());
-
-        itemStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbt -> {
-            nbt.putString("cosmeticItemId", cosmeticOrSkinId);
-        }));
-
-        if (baseItem instanceof ArmorItem armorItem && armorItem.getType() != ArmorItem.Type.BODY) {
-            PolymerArmorModel armorModel = PolymerResourcePackUtils.requestArmor(id(cosmeticOrSkinId));
-            itemStack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(armorModel.color(), true));
-        }
-
-        if (loreTexts != null && !loreTexts.isEmpty()) {
-            itemStack.set(DataComponentTypes.LORE, new LoreComponent(loreTexts));
-        } else {
-            itemStack.set(DataComponentTypes.LORE, new LoreComponent(Collections.emptyList()));
-        }
-
-        itemStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(polymerModel.value()));
-        itemStack.set(DataComponentTypes.CUSTOM_NAME, displayName);
-
-        return itemStack;
-    }
-
-    private static Item getItemFor(ArmorItem.Type type) {
-        return switch (type) {
-            case ArmorItem.Type.HELMET -> Items.LEATHER_HELMET;
-            case ArmorItem.Type.CHESTPLATE -> Items.LEATHER_CHESTPLATE;
-            case ArmorItem.Type.LEGGINGS -> Items.LEATHER_LEGGINGS;
-            case ArmorItem.Type.BOOTS -> Items.LEATHER_BOOTS;
-            default -> Items.STONE;
-        };
-    }
-
-    public static List<Path> listFiles(Path dir) {
-        if (!Files.isDirectory(dir)) {
-            ServerCosmetics.LOGGER.warn("Attempted to list files in a non-directory: {}", dir);
-            return Collections.emptyList();
-        }
-        try (Stream<Path> walk = Files.walk(dir)) {
-            return walk.filter(Files::isRegularFile).collect(Collectors.toList());
-        } catch (IOException e) {
-            ServerCosmetics.LOGGER.error("Failed to list files in directory: " + dir, e);
-            return Collections.emptyList();
         }
     }
 }

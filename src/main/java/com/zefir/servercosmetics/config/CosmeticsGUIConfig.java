@@ -140,46 +140,45 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
                 "name", "Increase brightness", "item", "minecraft:paper", "textureName", "next", "slotIndex", 16));
 
         buttonDefaults.put("filter.show-all-skins", Map.of(
-                "name", "<blue>Cosmetic Filter", "item", "minecraft:diamond_chestplate", "slotIndex", 10,
+                "name", "<blue>Cosmetic Filter", "item", "minecraft:ender_pearl", "slotIndex", 10,
                 "lore", List.of("&aAll cosmetics &7(Selected)", "&7Available cosmetics", "", "&aClick to change mode!")));
         buttonDefaults.put("filter.show-owned-skins", Map.of(
-                "name", "<blue>Cosmetic Filter", "item", "minecraft:golden_chestplate", "slotIndex", 10,
+                "name", "<blue>Cosmetic Filter", "item", "minecraft:ender_eye", "slotIndex", 10,
                 "lore", List.of("&7All cosmetics", "&aAvailable cosmetics &7(Selected)", "", "&aClick to change mode!")));
         
         buttonDefaults.put("filter.hats-disabled", Map.of(
-                "name", "<blue>Hats", "item", "minecraft:leather_helmet", "slotIndex", 13,
+                "name", "<blue>Hats", "item", "minecraft:leather_helmet", "slotIndex", 12,
                 "lore", List.of()));
         buttonDefaults.put("filter.hats-enabled", Map.of(
-                "name", "<blue>Hats", "item", "minecraft:diamond_helmet", "slotIndex", 13,
+                "name", "<blue>Hats", "item", "minecraft:diamond_helmet", "slotIndex", 12,
                 "lore", List.of()));
         
         buttonDefaults.put("filter.body-cosmetics-disabled", Map.of(
-                "name", "<blue>Body Cosmetics", "item", "minecraft:leather_chestplate", "slotIndex", 15,
+                "name", "<blue>Body Cosmetics", "item", "minecraft:chainmail_chestplate", "slotIndex", 13,
                 "lore", List.of()));
         buttonDefaults.put("filter.body-cosmetics-enabled", Map.of(
-                "name", "<blue>Body Cosmetics", "item", "minecraft:diamond_chestplate", "slotIndex", 15,
+                "name", "<blue>Body Cosmetics", "item", "minecraft:diamond_chestplate", "slotIndex", 13,
                 "lore", List.of()));
-
 
         buttonDefaults.put("filter.chestplate-cosmetics-disabled", Map.of(
-                "name", "<blue>Body Cosmetics", "item", "minecraft:leather_chestplate", "slotIndex", 16,
+                "name", "<blue>Chestplate Cosmetics", "item", "minecraft:leather_chestplate", "slotIndex", 14,
                 "lore", List.of()));
         buttonDefaults.put("filter.chestplate-cosmetics-enabled", Map.of(
-                "name", "<blue>Body Cosmetics", "item", "minecraft:diamond_chestplate", "slotIndex", 16,
+                "name", "<blue>Chestplate Cosmetics", "item", "minecraft:diamond_chestplate", "slotIndex", 14,
                 "lore", List.of()));
 
         buttonDefaults.put("filter.leggings-cosmetics-disabled", Map.of(
-                "name", "<blue>Body Cosmetics", "item", "minecraft:leather_chestplate", "slotIndex", 17,
+                "name", "<blue>Leggings Cosmetics", "item", "minecraft:leather_leggings", "slotIndex", 15,
                 "lore", List.of()));
         buttonDefaults.put("filter.leggings-cosmetics-enabled", Map.of(
-                "name", "<blue>Body Cosmetics", "item", "minecraft:diamond_chestplate", "slotIndex", 17,
+                "name", "<blue>Leggings Cosmetics", "item", "minecraft:diamond_leggings", "slotIndex", 15,
                 "lore", List.of()));
 
         buttonDefaults.put("filter.boots-cosmetics-disabled", Map.of(
-                "name", "<blue>Body Cosmetics", "item", "minecraft:leather_chestplate", "slotIndex", 18,
+                "name", "<blue>Boots Cosmetics", "item", "minecraft:leather_boots", "slotIndex", 16,
                 "lore", List.of()));
         buttonDefaults.put("filter.boots-cosmetics-enabled", Map.of(
-                "name", "<blue>Body Cosmetics", "item", "minecraft:diamond_chestplate", "slotIndex", 18,
+                "name", "<blue>Boots Cosmetics", "item", "minecraft:diamond_boots", "slotIndex", 16,
                 "lore", List.of()));
 
         buttonDefaults.put("pageIndicator", Map.of(
