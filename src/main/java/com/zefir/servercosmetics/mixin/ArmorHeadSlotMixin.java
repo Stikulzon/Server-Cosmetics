@@ -1,5 +1,6 @@
 package com.zefir.servercosmetics.mixin;
 
+import com.zefir.servercosmetics.data.ItemType;
 import com.zefir.servercosmetics.ext.ICosmetics;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.PlayerScreenHandler;
@@ -14,6 +15,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import static com.zefir.servercosmetics.util.Utils.getItemTypeForSlot;
+
 @Mixin(targets = "net.minecraft.server.network.ServerPlayerEntity$1")
 public class ArmorHeadSlotMixin {
     @Final
@@ -25,14 +28,10 @@ public class ArmorHeadSlotMixin {
             argsOnly = true
     )
     private ItemStack modifyHeadSlotItem(ItemStack stack, ScreenHandler handler, int slot) {
-        if(slot == 5) {
-            ((ICosmetics) field_29182).getHatCosmetic().tick();
-        } else if(slot == 6) {
-            ((ICosmetics) field_29182).getChestCosmetic().tickItem();
-        } else if(slot == 7) {
-            ((ICosmetics) field_29182).getLeggingsCosmetic().tickItem();
-        } else if(slot == 8) {
-            ((ICosmetics) field_29182).getBootsCosmetic().tickItem();
+        ICosmetics cosmetics = (ICosmetics) field_29182;
+        ItemType itemType = getItemTypeForSlot(slot);
+        if(itemType != null) {
+            cosmetics.getCosmeticFor(itemType).tick();
         }
         return stack;
     }
@@ -44,10 +43,8 @@ public class ArmorHeadSlotMixin {
     )
     void modifyHeadSlotItem (ScreenHandler handler, DefaultedList<ItemStack> stacks, ItemStack cursorStack, int[] properties, CallbackInfo ci) {
         if(handler instanceof PlayerScreenHandler) {
-            ((ICosmetics) field_29182).getHatCosmetic().tick();
-            ((ICosmetics) field_29182).getChestCosmetic().tickItem();
-            ((ICosmetics) field_29182).getLeggingsCosmetic().tickItem();
-            ((ICosmetics) field_29182).getBootsCosmetic().tickItem();
+            ICosmetics cosmetics = (ICosmetics) field_29182;
+            cosmetics.tickArmor();
         }
     }
 }

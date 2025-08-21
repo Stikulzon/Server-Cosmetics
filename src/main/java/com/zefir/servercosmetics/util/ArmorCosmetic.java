@@ -1,35 +1,48 @@
 package com.zefir.servercosmetics.util;
 
+import com.zefir.servercosmetics.data.ArmorCosmeticsData;
+import com.zefir.servercosmetics.data.BodyCosmeticsData;
 import com.zefir.servercosmetics.data.ItemType;
+import com.zefir.servercosmetics.database.DatabaseManager;
+import com.zefir.servercosmetics.ext.ICosmetic;
+import lombok.Getter;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 
-import static com.zefir.servercosmetics.database.DatabaseManager.setCosmetic;
-import static com.zefir.servercosmetics.util.PacketUtil.sendInventorySlotPacket;
-import static com.zefir.servercosmetics.util.Utils.getSlotForType;
+import java.util.Objects;
 
-public class ArmorCosmetic extends BodyCosmetic {
+public class ArmorCosmetic implements ICosmetic {
+    final ServerPlayerEntity player;
+    public final ItemType itemType;
+    @Getter
+    private ICosmetic armorCosmetic;
+
     public ArmorCosmetic(ServerPlayerEntity player, ItemType itemType) {
-        super(player, itemType);
+        this.player = player;
+        this.itemType = itemType;
     }
 
-    @Override
-    public void equip(ItemStack is) {
-        setCosmetic(player, itemType, is);
-        this.cosmeticItemStack = is;
-        initNewCosmetic();
-    }
-
-    @Override
-    public void initNewCosmetic() {
-        super.initNewCosmetic();
-        tickItem();
-    }
-
-    public void tickItem(){
-        if(cosmeticItemStack.isEmpty() || cosmeticItemStack == ItemStack.EMPTY) {
-            return;
+    public void init() {
+        try {
+            switch (Objects.requireNonNull(DatabaseManager.getCosmeticEntry(player, itemType)).cosmeticData()) {
+                case BodyCosmeticsData _data -> armorCosmetic = new ArmorBodyCosmetic(player, itemType);
+                case ArmorCosmeticsData _data -> armorCosmetic = new ArmorItemCosmetic(player, itemType);
+                default ->
+                        throw new IllegalStateException("Unexpected value: " + Objects.requireNonNull(DatabaseManager.getCosmeticEntry(player, itemType)).cosmeticData());
+            }
+        } catch (NullPointerException e) {
+            e.printStackTrace();
         }
-        sendInventorySlotPacket(player, getSlotForType(itemType), cosmeticItemStack);
+        armorCosmetic.init();
+    }
+
+    @Override
+    public void equip(ItemStack cosmeticStack) {
+        armorCosmetic.equip(cosmeticStack);
+    }
+
+    @Override
+    public void tick() {
+        armorCosmetic.tick();
     }
 }

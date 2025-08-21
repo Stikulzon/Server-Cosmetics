@@ -1,5 +1,6 @@
 package com.zefir.servercosmetics.mixin;
 
+import com.zefir.servercosmetics.data.ItemType;
 import com.zefir.servercosmetics.ext.ICosmetics;
 import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket;
 import net.minecraft.network.packet.c2s.play.PickFromInventoryC2SPacket;
@@ -13,6 +14,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import static com.zefir.servercosmetics.util.Utils.getItemTypeForSlot;
+
 @Mixin(ServerPlayNetworkHandler.class)
 public class ServerPlayNetworkHandlerMixin {
     @Shadow public ServerPlayerEntity player;
@@ -25,10 +28,8 @@ public class ServerPlayNetworkHandlerMixin {
             )
     )
     void modifyHeadSlotItem2 (PickFromInventoryC2SPacket packet, CallbackInfo ci) {
-        ((ICosmetics) player).getHatCosmetic().tick();
-        ((ICosmetics) player).getChestCosmetic().tickItem();
-        ((ICosmetics) player).getLeggingsCosmetic().tickItem();
-        ((ICosmetics) player).getBootsCosmetic().tickItem();
+        ICosmetics cosmetics = (ICosmetics) player;
+        cosmetics.tickArmor();
     }
 
     @Inject(
@@ -41,14 +42,10 @@ public class ServerPlayNetworkHandlerMixin {
     void modifyHeadSlotItem3 (ClickSlotC2SPacket packet, CallbackInfo ci) {
         ScreenHandler handler = this.player.currentScreenHandler;
         if(handler instanceof PlayerScreenHandler) {
-            if(packet.getSlot() == 5) {
-                ((ICosmetics) player).getHatCosmetic().tick();
-            } else if(packet.getSlot() == 6) {
-                ((ICosmetics) player).getChestCosmetic().tickItem();
-            } else if(packet.getSlot() == 7) {
-                ((ICosmetics) player).getLeggingsCosmetic().tickItem();
-            } else if(packet.getSlot() == 8) {
-                ((ICosmetics) player).getBootsCosmetic().tickItem();
+            ICosmetics cosmetics = (ICosmetics) player;
+            ItemType itemType = getItemTypeForSlot(packet.getSlot());
+            if(itemType != null) {
+                cosmetics.getCosmeticFor(itemType).tick();
             }
         }
     }

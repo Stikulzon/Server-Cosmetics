@@ -2,6 +2,7 @@ package com.zefir.servercosmetics.data;
 
 import com.zefir.servercosmetics.ServerCosmetics;
 import com.zefir.servercosmetics.config.ConfigManager;
+import com.zefir.servercosmetics.gui.actions.EquipCosmeticAction;
 import com.zefir.servercosmetics.util.Utils;
 import eu.pb4.polymer.resourcepack.api.PolymerModelData;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
@@ -148,8 +149,14 @@ public class CustomItemRegistry {
                     ItemStack itemStack = Utils.createItemStack(baseItemMaterial, displayName, itemId, lore);
                     CustomItemEntry entry;
                     if (ItemType.valueOf(type.toUpperCase()) == ItemType.BODY_COSMETIC || ItemType.valueOf(type.toUpperCase()) == ItemType.CHESTPLATE || ItemType.valueOf(type.toUpperCase()) == ItemType.LEGGINGS || ItemType.valueOf(type.toUpperCase()) == ItemType.BOOTS) {
-                        PolymerModelData polymerModelData = PolymerResourcePackUtils.requestModel(Registries.ITEM.get(Identifier.of(baseItemMaterial)), Identifier.of(ServerCosmetics.MOD_ID, "item/" + itemId + "_sneaking"));
-                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, new BodyCosmeticsData(polymerModelData));
+
+                        if (yamlFile.getString("isBodyCosmetics") != null) {
+                            boolean isBodyCosmetics = yamlFile.getBoolean("isBodyCosmetics");
+                            entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, new ArmorCosmeticsData(isBodyCosmetics));
+                        } else {
+                            PolymerModelData polymerModelData = PolymerResourcePackUtils.requestModel(Registries.ITEM.get(Identifier.of(baseItemMaterial)), Identifier.of(ServerCosmetics.MOD_ID, "item/" + itemId + "_sneaking"));
+                            entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, new BodyCosmeticsData(polymerModelData));
+                        }
                     } else {
                         entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, null);
                     }

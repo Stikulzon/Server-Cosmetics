@@ -1,10 +1,11 @@
 package com.zefir.servercosmetics.mixin;
 
 import com.zefir.servercosmetics.data.ItemType;
+import com.zefir.servercosmetics.ext.ICosmetic;
 import com.zefir.servercosmetics.ext.ICosmetics;
 import com.zefir.servercosmetics.util.ArmorCosmetic;
 import com.zefir.servercosmetics.util.BodyCosmetic;
-import com.zefir.servercosmetics.util.HatCosmetic;
+import com.zefir.servercosmetics.util.ArmorItemCosmetic;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -18,7 +19,7 @@ public abstract class ServerPlayerEntityBackPackTestMixin implements ICosmetics 
     @Unique
     private BodyCosmetic bodyCosmetic;
     @Unique
-    private HatCosmetic hatCosmetic;
+    private ArmorItemCosmetic hatCosmetic;
     @Unique
     private ArmorCosmetic chestCosmetic;
     @Unique
@@ -30,7 +31,7 @@ public abstract class ServerPlayerEntityBackPackTestMixin implements ICosmetics 
     private void init(CallbackInfo ci) {
         ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
         bodyCosmetic = new BodyCosmetic(player, ItemType.BODY_COSMETIC);
-        hatCosmetic = new HatCosmetic(player);
+        hatCosmetic = new ArmorItemCosmetic(player, ItemType.HAT);
         chestCosmetic = new ArmorCosmetic(player, ItemType.CHESTPLATE);
         leggingsCosmetic = new ArmorCosmetic(player, ItemType.LEGGINGS);
         bootsCosmetic = new ArmorCosmetic(player, ItemType.BOOTS);
@@ -38,31 +39,35 @@ public abstract class ServerPlayerEntityBackPackTestMixin implements ICosmetics 
 
     @Inject(method = "playerTick", at = @At("TAIL"))
     private void sendBackpackCosmeticPacket(CallbackInfo ci) {
+        tickArmor();
+    }
+
+    @Override
+    public void tickArmor(){
         bodyCosmetic.tick();
         chestCosmetic.tick();
         leggingsCosmetic.tick();
         bootsCosmetic.tick();
     }
 
-    @Unique
-    public BodyCosmetic getBodyCosmetics() {
-        return bodyCosmetic;
-    }
-    @Unique
-    public HatCosmetic getHatCosmetic() {
-        return hatCosmetic;
-    }
-    @Unique
-    public ArmorCosmetic getChestCosmetic() {
-        return chestCosmetic;
-    }
-    @Unique
-    public ArmorCosmetic getLeggingsCosmetic() {
-        return leggingsCosmetic;
-    }
-    @Unique
-    public ArmorCosmetic getBootsCosmetic() {
-        return bootsCosmetic;
+    @Override
+    public void initCosmetics() {
+        hatCosmetic.init();
+        bodyCosmetic.init();
+        chestCosmetic.init();
+        leggingsCosmetic.init();
+        bootsCosmetic.init();
     }
 
+    @Override
+    public ICosmetic getCosmeticFor(ItemType type) {
+        return switch (type) {
+            case ItemType.HAT -> this.hatCosmetic;
+            case ItemType.CHESTPLATE -> this.chestCosmetic;
+            case ItemType.LEGGINGS -> this.leggingsCosmetic;
+            case ItemType.BOOTS -> this.bootsCosmetic;
+            case ItemType.BODY_COSMETIC -> this.bodyCosmetic;
+            default -> throw new IllegalArgumentException("Invalid ItemType");
+        };
+    }
 }

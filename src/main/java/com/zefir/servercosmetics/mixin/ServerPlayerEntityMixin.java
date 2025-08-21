@@ -1,5 +1,6 @@
 package com.zefir.servercosmetics.mixin;
 
+import com.zefir.servercosmetics.data.ItemType;
 import com.zefir.servercosmetics.ext.ICosmetics;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.PlayerScreenHandler;
@@ -11,6 +12,8 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import static com.zefir.servercosmetics.util.Utils.getItemTypeForSlot;
 
 @Mixin(targets = "net.minecraft.server.network.ServerPlayerEntity$2")
 public class ServerPlayerEntityMixin {
@@ -26,14 +29,10 @@ public class ServerPlayerEntityMixin {
     )
     void modifyHeadSlotItem (ScreenHandler handler, int slot, ItemStack _stack, CallbackInfo ci) {
         if(handler instanceof PlayerScreenHandler) {
-            if(slot == 5) {
-                ((ICosmetics) field_29183).getHatCosmetic().tick();
-            } else if(slot == 6) {
-                ((ICosmetics) field_29183).getChestCosmetic().tickItem();
-            } else if(slot == 7) {
-                ((ICosmetics) field_29183).getLeggingsCosmetic().tickItem();
-            } else if(slot == 8) {
-                ((ICosmetics) field_29183).getBootsCosmetic().tickItem();
+            ICosmetics cosmetics = (ICosmetics) field_29183;
+            ItemType itemType = getItemTypeForSlot(slot);
+            if(itemType != null) {
+                cosmetics.getCosmeticFor(itemType).tick();
             }
         }
     }

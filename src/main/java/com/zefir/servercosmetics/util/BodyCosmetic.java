@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.zefir.servercosmetics.data.ItemType;
 import com.zefir.servercosmetics.data.BodyCosmeticsData;
 import com.zefir.servercosmetics.database.DatabaseManager;
+import com.zefir.servercosmetics.ext.ICosmetic;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -24,8 +25,9 @@ import static com.zefir.servercosmetics.database.DatabaseManager.setCosmetic;
 import static com.zefir.servercosmetics.util.Utils.getTiltedItemStack;
 
 // TODO: Refactor
-public class BodyCosmetic {
+public class BodyCosmetic implements ICosmetic {
     final ServerPlayerEntity player;
+    final ItemType itemType;
     @Getter
     private final Entity bodyCosmeticsModel;
     @Getter
@@ -34,7 +36,6 @@ public class BodyCosmetic {
     private final boolean useArmorStand = true;
     private boolean isHidden = false;
     private boolean isTilted = false;
-    public final ItemType itemType;
 
     public BodyCosmetic(ServerPlayerEntity player, ItemType itemType){
         if(useArmorStand){
@@ -49,10 +50,10 @@ public class BodyCosmetic {
     public void equip(ItemStack is) {
         setCosmetic(player, itemType, is);
         this.cosmeticItemStack = is;
-        initNewCosmetic();
+        init();
     }
 
-    public void initNewCosmetic() {
+    public void init() {
         cosmeticItemStack = DatabaseManager.getCosmeticItemStack(player, itemType);
         if(DatabaseManager.getCosmeticEntry(player, itemType) != null) {
             cosmeticItemStackWhenSneaking = getTiltedItemStack(cosmeticItemStack, ((BodyCosmeticsData) Objects.requireNonNull(DatabaseManager.getCosmeticEntry(player, itemType)).cosmeticData()).polymerModelWhenSneaking());

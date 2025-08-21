@@ -210,4 +210,24 @@ public class Utils {
             return Collections.emptyList();
         }
     }
+
+    public static ItemType getItemTypeForSlot(int slot) {
+        switch (slot) {
+            case 5 -> {
+                return ItemType.HAT;
+            }
+            case 6 -> {
+                return ItemType.CHESTPLATE;
+            }
+            case 7 -> {
+                return ItemType.LEGGINGS;
+            }
+            case 8 -> {
+                return ItemType.BOOTS;
+            }
+            default -> {
+                return null;
+            }
+        }
+    }
 }
