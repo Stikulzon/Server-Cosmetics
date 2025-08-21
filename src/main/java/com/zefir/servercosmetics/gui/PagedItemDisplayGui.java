@@ -1,8 +1,7 @@
 package com.zefir.servercosmetics.gui;
 
 import com.zefir.servercosmetics.config.AbstractGuiConfig;
-import com.zefir.servercosmetics.config.entries.CustomItemEntry;
-import com.zefir.servercosmetics.config.entries.ItemType;
+import com.zefir.servercosmetics.data.CustomItemEntry;
 import com.zefir.servercosmetics.gui.actions.OpenColorPickerAction;
 import com.zefir.servercosmetics.gui.core.ICosmeticProvider;
 import com.zefir.servercosmetics.gui.core.IItemAction;
@@ -78,11 +77,11 @@ public class PagedItemDisplayGui extends SimpleGui {
                 ItemStack displayStack = entry.itemStack().copy();
                 GuiElementBuilder element = new GuiElementBuilder(displayStack);
 
-                if (Permissions.check(player, entry.permission())) {
+                if (Permissions.check(player, entry.permission(), 4)) {
                     element.addLoreLine(guiConfig.getMessageUnlocked());
-                    element.setCallback(() -> {
-                        determineAction(entry).execute(player, entry, this);
-                    });
+                    element.setCallback(() ->
+                            determineAction(entry).execute(player, entry, this)
+                    );
                 } else {
                     element.addLoreLine(guiConfig.getMessageLocked());
                 }

@@ -1,8 +1,7 @@
 package com.zefir.servercosmetics.gui.core;
 
-import com.zefir.servercosmetics.config.entries.CustomItemEntry;
-import com.zefir.servercosmetics.config.entries.ItemType;
-import net.minecraft.server.network.ServerPlayerEntity;
+import com.zefir.servercosmetics.data.CustomItemEntry;
+
 import java.util.List;
 
 @FunctionalInterface

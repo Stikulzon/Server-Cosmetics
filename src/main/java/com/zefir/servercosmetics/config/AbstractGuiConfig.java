@@ -155,8 +155,6 @@ public abstract class AbstractGuiConfig {
                     ServerCosmetics.LOGGER.error("Failed to request model for button '{}' (item: {}, texture: {}): {}", buttonKey, complitedItemString, textureName, e.getMessage());
                 }
             }
-        } else {
-//            ServerCosmetics.LOGGER.error("Texture name for '{}' is undefined!", buttonKey);
         }
 
         List<String> loreStrings = yamlFile.getStringList(basePath + ".lore");

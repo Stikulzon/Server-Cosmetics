@@ -1,6 +1,6 @@
 package com.zefir.servercosmetics.util;
 
-import com.zefir.servercosmetics.config.entries.ItemType;
+import com.zefir.servercosmetics.data.ItemType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 

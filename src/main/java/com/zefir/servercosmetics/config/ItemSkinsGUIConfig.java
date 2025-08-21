@@ -1,14 +1,8 @@
 package com.zefir.servercosmetics.config;
 
-import com.zefir.servercosmetics.config.entries.CustomItemEntry;
-import com.zefir.servercosmetics.config.entries.CustomItemRegistry;
-import com.zefir.servercosmetics.config.entries.ItemType;
 import com.zefir.servercosmetics.gui.resources.GuiTextures;
 import com.zefir.servercosmetics.util.Utils;
 import lombok.Getter;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
 import org.simpleyaml.configuration.ConfigurationSection;
 import org.simpleyaml.configuration.file.YamlFile;
@@ -19,8 +13,6 @@ public class ItemSkinsGUIConfig extends AbstractGuiConfig {
 
     @Getter
     private static int itemSlot;
-
-    private static ItemSkinsGUIConfig instance;
 
     public ItemSkinsGUIConfig() {
         super("ItemSkinsGUI.yml");

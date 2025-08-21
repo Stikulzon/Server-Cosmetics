@@ -1,8 +1,8 @@
 package com.zefir.servercosmetics.gui.filters;
 
 import com.zefir.servercosmetics.config.ConfigManager;
-import com.zefir.servercosmetics.config.entries.CustomItemEntry;
-import com.zefir.servercosmetics.config.entries.ItemType;
+import com.zefir.servercosmetics.data.CustomItemEntry;
+import com.zefir.servercosmetics.data.ItemType;
 import com.zefir.servercosmetics.gui.PagedItemDisplayGui;
 import com.zefir.servercosmetics.util.GUIUtils;
 import lombok.Getter;
@@ -51,16 +51,16 @@ public class FilterManager {
 
             ConfigManager.NavigationButton button = isActive ? reg.inactiveButton : reg.activeButton;
 
-            if (registeredFilters.get(key).filter() instanceof ItemTypeFilter targetFilter && isActive) {
-                this.targetType = targetFilter.type();
+            if (registeredFilters.get(key).filter() instanceof ItemTypeFilter(ItemType type) && isActive) {
+                this.targetType = type;
             }
 
             GUIUtils.setUpButton(gui, button, () -> {
-                if (registeredFilters.get(key).filter() instanceof ItemTypeFilter targetFilter) {
+                if (registeredFilters.get(key).filter() instanceof ItemTypeFilter(ItemType type)) {
                     if (isActive) {
                         return;
                     }
-                    this.targetType = targetFilter.type();
+                    this.targetType = type;
                     disableOtherItemTypeFilters(key);
                     activeStates.put(key, true);
                 } else {

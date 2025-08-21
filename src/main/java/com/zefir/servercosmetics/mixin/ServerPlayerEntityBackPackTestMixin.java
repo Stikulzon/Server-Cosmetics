@@ -1,6 +1,6 @@
 package com.zefir.servercosmetics.mixin;
 
-import com.zefir.servercosmetics.config.entries.ItemType;
+import com.zefir.servercosmetics.data.ItemType;
 import com.zefir.servercosmetics.ext.ICosmetics;
 import com.zefir.servercosmetics.util.ArmorCosmetic;
 import com.zefir.servercosmetics.util.BodyCosmetic;

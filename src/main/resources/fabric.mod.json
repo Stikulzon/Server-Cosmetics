@@ -3,13 +3,13 @@
 	"id": "servercosmetics",
 	"version": "${version}",
 	"name": "ServerCosmetics",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "Server-side cosmetics mod!",
 	"authors": [
 		"Stikulzon"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"modrinth": "https://modrinth.com/mod/server-cosmetics",
+		"sources": "https://github.com/Stikulzon/Server-Cosmetics"
 	},
 	"license": "Apache License, Version 2.0",
 	"icon": "assets/servercosmetics/icon.png",

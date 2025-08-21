@@ -1,6 +1,6 @@
 package com.zefir.servercosmetics.util;
 
-import com.zefir.servercosmetics.config.entries.ItemType;
+import com.zefir.servercosmetics.data.ItemType;
 import com.zefir.servercosmetics.database.DatabaseManager;
 import lombok.Getter;
 import net.minecraft.item.ItemStack;

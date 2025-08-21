@@ -1,4 +1,4 @@
-package com.zefir.servercosmetics.config.entries;
+package com.zefir.servercosmetics.data;
 
 public enum ItemType {
     HAT,

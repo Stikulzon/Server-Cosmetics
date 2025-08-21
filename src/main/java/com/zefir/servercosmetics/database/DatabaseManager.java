@@ -6,9 +6,9 @@ import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import com.zefir.servercosmetics.ServerCosmetics;
-import com.zefir.servercosmetics.config.entries.CustomItemEntry;
-import com.zefir.servercosmetics.config.entries.CustomItemRegistry;
-import com.zefir.servercosmetics.config.entries.ItemType;
+import com.zefir.servercosmetics.data.CustomItemEntry;
+import com.zefir.servercosmetics.data.CustomItemRegistry;
+import com.zefir.servercosmetics.data.ItemType;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.DyedColorComponent;
@@ -93,7 +93,7 @@ public class DatabaseManager {
                 return ItemStack.EMPTY;
             }
 
-            if (!Permissions.check(player, cosmeticDefinition.permission())) {
+            if (!Permissions.check(player, cosmeticDefinition.permission(), 4)) {
                 return ItemStack.EMPTY;
             }
 

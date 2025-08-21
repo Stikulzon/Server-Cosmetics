@@ -1,8 +1,7 @@
-package com.zefir.servercosmetics.config.entries;
+package com.zefir.servercosmetics.data;
 
 import com.zefir.servercosmetics.ServerCosmetics;
 import com.zefir.servercosmetics.config.ConfigManager;
-import com.zefir.servercosmetics.config.entries.data.BodyCosmeticsData;
 import com.zefir.servercosmetics.util.Utils;
 import eu.pb4.polymer.resourcepack.api.PolymerModelData;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
@@ -195,16 +194,6 @@ public class CustomItemRegistry {
             }
         }
         return cosmetic;
-    }
-
-    public static List<CustomItemEntry> getAllCosmetics(ItemType type) {
-        List<CustomItemEntry> filteredList = new ArrayList<>();
-        for (CustomItemEntry entry : cosmeticsList) {
-            if(entry.type() == type){
-                filteredList.add(entry);
-            }
-        }
-        return filteredList;
     }
 
     public static List<CustomItemEntry> getCosmeticsList() {

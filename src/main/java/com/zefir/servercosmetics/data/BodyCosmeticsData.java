@@ -1,4 +1,4 @@
-package com.zefir.servercosmetics.config.entries.data;
+package com.zefir.servercosmetics.data;
 
 import eu.pb4.polymer.resourcepack.api.PolymerModelData;
 

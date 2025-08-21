@@ -1,6 +1,5 @@
-package com.zefir.servercosmetics.config.entries;
+package com.zefir.servercosmetics.data;
 
-import com.zefir.servercosmetics.config.entries.data.CosmeticData;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 

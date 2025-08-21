@@ -1,7 +1,7 @@
 package com.zefir.servercosmetics.gui.filters;
 
-import com.zefir.servercosmetics.config.entries.CustomItemEntry;
-import com.zefir.servercosmetics.config.entries.ItemType;
+import com.zefir.servercosmetics.data.CustomItemEntry;
+import com.zefir.servercosmetics.data.ItemType;
 
 import java.util.function.Predicate;
 

@@ -1,6 +1,6 @@
 package com.zefir.servercosmetics.gui.actions;
 
-import com.zefir.servercosmetics.config.entries.CustomItemEntry;
+import com.zefir.servercosmetics.data.CustomItemEntry;
 import com.zefir.servercosmetics.gui.core.IItemAction;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import net.minecraft.component.DataComponentTypes;

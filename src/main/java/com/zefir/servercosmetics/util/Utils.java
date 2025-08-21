@@ -4,9 +4,9 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.zefir.servercosmetics.ServerCosmetics;
-import com.zefir.servercosmetics.config.entries.CustomItemEntry;
-import com.zefir.servercosmetics.config.entries.CustomItemRegistry;
-import com.zefir.servercosmetics.config.entries.ItemType;
+import com.zefir.servercosmetics.data.CustomItemEntry;
+import com.zefir.servercosmetics.data.CustomItemRegistry;
+import com.zefir.servercosmetics.data.ItemType;
 import com.zefir.servercosmetics.datagen.RuntimeModelManager;
 import com.zefir.servercosmetics.ext.IItemStack;
 import com.zefir.servercosmetics.gui.ColorPickerComponent;
@@ -91,7 +91,7 @@ public class Utils {
             return 1;
         }
 
-        if (!Permissions.check(player, entry.permission())) {
+        if (!Permissions.check(player, entry.permission(), 4)) {
             context.getSource().sendFeedback(() -> Text.literal("Selected player does not have permission to use this cosmetic."), false);
             return 1;
         }
@@ -159,9 +159,10 @@ public class Utils {
 
         ItemStack itemStack = new ItemStack(polymerModel.item());
 
-        itemStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbt -> {
-            nbt.putString("cosmeticItemId", cosmeticOrSkinId);
-        }));
+        itemStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT,
+                comp -> comp.apply(
+                        nbt -> nbt.putString("cosmeticItemId", cosmeticOrSkinId))
+        );
 
         if (baseItem instanceof ArmorItem armorItem && armorItem.getType() != ArmorItem.Type.BODY) {
             PolymerArmorModel armorModel = PolymerResourcePackUtils.requestArmor(id(cosmeticOrSkinId));
@@ -205,7 +206,7 @@ public class Utils {
         try (Stream<Path> walk = Files.walk(dir)) {
             return walk.filter(Files::isRegularFile).collect(Collectors.toList());
         } catch (IOException e) {
-            ServerCosmetics.LOGGER.error("Failed to list files in directory: " + dir, e);
+            ServerCosmetics.LOGGER.error("Failed to list files in directory: {}", dir, e);
             return Collections.emptyList();
         }
     }

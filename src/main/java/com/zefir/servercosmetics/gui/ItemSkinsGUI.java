@@ -77,11 +77,9 @@ public class ItemSkinsGUI {
 
 
     private static void setupDynamicSlots(PagedItemDisplayGui gui, ItemStack targetStack) {
-        var config = ITEM_SKINS_GUI_CONFIG;
-
         gui.setSlot(ItemSkinsGUIConfig.getItemSlot(), targetStack.copy());
 
-        GUIUtils.setUpButton(gui, config.getButtonConfig("removeSkin"), () -> {
+        GUIUtils.setUpButton(gui, ITEM_SKINS_GUI_CONFIG.getButtonConfig("removeSkin"), () -> {
                 targetStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbt -> nbt.remove("cosmeticItemId")));
                 targetStack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
 

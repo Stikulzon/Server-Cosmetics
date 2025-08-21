@@ -1,8 +1,8 @@
 package com.zefir.servercosmetics.util;
 
 import com.google.common.collect.ImmutableList;
-import com.zefir.servercosmetics.config.entries.ItemType;
-import com.zefir.servercosmetics.config.entries.data.BodyCosmeticsData;
+import com.zefir.servercosmetics.data.ItemType;
+import com.zefir.servercosmetics.data.BodyCosmeticsData;
 import com.zefir.servercosmetics.database.DatabaseManager;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
@@ -31,7 +31,7 @@ public class BodyCosmetic {
     @Getter
     ItemStack cosmeticItemStack = ItemStack.EMPTY;
     ItemStack cosmeticItemStackWhenSneaking = ItemStack.EMPTY;
-    private boolean useArmorStand = true;
+    private final boolean useArmorStand = true;
     private boolean isHidden = false;
     private boolean isTilted = false;
     public final ItemType itemType;
