@@ -31,7 +31,6 @@ public class RuntimeModelManager {
      */
     public static void generateAndProvideModels(BiConsumer<String, byte[]> provider) {
 
-        System.out.println("requestedModels: " + requestedModels.keySet());
         if (requestedModels.isEmpty()) {
             return;
         }
@@ -50,6 +49,10 @@ public class RuntimeModelManager {
             }
         });
 
+//        requestedModels.clear();
+    }
+
+    public static void clearRequestedModels() {
         requestedModels.clear();
     }
 }

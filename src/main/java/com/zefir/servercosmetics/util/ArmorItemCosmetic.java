@@ -13,6 +13,7 @@ public class ArmorItemCosmetic implements ICosmetic {
     @Getter
     private ItemStack cosmeticItemStack = ItemStack.EMPTY;
     private final ServerPlayerEntity player;
+    @Getter
     private final ItemType itemType;
 
     public ArmorItemCosmetic(ServerPlayerEntity player, ItemType itemType) {
@@ -31,7 +32,7 @@ public class ArmorItemCosmetic implements ICosmetic {
 
         ItemStack targetItemStack;
         if(cosmeticItemStack.isEmpty() || cosmeticItemStack == ItemStack.EMPTY) {
-            targetItemStack = player.getInventory().getArmorStack(getSlotFor(itemType) - 2);
+            targetItemStack = player.getInventory().getArmorStack(getSlotFor(itemType) - 5);
         } else {
             targetItemStack = cosmeticStack;
         }
@@ -42,7 +43,7 @@ public class ArmorItemCosmetic implements ICosmetic {
         if(cosmeticItemStack.isEmpty() || cosmeticItemStack == ItemStack.EMPTY) {
             return;
         }
-        sendInventorySlotPacket(player, 5, cosmeticItemStack);
+        sendInventorySlotPacket(player, getSlotFor(itemType), cosmeticItemStack);
     }
 
     private static int getSlotFor(ItemType type) {

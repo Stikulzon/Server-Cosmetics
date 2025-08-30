@@ -34,12 +34,12 @@ import static com.zefir.servercosmetics.ServerCosmetics.id;
 public class CustomItemRegistry {
 
     private static final List<CustomItemEntry> cosmeticsList = new CopyOnWriteArrayList<>();
-    private static final List<String> armorList = new CopyOnWriteArrayList<>();
 
     @Setter
     private static boolean legacyMode = false;
 
     public static void initialize() {
+        RuntimeModelManager.clearRequestedModels();
         loadAllCosmetics();
         loadAllItemSkins();
     }
@@ -149,16 +149,22 @@ public class CustomItemRegistry {
 
                 if (type != null) {
                     String baseItemMaterial;
-                    if(ItemType.valueOf(type.toUpperCase()) == ItemType.HELMET || ItemType.valueOf(type.toUpperCase()) == ItemType.CHESTPLATE || ItemType.valueOf(type.toUpperCase()) == ItemType.LEGGINGS || ItemType.valueOf(type.toUpperCase()) == ItemType.BOOTS){
-                        baseItemMaterial = "leather_" + type.toLowerCase();
-                    } else {
                     String materialPath = itemPropertiesRootNode + ".material";
-                    baseItemMaterial = yamlFile.getString(materialPath);
-                    if (baseItemMaterial == null) {
-                        ServerCosmetics.LOGGER.error("Error loading cosmetic {}: '{}' not defined.", fileName, materialPath);
-                    } else if (!baseItemMaterial.contains(":")) {
-                        baseItemMaterial = "minecraft:" + baseItemMaterial.toLowerCase();
+
+                    if (ItemType.valueOf(type.toUpperCase()) == ItemType.CHESTPLATE || ItemType.valueOf(type.toUpperCase()) == ItemType.LEGGINGS || ItemType.valueOf(type.toUpperCase()) == ItemType.BOOTS) {
+                        baseItemMaterial = "leather_" + type.toLowerCase();
+                    } else if ((ItemType.valueOf(type.toUpperCase()) == ItemType.HAT && yamlFile.getString(materialPath) == null) || Objects.equals(yamlFile.getString(materialPath), "leather_helmet")) {
+                        baseItemMaterial = "leather_helmet";
                     }
+                    else {
+                        baseItemMaterial = yamlFile.getString(materialPath);
+                        if (baseItemMaterial == null) {
+                            ServerCosmetics.LOGGER.error("Error loading cosmetic {}: '{}' not defined, using paper as fallback", fileName, materialPath);
+                            baseItemMaterial = "minecraft:paper";
+                        }
+                    }
+                    if (!baseItemMaterial.contains(":")) {
+                        baseItemMaterial = "minecraft:" + baseItemMaterial.toLowerCase();
                     }
 
 
@@ -166,18 +172,16 @@ public class CustomItemRegistry {
                     CustomItemEntry entry;
                     if (ItemType.valueOf(type.toUpperCase()) == ItemType.BODY_COSMETIC) {
                         PolymerModelData polymerModelData = PolymerResourcePackUtils.requestModel(Registries.ITEM.get(Identifier.of(baseItemMaterial)), Identifier.of(ServerCosmetics.MOD_ID, "item/" + itemId + "_sneaking"));
-                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, List.of(Tags.ENTITY, Tags.BODY_COSMETIC), new BodyCosmeticsData(polymerModelData));
-                    } else if(ItemType.valueOf(type.toUpperCase()) == ItemType.CHESTPLATE_BODY_COSMETIC || ItemType.valueOf(type.toUpperCase()) == ItemType.HELMET_BODY_COSMETIC || ItemType.valueOf(type.toUpperCase()) == ItemType.BOOTS_BODY_COSMETIC) {
-                        PolymerModelData polymerModelData = PolymerResourcePackUtils.requestModel(Registries.ITEM.get(Identifier.of(baseItemMaterial)), Identifier.of(ServerCosmetics.MOD_ID, "item/" + itemId + "_sneaking"));
-                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, List.of(Tags.ENTITY, Tags.ARMOR, Tags.BODY_COSMETIC), new BodyCosmeticsData(polymerModelData));
-                    } else if(ItemType.valueOf(type.toUpperCase()) == ItemType.HELMET || ItemType.valueOf(type.toUpperCase()) == ItemType.CHESTPLATE || ItemType.valueOf(type.toUpperCase()) == ItemType.LEGGINGS || ItemType.valueOf(type.toUpperCase()) == ItemType.BOOTS) {
-                        String armorModelName = yamlFile.getString("armorModelName");
-                        if (armorModelName == null) {
-                            ServerCosmetics.LOGGER.error("Error loading {}: 'armorModelName' not defined.", fileName);
-                            return;
-                        }
-                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, List.of(Tags.ARMOR, Tags.ITEM), new ArmorCosmeticsData(armorModelName));
+                        boolean isMirrored = yamlFile.getBoolean("isMirrored", true);
 
+                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, List.of(Tags.ENTITY, Tags.BODY_COSMETIC), new BodyCosmeticsData(polymerModelData, isMirrored));
+                    } else if (ItemType.valueOf(type.toUpperCase()) == ItemType.CHESTPLATE_BODY_COSMETIC || ItemType.valueOf(type.toUpperCase()) == ItemType.HAT_BODY_COSMETIC || ItemType.valueOf(type.toUpperCase()) == ItemType.BOOTS_BODY_COSMETIC) {
+                        PolymerModelData polymerModelData = PolymerResourcePackUtils.requestModel(Registries.ITEM.get(Identifier.of(baseItemMaterial)), Identifier.of(ServerCosmetics.MOD_ID, "item/" + itemId + "_sneaking"));
+                        boolean isMirrored = yamlFile.getBoolean("isMirrored", true);
+
+                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, List.of(Tags.ENTITY, Tags.ARMOR, Tags.BODY_COSMETIC), new BodyCosmeticsData(polymerModelData, isMirrored));
+                    } else if (ItemType.valueOf(type.toUpperCase()) == ItemType.HAT || ItemType.valueOf(type.toUpperCase()) == ItemType.CHESTPLATE || ItemType.valueOf(type.toUpperCase()) == ItemType.LEGGINGS || ItemType.valueOf(type.toUpperCase()) == ItemType.BOOTS) {
+                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, List.of(Tags.ARMOR, Tags.ITEM), new ArmorCosmeticsData());
                     } else {
                         entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, List.of(Tags.ITEM), null);
                     }
@@ -223,10 +227,8 @@ public class CustomItemRegistry {
             if (baseItem instanceof ArmorItem armorItem && armorItem.getType() != ArmorItem.Type.BODY) {
 
                 String armorId = cosmeticOrSkinId.replace("_" + armorItem.getType().getName().toLowerCase(), "");
-                if(!armorList.contains(armorId)) {
-                    RuntimeModelManager.requestArmorModel(armorId, armorItem.getType());
-                    armorList.add(armorId);
-                }
+
+                RuntimeModelManager.requestArmorModel(armorId, armorItem.getType());
 
 
                 String modelIdPath = "item/armor/" + cosmeticOrSkinId;
@@ -283,7 +285,7 @@ public class CustomItemRegistry {
     public static CustomItemEntry getCosmetic(String id) {
         CustomItemEntry cosmetic = null;
         for (CustomItemEntry entry : cosmeticsList) {
-            if(entry.id().equals(id)){
+            if (entry.id().equals(id)) {
                 cosmetic = entry;
             }
         }
@@ -297,7 +299,7 @@ public class CustomItemRegistry {
     public static List<CustomItemEntry> getAllCosmeticsForMaterial(ItemType type, String targetMaterialId) {
         List<CustomItemEntry> filteredList = new ArrayList<>();
         for (CustomItemEntry entry : cosmeticsList) {
-            if(entry.type() == type && entry.baseItemForModel().equals(targetMaterialId)){
+            if (entry.type() == type && entry.baseItemForModel().equals(targetMaterialId)) {
                 filteredList.add(entry);
             }
         }

@@ -97,7 +97,7 @@ public class ArmorModelGenerator {
         root.addProperty("parent", "minecraft:item/generated");
         JsonObject textures = new JsonObject();
         textures.addProperty("layer0", ServerCosmetics.MOD_ID + ":item/armor/" + modelName);
-        textures.addProperty("layer1", ServerCosmetics.MOD_ID + ":item/armor/" + modelName + "_overlay");
+//        textures.addProperty("layer1", ServerCosmetics.MOD_ID + ":item/armor/" + modelName + "_overlay");
         root.add("textures", textures);
 
         JsonArray overrides = new JsonArray();

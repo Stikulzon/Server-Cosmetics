@@ -27,6 +27,7 @@ import static com.zefir.servercosmetics.util.Utils.getTiltedItemStack;
 // TODO: Refactor
 public class BodyCosmetic implements ICosmetic {
     final ServerPlayerEntity player;
+    @Getter
     final ItemType itemType;
     @Getter
     private final Entity bodyCosmeticsModel;

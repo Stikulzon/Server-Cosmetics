@@ -5,7 +5,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.zefir.servercosmetics.data.ItemType;
 import com.zefir.servercosmetics.ext.ICosmetics;
 import com.zefir.servercosmetics.util.ArmorBodyCosmetic;
-import com.zefir.servercosmetics.util.ArmorCosmetic;
 import com.zefir.servercosmetics.util.BodyCosmetic;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
@@ -29,14 +28,17 @@ public class EntityPassengersSetS2CPacketMixin {
             if(((BodyCosmetic) ((ICosmetics) player).getCosmeticFor(ItemType.BODY_COSMETIC)).getCosmeticItemStack() != ItemStack.EMPTY) {
                 modifiedList.add(((BodyCosmetic) ((ICosmetics) player).getCosmeticFor(ItemType.BODY_COSMETIC)).getBodyCosmeticsModel());
             }
-            if(((ArmorCosmetic) ((ICosmetics) player).getCosmeticFor(ItemType.CHESTPLATE)).getArmorCosmetic() instanceof ArmorBodyCosmetic armorBodyCosmetic && armorBodyCosmetic.getCosmeticItemStack() != ItemStack.EMPTY) {
-                modifiedList.add(armorBodyCosmetic.getBodyCosmeticsModel());
+            if(((BodyCosmetic) ((ICosmetics) player).getCosmeticFor(ItemType.HAT_BODY_COSMETIC)).getCosmeticItemStack() != ItemStack.EMPTY) {
+                modifiedList.add(((BodyCosmetic) ((ICosmetics) player).getCosmeticFor(ItemType.HAT_BODY_COSMETIC)).getBodyCosmeticsModel());
             }
-            if(((ArmorCosmetic) ((ICosmetics) player).getCosmeticFor(ItemType.LEGGINGS)).getArmorCosmetic() instanceof ArmorBodyCosmetic armorBodyCosmetic && armorBodyCosmetic.getCosmeticItemStack() != ItemStack.EMPTY) {
-                modifiedList.add(armorBodyCosmetic.getBodyCosmeticsModel());
+            if(((BodyCosmetic) ((ICosmetics) player).getCosmeticFor(ItemType.CHESTPLATE_BODY_COSMETIC)).getCosmeticItemStack() != ItemStack.EMPTY) {
+                modifiedList.add(((BodyCosmetic) ((ICosmetics) player).getCosmeticFor(ItemType.CHESTPLATE_BODY_COSMETIC)).getBodyCosmeticsModel());
             }
-            if(((ArmorCosmetic) ((ICosmetics) player).getCosmeticFor(ItemType.BOOTS)).getArmorCosmetic() instanceof ArmorBodyCosmetic armorBodyCosmetic && armorBodyCosmetic.getCosmeticItemStack() != ItemStack.EMPTY) {
-                modifiedList.add(armorBodyCosmetic.getBodyCosmeticsModel());
+            if(((BodyCosmetic) ((ICosmetics) player).getCosmeticFor(ItemType.LEGGINGS_BODY_COSMETIC)).getCosmeticItemStack() != ItemStack.EMPTY) {
+                modifiedList.add(((BodyCosmetic) ((ICosmetics) player).getCosmeticFor(ItemType.LEGGINGS_BODY_COSMETIC)).getBodyCosmeticsModel());
+            }
+            if(((BodyCosmetic) ((ICosmetics) player).getCosmeticFor(ItemType.BOOTS_BODY_COSMETIC)).getCosmeticItemStack() != ItemStack.EMPTY) {
+                modifiedList.add(((BodyCosmetic) ((ICosmetics) player).getCosmeticFor(ItemType.BOOTS_BODY_COSMETIC)).getBodyCosmeticsModel());
             }
         }
         return modifiedList;
