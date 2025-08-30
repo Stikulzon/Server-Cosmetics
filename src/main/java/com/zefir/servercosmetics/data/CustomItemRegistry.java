@@ -2,13 +2,22 @@ package com.zefir.servercosmetics.data;
 
 import com.zefir.servercosmetics.ServerCosmetics;
 import com.zefir.servercosmetics.config.ConfigManager;
+import com.zefir.servercosmetics.datagen.RuntimeModelManager;
 import com.zefir.servercosmetics.gui.actions.EquipCosmeticAction;
 import com.zefir.servercosmetics.util.Utils;
+import eu.pb4.polymer.resourcepack.api.PolymerArmorModel;
 import eu.pb4.polymer.resourcepack.api.PolymerModelData;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import lombok.Setter;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.CustomModelDataComponent;
+import net.minecraft.component.type.DyedColorComponent;
+import net.minecraft.component.type.LoreComponent;
+import net.minecraft.component.type.NbtComponent;
+import net.minecraft.item.ArmorItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -20,9 +29,12 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import static com.zefir.servercosmetics.ServerCosmetics.id;
+
 public class CustomItemRegistry {
 
     private static final List<CustomItemEntry> cosmeticsList = new CopyOnWriteArrayList<>();
+    private static final List<String> armorList = new CopyOnWriteArrayList<>();
 
     @Setter
     private static boolean legacyMode = false;
@@ -136,29 +148,38 @@ public class CustomItemRegistry {
                 }
 
                 if (type != null) {
+                    String baseItemMaterial;
+                    if(ItemType.valueOf(type.toUpperCase()) == ItemType.HELMET || ItemType.valueOf(type.toUpperCase()) == ItemType.CHESTPLATE || ItemType.valueOf(type.toUpperCase()) == ItemType.LEGGINGS || ItemType.valueOf(type.toUpperCase()) == ItemType.BOOTS){
+                        baseItemMaterial = "leather_" + type.toLowerCase();
+                    } else {
                     String materialPath = itemPropertiesRootNode + ".material";
-                    String baseItemMaterial = yamlFile.getString(materialPath);
+                    baseItemMaterial = yamlFile.getString(materialPath);
                     if (baseItemMaterial == null) {
                         ServerCosmetics.LOGGER.error("Error loading cosmetic {}: '{}' not defined.", fileName, materialPath);
-                        continue;
-                    }
-                    if (!baseItemMaterial.contains(":")) {
+                    } else if (!baseItemMaterial.contains(":")) {
                         baseItemMaterial = "minecraft:" + baseItemMaterial.toLowerCase();
                     }
+                    }
 
-                    ItemStack itemStack = Utils.createItemStack(baseItemMaterial, displayName, itemId, lore);
+
+                    ItemStack itemStack = createItemStack(baseItemMaterial, displayName, itemId, lore);
                     CustomItemEntry entry;
-                    if (ItemType.valueOf(type.toUpperCase()) == ItemType.BODY_COSMETIC || ItemType.valueOf(type.toUpperCase()) == ItemType.CHESTPLATE || ItemType.valueOf(type.toUpperCase()) == ItemType.LEGGINGS || ItemType.valueOf(type.toUpperCase()) == ItemType.BOOTS) {
-
-                        if (yamlFile.getString("isBodyCosmetics") != null) {
-                            boolean isBodyCosmetics = yamlFile.getBoolean("isBodyCosmetics");
-                            entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, new ArmorCosmeticsData(isBodyCosmetics));
-                        } else {
-                            PolymerModelData polymerModelData = PolymerResourcePackUtils.requestModel(Registries.ITEM.get(Identifier.of(baseItemMaterial)), Identifier.of(ServerCosmetics.MOD_ID, "item/" + itemId + "_sneaking"));
-                            entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, new BodyCosmeticsData(polymerModelData));
+                    if (ItemType.valueOf(type.toUpperCase()) == ItemType.BODY_COSMETIC) {
+                        PolymerModelData polymerModelData = PolymerResourcePackUtils.requestModel(Registries.ITEM.get(Identifier.of(baseItemMaterial)), Identifier.of(ServerCosmetics.MOD_ID, "item/" + itemId + "_sneaking"));
+                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, List.of(Tags.ENTITY, Tags.BODY_COSMETIC), new BodyCosmeticsData(polymerModelData));
+                    } else if(ItemType.valueOf(type.toUpperCase()) == ItemType.CHESTPLATE_BODY_COSMETIC || ItemType.valueOf(type.toUpperCase()) == ItemType.HELMET_BODY_COSMETIC || ItemType.valueOf(type.toUpperCase()) == ItemType.BOOTS_BODY_COSMETIC) {
+                        PolymerModelData polymerModelData = PolymerResourcePackUtils.requestModel(Registries.ITEM.get(Identifier.of(baseItemMaterial)), Identifier.of(ServerCosmetics.MOD_ID, "item/" + itemId + "_sneaking"));
+                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, List.of(Tags.ENTITY, Tags.ARMOR, Tags.BODY_COSMETIC), new BodyCosmeticsData(polymerModelData));
+                    } else if(ItemType.valueOf(type.toUpperCase()) == ItemType.HELMET || ItemType.valueOf(type.toUpperCase()) == ItemType.CHESTPLATE || ItemType.valueOf(type.toUpperCase()) == ItemType.LEGGINGS || ItemType.valueOf(type.toUpperCase()) == ItemType.BOOTS) {
+                        String armorModelName = yamlFile.getString("armorModelName");
+                        if (armorModelName == null) {
+                            ServerCosmetics.LOGGER.error("Error loading {}: 'armorModelName' not defined.", fileName);
+                            return;
                         }
+                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, List.of(Tags.ARMOR, Tags.ITEM), new ArmorCosmeticsData(armorModelName));
+
                     } else {
-                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, null);
+                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, List.of(Tags.ITEM), null);
                     }
                     cosmeticsList.add(entry);
 
@@ -178,9 +199,8 @@ public class CustomItemRegistry {
                         if (!materialKey.contains(":")) {
                             materialKey = "minecraft:" + materialKey.toLowerCase();
                         }
-
-                        ItemStack itemStack = Utils.createItemStack(materialKey, displayName, itemId, lore);
-                        CustomItemEntry entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.ITEM_SKIN, materialKey, null);
+                        ItemStack itemStack = createItemStack(materialKey, displayName, itemId, lore);
+                        CustomItemEntry entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.ITEM_SKIN, materialKey, new ArrayList<>(), null);
 
                         cosmeticsList.add(entry);
                     }
@@ -189,6 +209,73 @@ public class CustomItemRegistry {
                 ServerCosmetics.LOGGER.error("Failed to load custom item from file: {}", filePath, e);
             }
         }
+    }
+
+    public static ItemStack createItemStack(String baseMaterialId, Text displayName, String cosmeticOrSkinId, List<Text> loreTexts) {
+        Item baseItem = Registries.ITEM.get(Identifier.of(baseMaterialId));
+        if (baseItem == Registries.ITEM.get(Registries.ITEM.getDefaultId()) && !baseMaterialId.equals(Registries.ITEM.getDefaultId().toString())) {
+            ServerCosmetics.LOGGER.warn("Invalid baseMaterialId '{}' for item '{}'. Defaulting to minecraft:paper.", baseMaterialId, cosmeticOrSkinId);
+            baseItem = Registries.ITEM.get(Identifier.of("minecraft:paper")); // Fallback
+        }
+
+        PolymerModelData polymerModel;
+        try {
+            if (baseItem instanceof ArmorItem armorItem && armorItem.getType() != ArmorItem.Type.BODY) {
+
+                String armorId = cosmeticOrSkinId.replace("_" + armorItem.getType().getName().toLowerCase(), "");
+                if(!armorList.contains(armorId)) {
+                    RuntimeModelManager.requestArmorModel(armorId, armorItem.getType());
+                    armorList.add(armorId);
+                }
+
+
+                String modelIdPath = "item/armor/" + cosmeticOrSkinId;
+                polymerModel = PolymerResourcePackUtils.requestModel(getItemFor(armorItem.getType()), id(modelIdPath));
+
+            } else {
+                polymerModel = PolymerResourcePackUtils.requestModel(baseItem, Identifier.of(ServerCosmetics.MOD_ID, "item/" + cosmeticOrSkinId));
+            }
+        } catch (Exception e) {
+            ServerCosmetics.LOGGER.error("Failed to request model for item id '{}' with base item '{}': {}", cosmeticOrSkinId, baseMaterialId, e.getMessage());
+            ItemStack errorStack = new ItemStack(baseItem);
+            errorStack.set(DataComponentTypes.CUSTOM_NAME, Text.literal("Error: " + cosmeticOrSkinId));
+            return errorStack;
+        }
+
+
+        ItemStack itemStack = new ItemStack(polymerModel.item());
+
+        itemStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT,
+                comp -> comp.apply(
+                        nbt -> nbt.putString("cosmeticItemId", cosmeticOrSkinId))
+        );
+
+        if (baseItem instanceof ArmorItem armorItem && armorItem.getType() != ArmorItem.Type.BODY) {
+            String armorId = cosmeticOrSkinId.replace("_" + armorItem.getType().getName().toLowerCase(), "");
+            PolymerArmorModel armorModel = PolymerResourcePackUtils.requestArmor(id(armorId));
+            itemStack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(armorModel.color(), true));
+        }
+
+        if (loreTexts != null && !loreTexts.isEmpty()) {
+            itemStack.set(DataComponentTypes.LORE, new LoreComponent(loreTexts));
+        } else {
+            itemStack.set(DataComponentTypes.LORE, new LoreComponent(Collections.emptyList()));
+        }
+
+        itemStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(polymerModel.value()));
+        itemStack.set(DataComponentTypes.CUSTOM_NAME, displayName);
+
+        return itemStack;
+    }
+
+    private static Item getItemFor(ArmorItem.Type type) {
+        return switch (type) {
+            case ArmorItem.Type.HELMET -> Items.LEATHER_HELMET;
+            case ArmorItem.Type.CHESTPLATE -> Items.LEATHER_CHESTPLATE;
+            case ArmorItem.Type.LEGGINGS -> Items.LEATHER_LEGGINGS;
+            case ArmorItem.Type.BOOTS -> Items.LEATHER_BOOTS;
+            default -> Items.STONE;
+        };
     }
 
     // --- Accessor methods ---

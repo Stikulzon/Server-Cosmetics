@@ -70,7 +70,7 @@ public class ConfigManager {
             Path resourcePackSourceDir = SERVER_COSMETICS_DIR.resolve("Assets");
 
             if (Files.isDirectory(resourcePackSourceDir)) {
-//                ServerCosmetics.LOGGER.info("Scanning for .png and .json files in: {}", resourcePackSourceDir.toAbsolutePath());
+                ServerCosmetics.LOGGER.info("Scanning for .png and .json files in: {}", resourcePackSourceDir.toAbsolutePath());
 
                 try (Stream<Path> pathStream = Files.walk(resourcePackSourceDir)) {
                     pathStream
@@ -104,7 +104,7 @@ public class ConfigManager {
 
                                             CustomItemEntry cosmeticEntry = CustomItemRegistry.getCosmetic(filenameLower.substring(0, filenameLower.lastIndexOf('.')));
                                             if(cosmeticEntry != null){
-                                                if (cosmeticEntry.type() == ItemType.BODY_COSMETIC || cosmeticEntry.type() == ItemType.CHESTPLATE) {
+                                                if (cosmeticEntry.type() == ItemType.BODY_COSMETIC || cosmeticEntry.type() == ItemType.CHESTPLATE_BODY_COSMETIC) {
                                                     JSONObject displayObject = jsonObject.optJSONObject("display");
                                                     if (displayObject == null) {
                                                         displayObject = new JSONObject();
@@ -143,7 +143,7 @@ public class ConfigManager {
                                                     addData(builder, finalTargetPathSneaking, sneakingFileName, sneakingData);
 
                                                     return;
-                                                } else if (cosmeticEntry.type() == ItemType.LEGGINGS) {
+                                                } else if (cosmeticEntry.type() == ItemType.LEGGINGS_BODY_COSMETIC) {
                                                     JSONObject displayObject = jsonObject.optJSONObject("display");
                                                     if (displayObject == null) {
                                                         displayObject = new JSONObject();
@@ -182,7 +182,7 @@ public class ConfigManager {
                                                     addData(builder, finalTargetPathSneaking, sneakingFileName, sneakingData);
 
                                                     return;
-                                                } else if (cosmeticEntry.type() == ItemType.BOOTS) {
+                                                } else if (cosmeticEntry.type() == ItemType.BOOTS_BODY_COSMETIC) {
                                                     JSONObject displayObject = jsonObject.optJSONObject("display");
                                                     if (displayObject == null) {
                                                         displayObject = new JSONObject();

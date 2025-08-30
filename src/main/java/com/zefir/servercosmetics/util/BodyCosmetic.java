@@ -43,11 +43,15 @@ public class BodyCosmetic implements ICosmetic {
         } else {
             this.bodyCosmeticsModel = new DisplayEntity.ItemDisplayEntity(EntityType.ITEM_DISPLAY, player.getServerWorld());
         }
+        player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
+                new EntitySpawnS2CPacket(bodyCosmeticsModel, 1, bodyCosmeticsModel.getBlockPos()));
         this.player = player;
         this.itemType = itemType;
     }
 
     public void equip(ItemStack is) {
+//        player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
+//                new EntitiesDestroyS2CPacket(bodyCosmeticsModel.getId()));
         setCosmetic(player, itemType, is);
         this.cosmeticItemStack = is;
         init();
@@ -64,9 +68,6 @@ public class BodyCosmetic implements ICosmetic {
         bodyCosmeticsModel.setPosition(player.getX(), player.getY(), player.getZ());
         bodyCosmeticsModel.setInvulnerable(true);
         bodyCosmeticsModel.setNoGravity(true);
-
-        player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
-                new EntitySpawnS2CPacket(bodyCosmeticsModel, 1, bodyCosmeticsModel.getBlockPos()));
 
         if(useArmorStand) {
             bodyCosmeticsModel.setInvisible(true);

@@ -7,5 +7,5 @@ import java.util.List;
 
 
 public record CustomItemEntry(String id, String permission, Text displayName, List<Text> lore, ItemStack itemStack,
-                              ItemType type, String baseItemForModel, ICosmeticData cosmeticData) {
+                              ItemType type, String baseItemForModel, List<Tags> tags, ICosmeticData cosmeticData) {
 }

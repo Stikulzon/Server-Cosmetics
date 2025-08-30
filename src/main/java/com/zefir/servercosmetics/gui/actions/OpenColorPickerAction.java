@@ -1,7 +1,7 @@
 package com.zefir.servercosmetics.gui.actions;
 
-
 import com.zefir.servercosmetics.data.CustomItemEntry;
+import com.zefir.servercosmetics.data.ItemType;
 import com.zefir.servercosmetics.ext.ICosmetics;
 import com.zefir.servercosmetics.gui.ColorPickerComponent;
 import com.zefir.servercosmetics.gui.core.IItemAction;
@@ -12,7 +12,7 @@ public class OpenColorPickerAction implements IItemAction {
     @Override
     public void execute(ServerPlayerEntity player, CustomItemEntry entry, SimpleGui gui) {
         new ColorPickerComponent(player, entry.itemStack(), (coloredStack) -> (
-                (ICosmetics) player).getHatCosmetic().equip(coloredStack)
+                (ICosmetics) player).getCosmeticFor(ItemType.HAT).equip(coloredStack)
         ).open();
     }
 }

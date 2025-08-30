@@ -30,6 +30,8 @@ public class RuntimeModelManager {
      * @param provider A consumer that accepts a resource path and the corresponding file data.
      */
     public static void generateAndProvideModels(BiConsumer<String, byte[]> provider) {
+
+        System.out.println("requestedModels: " + requestedModels.keySet());
         if (requestedModels.isEmpty()) {
             return;
         }

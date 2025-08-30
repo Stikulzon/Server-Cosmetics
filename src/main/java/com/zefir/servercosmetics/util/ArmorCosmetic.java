@@ -1,8 +1,7 @@
 package com.zefir.servercosmetics.util;
 
-import com.zefir.servercosmetics.data.ArmorCosmeticsData;
-import com.zefir.servercosmetics.data.BodyCosmeticsData;
 import com.zefir.servercosmetics.data.ItemType;
+import com.zefir.servercosmetics.data.Tags;
 import com.zefir.servercosmetics.database.DatabaseManager;
 import com.zefir.servercosmetics.ext.ICosmetic;
 import lombok.Getter;
@@ -23,26 +22,57 @@ public class ArmorCosmetic implements ICosmetic {
     }
 
     public void init() {
+        if(DatabaseManager.getCosmeticEntry(player, itemType) == null) {
+            return;
+        }
         try {
-            switch (Objects.requireNonNull(DatabaseManager.getCosmeticEntry(player, itemType)).cosmeticData()) {
-                case BodyCosmeticsData _data -> armorCosmetic = new ArmorBodyCosmetic(player, itemType);
-                case ArmorCosmeticsData _data -> armorCosmetic = new ArmorItemCosmetic(player, itemType);
-                default ->
-                        throw new IllegalStateException("Unexpected value: " + Objects.requireNonNull(DatabaseManager.getCosmeticEntry(player, itemType)).cosmeticData());
+            if(Objects.requireNonNull(DatabaseManager.getCosmeticEntry(player, itemType)).tags().contains(Tags.BODY_COSMETIC)){
+                armorCosmetic = new ArmorBodyCosmetic(player, itemType);
+            } else {
+                armorCosmetic = new ArmorItemCosmetic(player, itemType);
             }
         } catch (NullPointerException e) {
             e.printStackTrace();
+            return;
         }
         armorCosmetic.init();
     }
 
     @Override
     public void equip(ItemStack cosmeticStack) {
+        if(DatabaseManager.getCosmeticEntry(player, itemType) == null) {
+            return;
+        }
+        try {
+            if(Objects.requireNonNull(DatabaseManager.getCosmeticEntry(player, itemType)).tags().contains(Tags.BODY_COSMETIC)){
+                armorCosmetic = new ArmorBodyCosmetic(player, itemType);
+            } else {
+                armorCosmetic = new ArmorItemCosmetic(player, itemType);
+            }
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+            return;
+        }
         armorCosmetic.equip(cosmeticStack);
     }
 
     @Override
     public void tick() {
+        if(armorCosmetic == null) {
+            if(DatabaseManager.getCosmeticEntry(player, itemType) == null) {
+                return;
+            }
+            try {
+                if(Objects.requireNonNull(DatabaseManager.getCosmeticEntry(player, itemType)).tags().contains(Tags.BODY_COSMETIC)){
+                    armorCosmetic = new ArmorBodyCosmetic(player, itemType);
+                } else {
+                    armorCosmetic = new ArmorItemCosmetic(player, itemType);
+                }
+            } catch (NullPointerException e) {
+                e.printStackTrace();
+                return;
+            }
+        }
         armorCosmetic.tick();
     }
 }
