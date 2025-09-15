@@ -151,10 +151,11 @@ public class CustomItemRegistry {
                     String baseItemMaterial;
                     String materialPath = itemPropertiesRootNode + ".material";
 
-                    if (ItemType.valueOf(type.toUpperCase()) == ItemType.CHESTPLATE || ItemType.valueOf(type.toUpperCase()) == ItemType.LEGGINGS || ItemType.valueOf(type.toUpperCase()) == ItemType.BOOTS) {
-                        baseItemMaterial = "leather_" + type.toLowerCase();
-                    } else if ((ItemType.valueOf(type.toUpperCase()) == ItemType.HAT && yamlFile.getString(materialPath) == null) || Objects.equals(yamlFile.getString(materialPath), "leather_helmet")) {
+                    if (type.equalsIgnoreCase("HELMET")) {
                         baseItemMaterial = "leather_helmet";
+                        type = "HAT";
+                    } else if (ItemType.valueOf(type.toUpperCase()) == ItemType.CHESTPLATE || ItemType.valueOf(type.toUpperCase()) == ItemType.LEGGINGS || ItemType.valueOf(type.toUpperCase()) == ItemType.BOOTS) {
+                        baseItemMaterial = "leather_" + type.toLowerCase();
                     }
                     else {
                         baseItemMaterial = yamlFile.getString(materialPath);
@@ -172,14 +173,16 @@ public class CustomItemRegistry {
                     CustomItemEntry entry;
                     if (ItemType.valueOf(type.toUpperCase()) == ItemType.BODY_COSMETIC) {
                         PolymerModelData polymerModelData = PolymerResourcePackUtils.requestModel(Registries.ITEM.get(Identifier.of(baseItemMaterial)), Identifier.of(ServerCosmetics.MOD_ID, "item/" + itemId + "_sneaking"));
-                        boolean isMirrored = yamlFile.getBoolean("isMirrored", true);
+                        boolean isMirrored = yamlFile.getBoolean("isMirrored", false);
+                        boolean autoAlignment = yamlFile.getBoolean("autoAlignment", false);
 
-                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, List.of(Tags.ENTITY, Tags.BODY_COSMETIC), new BodyCosmeticsData(polymerModelData, isMirrored));
+                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, List.of(Tags.ENTITY, Tags.BODY_COSMETIC), new BodyCosmeticsData(polymerModelData, isMirrored, autoAlignment));
                     } else if (ItemType.valueOf(type.toUpperCase()) == ItemType.CHESTPLATE_BODY_COSMETIC || ItemType.valueOf(type.toUpperCase()) == ItemType.HAT_BODY_COSMETIC || ItemType.valueOf(type.toUpperCase()) == ItemType.BOOTS_BODY_COSMETIC) {
                         PolymerModelData polymerModelData = PolymerResourcePackUtils.requestModel(Registries.ITEM.get(Identifier.of(baseItemMaterial)), Identifier.of(ServerCosmetics.MOD_ID, "item/" + itemId + "_sneaking"));
-                        boolean isMirrored = yamlFile.getBoolean("isMirrored", true);
+                        boolean isMirrored = yamlFile.getBoolean("isMirrored", false);
+                        boolean autoAlignment = yamlFile.getBoolean("autoAlignment", false);
 
-                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, List.of(Tags.ENTITY, Tags.ARMOR, Tags.BODY_COSMETIC), new BodyCosmeticsData(polymerModelData, isMirrored));
+                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, List.of(Tags.ENTITY, Tags.ARMOR, Tags.BODY_COSMETIC), new BodyCosmeticsData(polymerModelData, isMirrored, autoAlignment));
                     } else if (ItemType.valueOf(type.toUpperCase()) == ItemType.HAT || ItemType.valueOf(type.toUpperCase()) == ItemType.CHESTPLATE || ItemType.valueOf(type.toUpperCase()) == ItemType.LEGGINGS || ItemType.valueOf(type.toUpperCase()) == ItemType.BOOTS) {
                         entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, List.of(Tags.ARMOR, Tags.ITEM), new ArmorCosmeticsData());
                     } else {

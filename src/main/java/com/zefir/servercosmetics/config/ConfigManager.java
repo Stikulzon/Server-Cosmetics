@@ -2,9 +2,7 @@ package com.zefir.servercosmetics.config;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.zefir.servercosmetics.ServerCosmetics;
-import com.zefir.servercosmetics.data.CustomItemEntry;
-import com.zefir.servercosmetics.data.CustomItemRegistry;
-import com.zefir.servercosmetics.data.ItemType;
+import com.zefir.servercosmetics.data.*;
 import com.zefir.servercosmetics.datagen.RuntimeModelManager;
 import com.zefir.servercosmetics.util.Utils;
 import eu.pb4.polymer.resourcepack.api.PolymerModelData;
@@ -68,191 +66,183 @@ public class ConfigManager {
             RuntimeModelManager.generateAndProvideModels(builder::addData);
 
             Path resourcePackSourceDir = SERVER_COSMETICS_DIR.resolve("Assets");
-
-            if (Files.isDirectory(resourcePackSourceDir)) {
-                ServerCosmetics.LOGGER.info("Scanning for .png and .json files in: {}", resourcePackSourceDir.toAbsolutePath());
-
-                try (Stream<Path> pathStream = Files.walk(resourcePackSourceDir)) {
-                    pathStream
-                            .filter(Files::isRegularFile)
-                            .forEach(filePath -> {
-                                Path fileNamePath = filePath.getFileName();
-                                if (fileNamePath == null) {
-                                    return;
-                                }
-
-                                String fileNameString = fileNamePath.toString();
-                                String filenameLower = fileNameString.toLowerCase(Locale.ROOT);
-                                String targetBaseDir = null;
-                                byte[] data;
-
-                                try {
-                                    data = Files.readAllBytes(filePath);
-
-                                    if (filenameLower.endsWith(".png")) {
-                                        if(filenameLower.endsWith("_helmet.png") || filenameLower.endsWith("_chestplate.png") || filenameLower.endsWith("_leggings.png") || filenameLower.endsWith("_boots.png")){
-                                            targetBaseDir = TARGET_TEXTURE_PATH + "item/armor/";
-                                        } else if (filenameLower.endsWith("_layer_1.png") || filenameLower.endsWith("_layer_2.png")) {
-                                            targetBaseDir = TARGET_TEXTURE_PATH + "models/armor/";
-                                        } else {
-                                            targetBaseDir = TARGET_TEXTURE_PATH + "item/";
-                                        }
-                                    } else if (filenameLower.endsWith(".json")) {
-                                        targetBaseDir = TARGET_MODEL_PATH;
-                                            String content = new String(data, StandardCharsets.UTF_8);
-                                            JSONObject jsonObject = new JSONObject(content);
-
-                                            CustomItemEntry cosmeticEntry = CustomItemRegistry.getCosmetic(filenameLower.substring(0, filenameLower.lastIndexOf('.')));
-                                            if(cosmeticEntry != null){
-                                                if (cosmeticEntry.type() == ItemType.BODY_COSMETIC || cosmeticEntry.type() == ItemType.CHESTPLATE_BODY_COSMETIC) {
-                                                    JSONObject displayObject = jsonObject.optJSONObject("display");
-                                                    if (displayObject == null) {
-                                                        displayObject = new JSONObject();
-                                                        jsonObject.put("display", displayObject);
-                                                    }
-
-                                                    // ---------- REGULAR VARIANT ----------
-                                                    JSONObject headNormal = new JSONObject();
-                                                    headNormal.put("rotation", new JSONArray(Arrays.asList(0, -180, 0)));
-                                                    headNormal.put("translation", new JSONArray(Arrays.asList(0, -56.5, 2.15)));
-                                                    headNormal.put("scale", new JSONArray(Arrays.asList(1.45, 1.45, 1.45)));
-
-                                                    displayObject.put("head", headNormal);
-
-                                                    byte[] normalData = jsonObject.toString().getBytes(StandardCharsets.UTF_8);
-                                                    String finalTargetPathNormal = targetBaseDir + fileNameString;
-
-                                                    addData(builder, finalTargetPathNormal, fileNameString, normalData);
-
-                                                    // ---------- SNEAKING VARIANT ----------
-                                                    JSONObject jsonSneaking = new JSONObject(jsonObject.toString());
-                                                    JSONObject displaySneaking = jsonSneaking.getJSONObject("display");
-
-                                                    JSONObject headSneaking = new JSONObject();
-                                                    headSneaking.put("rotation", new JSONArray(Arrays.asList(-28, -180, 0)));
-                                                    headSneaking.put("translation", new JSONArray(Arrays.asList(0, -56.5, 4.15)));
-                                                    headSneaking.put("scale", new JSONArray(Arrays.asList(1.45, 1.45, 1.45)));
-
-                                                    displaySneaking.put("head", headSneaking);
-
-                                                    byte[] sneakingData = jsonSneaking.toString().getBytes(StandardCharsets.UTF_8);
-
-                                                    String sneakingFileName = fileNameString.replace(".json", "_sneaking.json");
-                                                    String finalTargetPathSneaking = targetBaseDir + sneakingFileName;
-
-                                                    addData(builder, finalTargetPathSneaking, sneakingFileName, sneakingData);
-
-                                                    return;
-                                                } else if (cosmeticEntry.type() == ItemType.LEGGINGS_BODY_COSMETIC) {
-                                                    JSONObject displayObject = jsonObject.optJSONObject("display");
-                                                    if (displayObject == null) {
-                                                        displayObject = new JSONObject();
-                                                        jsonObject.put("display", displayObject);
-                                                    }
-
-                                                    // ---------- REGULAR VARIANT ----------
-                                                    JSONObject headNormal = new JSONObject();
-                                                    headNormal.put("rotation", new JSONArray(Arrays.asList(0, -180, 0)));
-                                                    headNormal.put("translation", new JSONArray(Arrays.asList(0, -69.25, 2.15)));
-                                                    headNormal.put("scale", new JSONArray(Arrays.asList(1.45, 1.45, 1.45)));
-
-                                                    displayObject.put("head", headNormal);
-
-                                                    byte[] normalData = jsonObject.toString().getBytes(StandardCharsets.UTF_8);
-                                                    String finalTargetPathNormal = targetBaseDir + fileNameString;
-
-                                                    addData(builder, finalTargetPathNormal, fileNameString, normalData);
-
-                                                    // ---------- SNEAKING VARIANT ----------
-                                                    JSONObject jsonSneaking = new JSONObject(jsonObject.toString());
-                                                    JSONObject displaySneaking = jsonSneaking.getJSONObject("display");
-
-                                                    JSONObject headSneaking = new JSONObject();
-                                                    headSneaking.put("rotation", new JSONArray(Arrays.asList(0, -180, 0)));
-                                                    headSneaking.put("translation", new JSONArray(Arrays.asList(0, -65, 8.15)));
-                                                    headSneaking.put("scale", new JSONArray(Arrays.asList(1.45, 1.45, 1.45)));
-
-                                                    displaySneaking.put("head", headSneaking);
-
-                                                    byte[] sneakingData = jsonSneaking.toString().getBytes(StandardCharsets.UTF_8);
-
-                                                    String sneakingFileName = fileNameString.replace(".json", "_sneaking.json");
-                                                    String finalTargetPathSneaking = targetBaseDir + sneakingFileName;
-
-                                                    addData(builder, finalTargetPathSneaking, sneakingFileName, sneakingData);
-
-                                                    return;
-                                                } else if (cosmeticEntry.type() == ItemType.BOOTS_BODY_COSMETIC) {
-                                                    JSONObject displayObject = jsonObject.optJSONObject("display");
-                                                    if (displayObject == null) {
-                                                        displayObject = new JSONObject();
-                                                        jsonObject.put("display", displayObject);
-                                                    }
-
-                                                    // ---------- REGULAR VARIANT ----------
-                                                    JSONObject headNormal = new JSONObject();
-                                                    headNormal.put("rotation", new JSONArray(Arrays.asList(0, -180, 0)));
-                                                    headNormal.put("translation", new JSONArray(Arrays.asList(0, -79.25, 2.15)));
-                                                    headNormal.put("scale", new JSONArray(Arrays.asList(1.45, 1.45, 1.45)));
-
-                                                    displayObject.put("head", headNormal);
-
-                                                    byte[] normalData = jsonObject.toString().getBytes(StandardCharsets.UTF_8);
-                                                    String finalTargetPathNormal = targetBaseDir + fileNameString;
-
-                                                    addData(builder, finalTargetPathNormal, fileNameString, normalData);
-
-                                                    // ---------- SNEAKING VARIANT ----------
-                                                    JSONObject jsonSneaking = new JSONObject(jsonObject.toString());
-                                                    JSONObject displaySneaking = jsonSneaking.getJSONObject("display");
-
-                                                    JSONObject headSneaking = new JSONObject();
-                                                    headSneaking.put("rotation", new JSONArray(Arrays.asList(0, -180, 0)));
-                                                    headSneaking.put("translation", new JSONArray(Arrays.asList(0, -75, 8.15)));
-                                                    headSneaking.put("scale", new JSONArray(Arrays.asList(1.45, 1.45, 1.45)));
-
-                                                    displaySneaking.put("head", headSneaking);
-
-                                                    byte[] sneakingData = jsonSneaking.toString().getBytes(StandardCharsets.UTF_8);
-
-                                                    String sneakingFileName = fileNameString.replace(".json", "_sneaking.json");
-                                                    String finalTargetPathSneaking = targetBaseDir + sneakingFileName;
-
-                                                    addData(builder, finalTargetPathSneaking, sneakingFileName, sneakingData);
-
-                                                    return;
-                                                }
-                                            }
-                                    } else if (filenameLower.endsWith(".mcmeta")) {
-                                        targetBaseDir = TARGET_TEXTURE_PATH + "item/";
-                                        ServerCosmetics.LOGGER.debug("JSON file {} has 'animation' key, targeting TEXTURE_PATH.", fileNameString);
-                                    }
-
-                                    if (targetBaseDir == null) {
-                                        return;
-                                    }
-
-                                    String finalTargetPath = targetBaseDir + fileNameString;
-
-                                    addData(builder, finalTargetPath, fileNameString, data);
-                                } catch (IOException e) {
-                                    ServerCosmetics.LOGGER.error("Failed to read file {} for resource pack", filePath, e);
-                                }
-                            });
-//                    ServerCosmetics.LOGGER.info("Finished adding custom .png and .json resources from {}", resourcePackSourceDir.toAbsolutePath());
-                } catch (IOException e) {
-                    ServerCosmetics.LOGGER.error("Error walking directory {} for resource pack generation", resourcePackSourceDir.toAbsolutePath(), e);
-                }
-            } else {
-                ServerCosmetics.LOGGER.info("Custom resource source directory not found or is not a directory: {}. Skipping custom asset loading.", resourcePackSourceDir.toAbsolutePath());
+            if (!Files.isDirectory(resourcePackSourceDir)) {
+                ServerCosmetics.LOGGER.info("Custom resource source directory not found: {}. Creating it.", resourcePackSourceDir.toAbsolutePath());
                 try {
                     Files.createDirectories(resourcePackSourceDir);
-                    ServerCosmetics.LOGGER.info("Created assets directory at: {}", resourcePackSourceDir.toAbsolutePath());
                 } catch (IOException e) {
                     ServerCosmetics.LOGGER.error("Failed to create assets directory: {}", resourcePackSourceDir.toAbsolutePath(), e);
                 }
+                return;
+            }
+
+            ServerCosmetics.LOGGER.info("Scanning for .png and .json files in: {}", resourcePackSourceDir.toAbsolutePath());
+            try (Stream<Path> pathStream = Files.walk(resourcePackSourceDir)) {
+                pathStream
+                        .filter(Files::isRegularFile)
+                        .forEach(filePath -> processResourcePackFile(filePath, builder));
+            } catch (IOException e) {
+                ServerCosmetics.LOGGER.error("Error walking directory {} for resource pack generation", resourcePackSourceDir.toAbsolutePath(), e);
             }
         });
+    }
+
+    /**
+     * Processes a single file for the resource pack, dispatching to the correct handler based on file type.
+     */
+    private static void processResourcePackFile(Path filePath, ResourcePackBuilder builder) {
+        Path fileNamePath = filePath.getFileName();
+        if (fileNamePath == null) {
+            return;
+        }
+
+        String fileName = fileNamePath.toString();
+        String fileNameLower = fileName.toLowerCase(Locale.ROOT);
+
+        try {
+            byte[] data = Files.readAllBytes(filePath);
+
+            if (fileNameLower.endsWith(".png")) {
+                processPngFile(builder, fileName, fileNameLower, data);
+            } else if (fileNameLower.endsWith(".json")) {
+                processJsonFile(builder, fileName, fileNameLower, data);
+            } else if (fileNameLower.endsWith(".mcmeta")) {
+                processMcmetaFile(builder, fileName, data);
+            }
+        } catch (IOException e) {
+            ServerCosmetics.LOGGER.error("Failed to read file {} for resource pack", filePath, e);
+        }
+    }
+
+    /**
+     * Determines the correct path for a .png file and adds it to the resource pack.
+     */
+    private static void processPngFile(ResourcePackBuilder builder, String fileName, String fileNameLower, byte[] data) {
+        String targetBaseDir;
+        if (fileNameLower.endsWith("_helmet.png") || fileNameLower.endsWith("_chestplate.png") || fileNameLower.endsWith("_leggings.png") || fileNameLower.endsWith("_boots.png")) {
+            targetBaseDir = TARGET_TEXTURE_PATH + "item/armor/";
+        } else if (fileNameLower.endsWith("_layer_1.png") || fileNameLower.endsWith("_layer_2.png")) {
+            targetBaseDir = TARGET_TEXTURE_PATH + "models/armor/";
+        } else {
+            targetBaseDir = TARGET_TEXTURE_PATH + "item/";
+        }
+        addData(builder, targetBaseDir + fileName, fileName, data);
+    }
+
+    /**
+     * Adds a .mcmeta file to the resource pack.
+     */
+    private static void processMcmetaFile(ResourcePackBuilder builder, String fileName, byte[] data) {
+        ServerCosmetics.LOGGER.debug("MCMETA file {} found, targeting TEXTURE_PATH.", fileName);
+        String targetBaseDir = TARGET_TEXTURE_PATH + "item/";
+        addData(builder, targetBaseDir + fileName, fileName, data);
+    }
+
+    /**
+     * Processes a .json model file, handling special body cosmetics that require multiple model variants.
+     */
+    private static void processJsonFile(ResourcePackBuilder builder, String fileName, String fileNameLower, byte[] data) {
+        String cosmeticId = fileNameLower.substring(0, fileNameLower.lastIndexOf('.'));
+        CustomItemEntry cosmeticEntry = CustomItemRegistry.getCosmetic(cosmeticId);
+
+        if (cosmeticEntry != null) {
+            ItemType type = cosmeticEntry.type();
+            if (type == ItemType.BODY_COSMETIC || type == ItemType.CHESTPLATE_BODY_COSMETIC ||
+                    type == ItemType.LEGGINGS_BODY_COSMETIC || type == ItemType.BOOTS_BODY_COSMETIC) {
+
+                String content = new String(data, StandardCharsets.UTF_8);
+                JSONObject jsonObject = new JSONObject(content);
+                handleBodyCosmeticJson(builder, jsonObject, fileName, cosmeticEntry);
+                return;
+            }
+        }
+
+        String targetPath = TARGET_MODEL_PATH + fileName;
+        addData(builder, targetPath, fileName, data);
+    }
+
+    /**
+     * Generates and adds normal and sneaking variants of a body cosmetic model.
+     */
+    private static void handleBodyCosmeticJson(ResourcePackBuilder builder, JSONObject originalJson, String fileName, CustomItemEntry entry) {
+        ItemType type = entry.type();
+        List<Number> normalTranslation, sneakingTranslation, normalRotation, sneakingRotation, scale;
+
+        final String targetBaseDir = TARGET_MODEL_PATH;
+
+        if (((BodyCosmeticsData) entry.cosmeticData()).mirrored()) {
+            normalRotation = Arrays.asList(0, -180, 0);
+        } else {
+            normalRotation = null;
+        }
+
+        scale = Arrays.asList(1.45, 1.45, 1.45);
+
+        // Determine type-specific transformations
+        if (((BodyCosmeticsData) entry.cosmeticData()).autoAlignment()) {
+            switch (type) {
+                case BODY_COSMETIC:
+                case CHESTPLATE_BODY_COSMETIC:
+                    normalTranslation = Arrays.asList(0, -56.5, 2.15);
+                    sneakingTranslation = Arrays.asList(0, -56.5, 4.15);
+                    break;
+                case LEGGINGS_BODY_COSMETIC:
+                    normalTranslation = Arrays.asList(0, -69.25, 2.15);
+                    sneakingTranslation = Arrays.asList(0, -65, 8.15);
+                    break;
+                case BOOTS_BODY_COSMETIC:
+                    normalTranslation = Arrays.asList(0, -79.25, 2.15);
+                    sneakingTranslation = Arrays.asList(0, -75, 8.15);
+                    break;
+                default:
+                    ServerCosmetics.LOGGER.warn("Unhandled cosmetic type {} in handleBodyCosmeticJson.", type);
+                    return;
+            }
+        } else {
+            normalTranslation = null;
+            sneakingTranslation = null;
+        }
+
+        // Create a deep copy for the sneaking variant before modifying the original
+        JSONObject jsonSneaking = new JSONObject(originalJson.toString());
+
+        // --- REGULAR VARIANT ---
+        // Modify the original JSON object for the normal variant
+        addHeadDisplay(originalJson, normalRotation, normalTranslation, scale);
+        byte[] normalData = originalJson.toString().getBytes(StandardCharsets.UTF_8);
+        addData(builder, targetBaseDir + fileName, fileName, normalData);
+
+        // --- SNEAKING VARIANT ---
+        // Modify the copied JSON object for the sneaking variant
+        String sneakingFileName = fileName.replace(".json", "_sneaking.json");
+        addHeadDisplay(jsonSneaking, normalRotation, sneakingTranslation, scale);
+        byte[] sneakingData = jsonSneaking.toString().getBytes(StandardCharsets.UTF_8);
+        addData(builder, targetBaseDir + sneakingFileName, sneakingFileName, sneakingData);
+    }
+
+    /**
+     * Creates a "head" display object and adds it to the parent JSON object.
+     */
+    private static void addHeadDisplay(JSONObject parentJson, List<Number> rotation, List<Number> translation, List<Number> scale) {
+        JSONObject displayObject = parentJson.optJSONObject("display");
+        if (displayObject == null) {
+            displayObject = new JSONObject();
+            parentJson.put("display", displayObject);
+        }
+
+        JSONObject head = new JSONObject();
+        if(rotation != null) {
+            head.put("rotation", new JSONArray(rotation));
+        }
+        if(translation != null) {
+            head.put("translation", new JSONArray(translation));
+        }
+        if(scale != null) {
+            head.put("scale", new JSONArray(scale));
+        }
+        if(!head.isEmpty()) {
+            displayObject.put("head", head);
+        }
     }
 
     private static void addData(ResourcePackBuilder builder, String path, String fileName, byte[] data){

@@ -11,7 +11,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 public class EquipCosmeticAction implements IItemAction {
     @Override
     public void execute(ServerPlayerEntity player, CustomItemEntry entry, SimpleGui gui) {
-        gui.close();
+//        gui.close();
         execute(player, entry.itemStack(), entry.type());
     }
 
