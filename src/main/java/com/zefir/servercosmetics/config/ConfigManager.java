@@ -181,7 +181,11 @@ public class ConfigManager {
         }
 
 
-        scale = Arrays.asList(1.45, 1.45, 1.45);
+        if (((BodyCosmeticsData) entry.cosmeticData()).autoscale()) {
+            scale = Arrays.asList(1.45, 1.45, 1.45);
+        } else {
+            scale = null;
+        }
 
         // Determine type-specific transformations
         if (((BodyCosmeticsData) entry.cosmeticData()).autoAlignment()) {
