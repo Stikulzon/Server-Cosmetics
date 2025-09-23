@@ -1,6 +1,7 @@
 package com.zefir.servercosmetics.util;
 
 import com.google.common.collect.ImmutableList;
+import com.zefir.servercosmetics.data.CustomItemEntry;
 import com.zefir.servercosmetics.data.ItemType;
 import com.zefir.servercosmetics.data.BodyCosmeticsData;
 import com.zefir.servercosmetics.database.DatabaseManager;
@@ -34,6 +35,7 @@ public class BodyCosmetic implements ICosmetic {
     @Getter
     ItemStack cosmeticItemStack = ItemStack.EMPTY;
     ItemStack cosmeticItemStackWhenSneaking = ItemStack.EMPTY;
+    private BodyCosmeticsData cosmeticData;
     private final boolean useArmorStand = true;
     private boolean isHidden = false;
     private boolean isTilted = false;
@@ -44,24 +46,26 @@ public class BodyCosmetic implements ICosmetic {
         } else {
             this.bodyCosmeticsModel = new DisplayEntity.ItemDisplayEntity(EntityType.ITEM_DISPLAY, player.getServerWorld());
         }
-        player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
-                new EntitySpawnS2CPacket(bodyCosmeticsModel, 1, bodyCosmeticsModel.getBlockPos()));
         this.player = player;
         this.itemType = itemType;
     }
 
     public void equip(ItemStack is) {
-//        player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
-//                new EntitiesDestroyS2CPacket(bodyCosmeticsModel.getId()));
         setCosmetic(player, itemType, is);
         this.cosmeticItemStack = is;
         init();
     }
 
     public void init() {
+        if(cosmeticItemStack != ItemStack.EMPTY) {
+            player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
+                    new EntitiesDestroyS2CPacket(bodyCosmeticsModel.getId()));
+        }
+
         cosmeticItemStack = DatabaseManager.getCosmeticItemStack(player, itemType);
         if(DatabaseManager.getCosmeticEntry(player, itemType) != null) {
-            cosmeticItemStackWhenSneaking = getTiltedItemStack(cosmeticItemStack, ((BodyCosmeticsData) Objects.requireNonNull(DatabaseManager.getCosmeticEntry(player, itemType)).cosmeticData()).polymerModelWhenSneaking());
+            cosmeticData = (BodyCosmeticsData) Objects.requireNonNull(DatabaseManager.getCosmeticEntry(player, itemType)).cosmeticData();
+            cosmeticItemStackWhenSneaking = getTiltedItemStack(cosmeticItemStack, cosmeticData.polymerModelWhenSneaking());
         } else {
             cosmeticItemStackWhenSneaking = cosmeticItemStack;
         }
@@ -76,11 +80,20 @@ public class BodyCosmetic implements ICosmetic {
         } else {
             ((DisplayEntity.ItemDisplayEntity) bodyCosmeticsModel).setBillboardMode(DisplayEntity.BillboardMode.FIXED);
         }
+
+        player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
+                new EntitySpawnS2CPacket(bodyCosmeticsModel, 1, bodyCosmeticsModel.getBlockPos()));
+
         setItem(cosmeticItemStack);
 
         player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
                 new EntityTrackerUpdateS2CPacket(bodyCosmeticsModel.getId(),
                         bodyCosmeticsModel.getDataTracker().getChangedEntries()));
+
+//        player.networkHandler.sendPacket(
+//                new EntityTrackerUpdateS2CPacket(bodyCosmeticsModel.getId(),
+//                bodyCosmeticsModel.getDataTracker().getChangedEntries())
+//        );
 
         player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
                 new EntityPassengersSetS2CPacket(player));
@@ -96,21 +109,23 @@ public class BodyCosmetic implements ICosmetic {
                 )
         );
 
-        if (player.isSneaking() && !isTilted) {
-            setItem(cosmeticItemStackWhenSneaking);
+        if(cosmeticData != null && cosmeticData.offsetWhenSneaking()) {
+            if (player.isSneaking() && !isTilted) {
+                setItem(cosmeticItemStackWhenSneaking);
 
-            player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
-                    new EntityTrackerUpdateS2CPacket(bodyCosmeticsModel.getId(),
-                            bodyCosmeticsModel.getDataTracker().getChangedEntries()));
-            isTilted = true;
+                player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
+                        new EntityTrackerUpdateS2CPacket(bodyCosmeticsModel.getId(),
+                                bodyCosmeticsModel.getDataTracker().getChangedEntries()));
+                isTilted = true;
 
-        } else if (!player.isSneaking() && isTilted) {
-            setItem(cosmeticItemStack);
+            } else if (!player.isSneaking() && isTilted) {
+                setItem(cosmeticItemStack);
 
-            player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
-                    new EntityTrackerUpdateS2CPacket(bodyCosmeticsModel.getId(),
-                            bodyCosmeticsModel.getDataTracker().getChangedEntries()));
-            isTilted = false;
+                player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
+                        new EntityTrackerUpdateS2CPacket(bodyCosmeticsModel.getId(),
+                                bodyCosmeticsModel.getDataTracker().getChangedEntries()));
+                isTilted = false;
+            }
         }
 
         if(player.isSwimming() || player.isCrawling() && !isHidden) {

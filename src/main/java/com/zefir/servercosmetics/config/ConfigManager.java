@@ -172,9 +172,12 @@ public class ConfigManager {
 
         if (((BodyCosmeticsData) entry.cosmeticData()).mirrored()) {
             normalRotation = Arrays.asList(0, -180, 0);
+            sneakingRotation = Arrays.asList(-28, -180, 0);
         } else {
             normalRotation = null;
+            sneakingRotation = Arrays.asList(-28, 0, 0);
         }
+
 
         scale = Arrays.asList(1.45, 1.45, 1.45);
 
@@ -215,7 +218,7 @@ public class ConfigManager {
         // --- SNEAKING VARIANT ---
         // Modify the copied JSON object for the sneaking variant
         String sneakingFileName = fileName.replace(".json", "_sneaking.json");
-        addHeadDisplay(jsonSneaking, normalRotation, sneakingTranslation, scale);
+        addHeadDisplay(jsonSneaking, sneakingRotation, sneakingTranslation, scale);
         byte[] sneakingData = jsonSneaking.toString().getBytes(StandardCharsets.UTF_8);
         addData(builder, targetBaseDir + sneakingFileName, sneakingFileName, sneakingData);
     }
@@ -230,18 +233,23 @@ public class ConfigManager {
             parentJson.put("display", displayObject);
         }
 
-        JSONObject head = new JSONObject();
+        JSONObject headObject = displayObject.optJSONObject("head");
+        if (headObject == null) {
+            headObject = new JSONObject();
+            displayObject.put("head", headObject);
+        }
+
         if(rotation != null) {
-            head.put("rotation", new JSONArray(rotation));
+            headObject.put("rotation", new JSONArray(rotation));
         }
         if(translation != null) {
-            head.put("translation", new JSONArray(translation));
+            headObject.put("translation", new JSONArray(translation));
         }
         if(scale != null) {
-            head.put("scale", new JSONArray(scale));
+            headObject.put("scale", new JSONArray(scale));
         }
-        if(!head.isEmpty()) {
-            displayObject.put("head", head);
+        if(!headObject.isEmpty()) {
+            displayObject.put("head", headObject);
         }
     }
 

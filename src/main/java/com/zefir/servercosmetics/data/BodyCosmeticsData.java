@@ -2,5 +2,5 @@ package com.zefir.servercosmetics.data;
 
 import eu.pb4.polymer.resourcepack.api.PolymerModelData;
 
-public record BodyCosmeticsData(PolymerModelData polymerModelWhenSneaking, boolean mirrored, boolean autoAlignment) implements ICosmeticData {
+public record BodyCosmeticsData(PolymerModelData polymerModelWhenSneaking, boolean mirrored, boolean autoAlignment, boolean offsetWhenSneaking) implements ICosmeticData {
 }
