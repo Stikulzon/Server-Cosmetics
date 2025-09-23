@@ -32,7 +32,9 @@ public class ConfigManager {
     private static final String TARGET_TEXTURE_PATH = "assets/servercosmetics/textures/";
     private static final String TARGET_MODEL_PATH = "assets/servercosmetics/models/item/";
 
-    public record NavigationButton(Text name, Item baseItem, PolymerModelData polymerModelData, int slotIndex, List<String> lore) {}
+    public record NavigationButton(Text name, Item baseItem, PolymerModelData polymerModelData, int slotIndex,
+                                   List<String> lore) {
+    }
 
     @Getter
     private static String configReloadPermission;
@@ -239,21 +241,21 @@ public class ConfigManager {
             displayObject.put("head", headObject);
         }
 
-        if(rotation != null) {
+        if (rotation != null) {
             headObject.put("rotation", new JSONArray(rotation));
         }
-        if(translation != null) {
+        if (translation != null) {
             headObject.put("translation", new JSONArray(translation));
         }
-        if(scale != null) {
+        if (scale != null) {
             headObject.put("scale", new JSONArray(scale));
         }
-        if(!headObject.isEmpty()) {
+        if (!headObject.isEmpty()) {
             displayObject.put("head", headObject);
         }
     }
 
-    private static void addData(ResourcePackBuilder builder, String path, String fileName, byte[] data){
+    private static void addData(ResourcePackBuilder builder, String path, String fileName, byte[] data) {
         if (builder.addData(path, data)) {
             ServerCosmetics.LOGGER.debug("Added {} -> {}", fileName, path);
         } else {
@@ -262,7 +264,7 @@ public class ConfigManager {
     }
 
     public static void loadDemoConfigs() {
-        if(SERVER_COSMETICS_DIR.toFile().exists() && SERVER_COSMETICS_DIR.resolve("config.yml").toFile().exists()) {
+        if (SERVER_COSMETICS_DIR.toFile().exists() && SERVER_COSMETICS_DIR.resolve("config.yml").toFile().exists()) {
             return;
         }
         try {
@@ -313,12 +315,13 @@ public class ConfigManager {
             CustomItemRegistry.reloadAll();
 
             context.getSource().sendFeedback(() -> successConfigReloadMessage, false);
-        } catch (Exception e){
+        } catch (Exception e) {
             context.getSource().sendFeedback(() -> errorConfigReloadMessage, false);
             ServerCosmetics.LOGGER.error("An error occurred during ALL configs reload!", e);
         }
         return 1;
     }
+
     public static int reloadItemSkinsConfigsCommand(CommandContext<ServerCommandSource> context) {
         try {
             createAndLoadMainConfig();
@@ -328,7 +331,7 @@ public class ConfigManager {
             CustomItemRegistry.reloadItemSkins();
 
             context.getSource().sendFeedback(() -> successConfigReloadMessage, false);
-        } catch (Exception e){
+        } catch (Exception e) {
             context.getSource().sendFeedback(() -> errorConfigReloadMessage, false);
             ServerCosmetics.LOGGER.error("An error occurred during ItemSkins configs reload!", e);
         }
@@ -344,7 +347,7 @@ public class ConfigManager {
             CustomItemRegistry.reloadCosmetics();
 
             context.getSource().sendFeedback(() -> successConfigReloadMessage, false);
-        } catch (Exception e){
+        } catch (Exception e) {
             context.getSource().sendFeedback(() -> errorConfigReloadMessage, false);
             ServerCosmetics.LOGGER.error("An error occurred during Cosmetics configs reload!", e);
         }

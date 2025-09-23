@@ -6,6 +6,7 @@
     "ArmorHeadSlotMixin",
     "EntityPassengersSetS2CPacketAccessor",
     "EntityPassengersSetS2CPacketMixin",
+    "EntityTrackerEntryMixin",
     "ItemStackMixin",
     "LivingEntityMixin",
     "PlayerEntityAccessor",

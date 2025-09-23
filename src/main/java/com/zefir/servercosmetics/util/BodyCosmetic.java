@@ -40,8 +40,8 @@ public class BodyCosmetic implements ICosmetic {
     private boolean isHidden = false;
     private boolean isTilted = false;
 
-    public BodyCosmetic(ServerPlayerEntity player, ItemType itemType){
-        if(useArmorStand){
+    public BodyCosmetic(ServerPlayerEntity player, ItemType itemType) {
+        if (useArmorStand) {
             this.bodyCosmeticsModel = new ArmorStandEntity(EntityType.ARMOR_STAND, player.getServerWorld());
         } else {
             this.bodyCosmeticsModel = new DisplayEntity.ItemDisplayEntity(EntityType.ITEM_DISPLAY, player.getServerWorld());
@@ -57,50 +57,52 @@ public class BodyCosmetic implements ICosmetic {
     }
 
     public void init() {
-        if(cosmeticItemStack != ItemStack.EMPTY) {
+        if (cosmeticItemStack != ItemStack.EMPTY) {
             player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
                     new EntitiesDestroyS2CPacket(bodyCosmeticsModel.getId()));
         }
 
         cosmeticItemStack = DatabaseManager.getCosmeticItemStack(player, itemType);
-        if(DatabaseManager.getCosmeticEntry(player, itemType) != null) {
+        if (DatabaseManager.getCosmeticEntry(player, itemType) != null) {
             cosmeticData = (BodyCosmeticsData) Objects.requireNonNull(DatabaseManager.getCosmeticEntry(player, itemType)).cosmeticData();
             cosmeticItemStackWhenSneaking = getTiltedItemStack(cosmeticItemStack, cosmeticData.polymerModelWhenSneaking());
         } else {
             cosmeticItemStackWhenSneaking = cosmeticItemStack;
         }
 
-        bodyCosmeticsModel.setPosition(player.getX(), player.getY(), player.getZ());
-        bodyCosmeticsModel.setInvulnerable(true);
-        bodyCosmeticsModel.setNoGravity(true);
+        if (cosmeticItemStack != ItemStack.EMPTY) {
 
-        if(useArmorStand) {
-            bodyCosmeticsModel.setInvisible(true);
-            ((ArmorStandEntity) bodyCosmeticsModel).setHeadRotation(new EulerAngle(0.0F, 0f, 0f));
-        } else {
-            ((DisplayEntity.ItemDisplayEntity) bodyCosmeticsModel).setBillboardMode(DisplayEntity.BillboardMode.FIXED);
+            bodyCosmeticsModel.setPosition(player.getX(), player.getY(), player.getZ());
+            bodyCosmeticsModel.setInvulnerable(true);
+            bodyCosmeticsModel.setNoGravity(true);
+
+            if (useArmorStand) {
+                bodyCosmeticsModel.setInvisible(true);
+                ((ArmorStandEntity) bodyCosmeticsModel).setHeadRotation(new EulerAngle(0.0F, 0f, 0f));
+            } else {
+                ((DisplayEntity.ItemDisplayEntity) bodyCosmeticsModel).setBillboardMode(DisplayEntity.BillboardMode.FIXED);
+            }
+
+            player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
+                    new EntitySpawnS2CPacket(bodyCosmeticsModel, 1, bodyCosmeticsModel.getBlockPos()));
+
+            setItem(cosmeticItemStack);
+
+            player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
+                    new EntityTrackerUpdateS2CPacket(bodyCosmeticsModel.getId(),
+                            bodyCosmeticsModel.getDataTracker().getChangedEntries()));
+
+            player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
+                    new EntityPassengersSetS2CPacket(player));
+            bodyCosmeticsModel.startRiding(player);
         }
-
-        player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
-                new EntitySpawnS2CPacket(bodyCosmeticsModel, 1, bodyCosmeticsModel.getBlockPos()));
-
-        setItem(cosmeticItemStack);
-
-        player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
-                new EntityTrackerUpdateS2CPacket(bodyCosmeticsModel.getId(),
-                        bodyCosmeticsModel.getDataTracker().getChangedEntries()));
-
-//        player.networkHandler.sendPacket(
-//                new EntityTrackerUpdateS2CPacket(bodyCosmeticsModel.getId(),
-//                bodyCosmeticsModel.getDataTracker().getChangedEntries())
-//        );
-
-        player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
-                new EntityPassengersSetS2CPacket(player));
-        bodyCosmeticsModel.startRiding(player);
     }
 
     public void tick() {
+        if (cosmeticItemStack == ItemStack.EMPTY) {
+            return;
+        }
+
         (bodyCosmeticsModel).setYaw(player.bodyYaw);
         player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
                 new EntitySetHeadYawS2CPacket(
@@ -109,7 +111,7 @@ public class BodyCosmetic implements ICosmetic {
                 )
         );
 
-        if(cosmeticData != null && cosmeticData.offsetWhenSneaking()) {
+        if (cosmeticData != null && cosmeticData.offsetWhenSneaking()) {
             if (player.isSneaking() && !isTilted) {
                 setItem(cosmeticItemStackWhenSneaking);
 
@@ -128,17 +130,17 @@ public class BodyCosmetic implements ICosmetic {
             }
         }
 
-        if(player.isSwimming() || player.isCrawling() && !isHidden) {
+        if (player.isSwimming() || player.isCrawling() && !isHidden) {
             setItem(ItemStack.EMPTY);
             isHidden = true;
-        } else if(!player.isSwimming() && !player.isCrawling() && isHidden) {
+        } else if (!player.isSwimming() && !player.isCrawling() && isHidden) {
             setItem(cosmeticItemStack);
             isHidden = false;
         }
     }
 
     private void setItem(ItemStack itemStack) {
-        if(useArmorStand) {
+        if (useArmorStand) {
             List<Pair<EquipmentSlot, ItemStack>> equipmentList = ImmutableList.of(
                     new Pair<>(EquipmentSlot.HEAD, itemStack)
             );
