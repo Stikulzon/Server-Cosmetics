@@ -4,16 +4,19 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "ArmorHeadSlotMixin",
+    "EntityMixin",
     "EntityPassengersSetS2CPacketAccessor",
     "EntityPassengersSetS2CPacketMixin",
+    "EntityTrackerAccessor",
     "EntityTrackerEntryMixin",
     "ItemStackMixin",
     "LivingEntityMixin",
     "PlayerEntityAccessor",
     "PlayerInventoryMixin",
     "PlayerManagerMixin",
-    "ServerPlayerEntityBackPackTestMixin",
+    "ServerChunkLoadingManagerMixin",
     "ServerPlayerEntityMixin",
+    "ServerPlayerEntityMixin_cosmetics",
     "ServerPlayNetworkHandlerMixin"
   ],
   "injectors": {

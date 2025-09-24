@@ -26,8 +26,9 @@ public class PagedItemDisplayGui extends SimpleGui {
 
     private ICosmeticProvider provider;
     private IItemAction defaultClickAction;
+    @Getter
     private final AbstractGuiConfig guiConfig;
-    private int currentPage = 1;
+    private int currentPage = 0;
     @Getter
     private final FilterManager filterManager;
 
@@ -44,7 +45,7 @@ public class PagedItemDisplayGui extends SimpleGui {
     public void reinitialize(ICosmeticProvider newProvider, IItemAction newAction) {
         this.provider = newProvider;
         this.defaultClickAction = newAction;
-        this.currentPage = 1;
+        this.currentPage = 0;
         this.populateGui();
     }
 
@@ -105,18 +106,16 @@ public class PagedItemDisplayGui extends SimpleGui {
 
         // Next Button
         if ((currentPage + 1) * itemsPerPage < totalFilteredItems) {
-            System.out.println("current: " + ((currentPage + 1) * itemsPerPage) + " total: " + totalFilteredItems);
             GUIUtils.setUpButton(this, guiConfig.getButtonConfig("next"), () -> {
                 currentPage++;
                 populateGui();
             });
         } else {
-            System.out.println("12345");
             this.setSlot(guiConfig.getButtonConfig("next").slotIndex(), new GuiElementBuilder(ItemStack.EMPTY));
         }
 
         // Previous Button
-        if (currentPage - 1 > 0) {
+        if (currentPage - 1 >= 0) {
             GUIUtils.setUpButton(this, guiConfig.getButtonConfig("previous"), () -> {
                 currentPage--;
                 populateGui();

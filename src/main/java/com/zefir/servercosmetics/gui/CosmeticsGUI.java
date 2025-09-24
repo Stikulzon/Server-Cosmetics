@@ -16,6 +16,8 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
+import java.util.List;
+
 import static com.zefir.servercosmetics.config.ConfigManager.COSMETICS_GUI_CONFIG;
 
 
@@ -45,7 +47,7 @@ public class CosmeticsGUI {
 
             gui.getFilterManager().addFilter(
                     "hat",
-                    new ItemTypeFilter(ItemType.HAT),
+                    new ItemTypeFilter(List.of(ItemType.HAT)),
                     config.getButtonConfig("filter.hats-disabled"),
                     config.getButtonConfig("filter.hats-enabled"),
                     true
@@ -53,41 +55,24 @@ public class CosmeticsGUI {
 
             gui.getFilterManager().addFilter(
                     "body-cosmetic",
-                    new ItemTypeFilter(ItemType.BODY_COSMETIC),
+                    new ItemTypeFilter(List.of(ItemType.BODY_COSMETIC)),
                     config.getButtonConfig("filter.body-cosmetics-disabled"),
                     config.getButtonConfig("filter.body-cosmetics-enabled"),
                     false
             );
-
-//            if(ConfigManager.isEnableExperimentalFeatures()) {
-                gui.getFilterManager().addFilter(
-                        "chestplate",
-                        new ItemTypeFilter(ItemType.CHESTPLATE),
-                        config.getButtonConfig("filter.chestplate-cosmetics-disabled"),
-                        config.getButtonConfig("filter.chestplate-cosmetics-enabled"),
-                        false
-                );
-
-                gui.getFilterManager().addFilter(
-                        "leggings",
-                        new ItemTypeFilter(ItemType.LEGGINGS),
-                        config.getButtonConfig("filter.leggings-cosmetics-disabled"),
-                        config.getButtonConfig("filter.leggings-cosmetics-enabled"),
-                        false
-                );
-
-                gui.getFilterManager().addFilter(
-                        "boots",
-                        new ItemTypeFilter(ItemType.BOOTS),
-                        config.getButtonConfig("filter.boots-cosmetics-disabled"),
-                        config.getButtonConfig("filter.boots-cosmetics-enabled"),
-                        false
-                );
-//            }
+            gui.getFilterManager().addFilter(
+                    "chestplate",
+                    new ItemTypeFilter(List.of(ItemType.HELMET, ItemType.CHESTPLATE, ItemType.LEGGINGS, ItemType.BOOTS)),
+                    config.getButtonConfig("filter.chestplate-cosmetics-disabled"),
+                    config.getButtonConfig("filter.chestplate-cosmetics-enabled"),
+                    false
+            );
 
             GUIUtils.setUpButton(gui, config.getButtonConfig("removeSkin"), () -> {
                 gui.close();
-                action.execute(player, ItemStack.EMPTY, gui.getFilterManager().getTargetType());
+                for (ItemType type : gui.getFilterManager().getTargetTypes()) {
+                    action.execute(player, ItemStack.EMPTY, type);
+                }
             });
 
             gui.setSlot(ItemSkinsGUIConfig.getItemSlot(), new GuiElementBuilder(Items.BARRIER)

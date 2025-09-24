@@ -46,6 +46,8 @@ public class BodyCosmetic implements ICosmetic {
         } else {
             this.bodyCosmeticsModel = new DisplayEntity.ItemDisplayEntity(EntityType.ITEM_DISPLAY, player.getServerWorld());
         }
+//        this.bodyCosmeticsModel.getWorld().getChunkManager().ge
+//        ServerChunkLoadingManager.EntityTracker entityTracker = new ServerChunkLoadingManager.EntityTracker(this.bodyCosmeticsModel, 2, this.bodyCosmeticsModel.getType().getTrackTickInterval(), this.bodyCosmeticsModel.getType().alwaysUpdateVelocity());
         this.player = player;
         this.itemType = itemType;
     }

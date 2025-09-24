@@ -39,6 +39,8 @@ public abstract class AbstractGuiConfig {
     @Getter
     protected boolean replaceInventory;
     @Getter
+    private List<String> disabledFilters;
+    @Getter
     ScreenHandlerType<GenericContainerScreenHandler> screenHandlerType;
 
     @Getter
@@ -97,6 +99,7 @@ public abstract class AbstractGuiConfig {
         this.messageLockedString = file.getString("messages.locked");
         this.pageIndicatorEnabled = file.getBoolean("pageIndicatorEnabled", false);
         this.replaceInventory = file.getBoolean("replaceInventory");
+        this.disabledFilters = file.getStringList("disabledFilters");
     }
 
     protected void addCommonDefaults(YamlFile file) {
@@ -108,6 +111,7 @@ public abstract class AbstractGuiConfig {
         file.addDefault("pageIndicatorEnabled", false);
         file.addDefault("replaceInventory", false);
         loadGuiSize(file.getInt("guiRows", 6));
+        file.addDefault("disabledFilters", List.of());
     }
 
     private void loadGuiSize(int guiRows) {

@@ -9,6 +9,7 @@ import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import net.fabricmc.api.ModInitializer;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
@@ -16,11 +17,21 @@ import org.slf4j.LoggerFactory;
 
 public class ServerCosmetics implements ModInitializer {
 	public static final String MOD_ID = "servercosmetics";
+    public static final String VERSION = FabricLoader.getInstance().getModContainer(MOD_ID).get().getMetadata().getVersion().getFriendlyString();
+    public static final boolean DEV_ENV = FabricLoader.getInstance().isDevelopmentEnvironment();
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 	public static MinecraftServer SERVER;
 
 	@Override
 	public void onInitialize() {
+        if (VERSION.contains("-dev.")) {
+            LOGGER.warn("=====================================================");
+            LOGGER.warn("You are using development version of ServerCosmetics!");
+            LOGGER.warn("Support is limited, as features might be unfinished!");
+            LOGGER.warn("You are on your own!");
+            LOGGER.warn("=====================================================");
+        }
+
 		ConfigManager.registerConfigs();
 		DatabaseManager.init();
 

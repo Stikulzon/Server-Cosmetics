@@ -11,6 +11,8 @@ import com.zefir.servercosmetics.datagen.RuntimeModelManager;
 import com.zefir.servercosmetics.ext.IItemStack;
 import com.zefir.servercosmetics.gui.ColorPickerComponent;
 import com.zefir.servercosmetics.gui.actions.EquipCosmeticAction;
+import com.zefir.servercosmetics.mixin.EntityTrackerAccessor;
+import eu.pb4.polymer.core.mixin.block.packet.ServerChunkLoadingManagerAccessor;
 import eu.pb4.polymer.resourcepack.api.PolymerArmorModel;
 import eu.pb4.polymer.resourcepack.api.PolymerModelData;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
@@ -29,6 +31,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -171,4 +174,20 @@ public class Utils {
             }
         }
     }
+
+//    public static void updateServer(MinecraftServer server) {
+//        boolean apply = true;
+//
+//        for (var world :server.getWorlds()) {
+//            for (var entry : ((ServerChunkLoadingManagerAccessor) world.getChunkManager().chunkLoadingManager).polymer$getEntityTrackers().int2ObjectEntrySet()) {
+//                var tracker = (EntityTrackerAccessor) entry.getValue();
+//
+//                var entity = tracker.getEntity();
+//                int value = 2;
+////                var value = apply ? ((EvdEntityType) entity.getType()).evd_getTrackingDistance() : -1;
+//
+//                tracker.setMaxDistance(2);
+//            }
+//        }
+//    }
 }

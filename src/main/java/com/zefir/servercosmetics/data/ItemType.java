@@ -2,6 +2,7 @@ package com.zefir.servercosmetics.data;
 
 public enum ItemType {
     HAT,
+    HELMET,
     CHESTPLATE,
     LEGGINGS,
     BOOTS,

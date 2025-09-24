@@ -20,7 +20,7 @@ import java.util.List;
 @Slf4j
 @SuppressWarnings("AddedMixinMembersNamePattern")
 @Mixin(ServerPlayerEntity.class)
-public abstract class ServerPlayerEntityBackPackTestMixin implements ICosmetics {
+public abstract class ServerPlayerEntityMixin_cosmetics implements ICosmetics {
     @Unique
     private final List<ICosmetic> cosmeticsList = new ArrayList<>();
 
@@ -60,6 +60,9 @@ public abstract class ServerPlayerEntityBackPackTestMixin implements ICosmetics 
     @Override
     public ICosmetic getCosmeticFor(ItemType type) {
         for (ICosmetic cosmetic : cosmeticsList) {
+            if(type == ItemType.HELMET) {
+                type = ItemType.HAT;
+            }
             if(cosmetic.getItemType() == type) {
                 return cosmetic;
             }

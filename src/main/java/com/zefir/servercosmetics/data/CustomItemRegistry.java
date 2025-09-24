@@ -3,7 +3,6 @@ package com.zefir.servercosmetics.data;
 import com.zefir.servercosmetics.ServerCosmetics;
 import com.zefir.servercosmetics.config.ConfigManager;
 import com.zefir.servercosmetics.datagen.RuntimeModelManager;
-import com.zefir.servercosmetics.gui.actions.EquipCosmeticAction;
 import com.zefir.servercosmetics.util.Utils;
 import eu.pb4.polymer.resourcepack.api.PolymerArmorModel;
 import eu.pb4.polymer.resourcepack.api.PolymerModelData;
@@ -151,10 +150,7 @@ public class CustomItemRegistry {
                     String baseItemMaterial;
                     String materialPath = itemPropertiesRootNode + ".material";
 
-                    if (type.equalsIgnoreCase("HELMET")) {
-                        baseItemMaterial = "leather_helmet";
-                        type = "HAT";
-                    } else if (ItemType.valueOf(type.toUpperCase()) == ItemType.CHESTPLATE || ItemType.valueOf(type.toUpperCase()) == ItemType.LEGGINGS || ItemType.valueOf(type.toUpperCase()) == ItemType.BOOTS) {
+                    if (ItemType.valueOf(type.toUpperCase()) == ItemType.HELMET || ItemType.valueOf(type.toUpperCase()) == ItemType.CHESTPLATE || ItemType.valueOf(type.toUpperCase()) == ItemType.LEGGINGS || ItemType.valueOf(type.toUpperCase()) == ItemType.BOOTS) {
                         baseItemMaterial = "leather_" + type.toLowerCase();
                     }
                     else {
@@ -187,16 +183,20 @@ public class CustomItemRegistry {
                         boolean autoscale = yamlFile.getBoolean("autoscale", false);
 
                         entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, List.of(Tags.ENTITY, Tags.ARMOR, Tags.BODY_COSMETIC), new BodyCosmeticsData(polymerModelData, isMirrored, autoAlignment, offsetWhenSneaking, autoscale));
-                    } else if (ItemType.valueOf(type.toUpperCase()) == ItemType.HAT || ItemType.valueOf(type.toUpperCase()) == ItemType.CHESTPLATE || ItemType.valueOf(type.toUpperCase()) == ItemType.LEGGINGS || ItemType.valueOf(type.toUpperCase()) == ItemType.BOOTS) {
-                        for (int i = 0; i < 20; i++) {
-                            entry = new CustomItemEntry(itemId + i, permission, displayName, lore, itemStack,
-                                    ItemType.valueOf(type.toUpperCase()), baseItemMaterial, List.of(Tags.ARMOR, Tags.ITEM), new ArmorCosmeticsData());
-                            cosmeticsList.add(entry);
+                    } else if (ItemType.valueOf(type.toUpperCase()) == ItemType.HELMET || ItemType.valueOf(type.toUpperCase()) == ItemType.CHESTPLATE || ItemType.valueOf(type.toUpperCase()) == ItemType.LEGGINGS || ItemType.valueOf(type.toUpperCase()) == ItemType.BOOTS) {
+                        if(ServerCosmetics.DEV_ENV) {
+                            for (int i = 0; i < 20; i++) {
+                                entry = new CustomItemEntry(itemId + i, permission, displayName, lore, itemStack,
+                                        ItemType.valueOf(type.toUpperCase()), baseItemMaterial, List.of(Tags.ARMOR, Tags.ITEM), new ArmorCosmeticsData());
+                                cosmeticsList.add(entry);
+                            }
                         }
+
                         entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack,
                                 ItemType.valueOf(type.toUpperCase()), baseItemMaterial, List.of(Tags.ARMOR, Tags.ITEM), new ArmorCosmeticsData());
 
                     } else {
+                        // HAT
                         entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, List.of(Tags.ITEM), null);
                     }
                     cosmeticsList.add(entry);

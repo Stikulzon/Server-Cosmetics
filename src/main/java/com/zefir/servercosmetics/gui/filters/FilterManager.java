@@ -8,6 +8,7 @@ import com.zefir.servercosmetics.util.GUIUtils;
 import lombok.Getter;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -16,7 +17,7 @@ public class FilterManager {
     private final Map<String, FilterRegistration> registeredFilters = new HashMap<>();
     private final Map<String, Boolean> activeStates = new HashMap<>();
     @Getter
-    private ItemType targetType;
+    private List<ItemType> targetTypes;
 
     private record FilterRegistration(Predicate<CustomItemEntry> filter, ConfigManager.NavigationButton activeButton, ConfigManager.NavigationButton inactiveButton) {}
 
@@ -25,6 +26,9 @@ public class FilterManager {
     }
 
     public void addFilter(String key, Predicate<CustomItemEntry> filter, ConfigManager.NavigationButton inactiveButton, ConfigManager.NavigationButton activeButton, boolean initiallyActive) {
+        if(gui.getGuiConfig().getDisabledFilters() != null && gui.getGuiConfig().getDisabledFilters().contains(key)) {
+            return;
+        }
         registeredFilters.put(key, new FilterRegistration(filter, inactiveButton, activeButton));
         activeStates.put(key, initiallyActive);
     }
@@ -47,20 +51,21 @@ public class FilterManager {
         for (var entry : registeredFilters.entrySet()) {
             String key = entry.getKey();
             FilterRegistration reg = entry.getValue();
+//            System.out.println("activeStates: " + activeStates);
             boolean isActive = activeStates.getOrDefault(key, false);
 
             ConfigManager.NavigationButton button = isActive ? reg.inactiveButton : reg.activeButton;
 
-            if (registeredFilters.get(key).filter() instanceof ItemTypeFilter(ItemType type) && isActive) {
-                this.targetType = type;
+            if (registeredFilters.get(key).filter() instanceof ItemTypeFilter(List<ItemType> type) && isActive) {
+                this.targetTypes = type;
             }
 
             GUIUtils.setUpButton(gui, button, () -> {
-                if (registeredFilters.get(key).filter() instanceof ItemTypeFilter(ItemType type)) {
+                if (registeredFilters.get(key).filter() instanceof ItemTypeFilter(List<ItemType> type)) {
                     if (isActive) {
                         return;
                     }
-                    this.targetType = type;
+                    this.targetTypes = type;
                     disableOtherItemTypeFilters(key);
                     activeStates.put(key, true);
                 } else {
