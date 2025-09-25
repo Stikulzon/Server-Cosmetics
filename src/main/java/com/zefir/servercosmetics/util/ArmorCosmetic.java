@@ -95,7 +95,7 @@ public class ArmorCosmetic implements ICosmetic {
             itemStackToSend = cosmeticItemStack;
         } else {
             // If no cosmetic, show the real armor piece
-            itemStackToSend = player.getInventory().getArmorStack(3 - (getSlotFor(this.slotType) - 5));
+            itemStackToSend = player.getInventory().getArmorStack(8 - getSlotFor(this.slotType));
         }
         sendInventorySlotPacket(player, getSlotFor(this.slotType), itemStackToSend);
     }

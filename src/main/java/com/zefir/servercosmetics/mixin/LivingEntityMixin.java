@@ -12,6 +12,8 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 import java.util.List;
 
+import static com.zefir.servercosmetics.util.Utils.getItemTypeForSlot;
+
 @Mixin(LivingEntity.class)
 public class LivingEntityMixin {
     @Redirect(
@@ -24,11 +26,13 @@ public class LivingEntityMixin {
     )
     ItemStack modifyHeadSlotItem (ItemStack instance, List list, EquipmentSlot slot, ItemStack stack) {
         if ((LivingEntity) (Object) this instanceof ServerPlayerEntity player){
-            if(slot.getEntitySlotId() == 3) {
-                ItemStack cosmeticsIS = DatabaseManager.getCosmeticItemStack(player, ItemType.HAT);
-                if (cosmeticsIS != ItemStack.EMPTY) {
-                    return cosmeticsIS;
-                }
+            ItemType itemType = getItemTypeForSlot(8 - slot.getEntitySlotId());
+            if (itemType == null) {
+                throw new IllegalStateException("Invalid slot for cosmetic: " + (slot.getEntitySlotId() - 8));
+            }
+            ItemStack cosmeticsIS = DatabaseManager.getCosmeticItemStack(player, itemType);
+            if (cosmeticsIS != ItemStack.EMPTY) {
+                return cosmeticsIS;
             }
         }
         return instance.copy();

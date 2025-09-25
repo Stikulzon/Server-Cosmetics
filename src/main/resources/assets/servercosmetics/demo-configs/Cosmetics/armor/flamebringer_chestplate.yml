@@ -1,0 +1,7 @@
+type: CHESTPLATE
+cosmetic-item:
+  display-name: "<color:#FF5555>Flame Bringer"
+  lore:
+    - "<white>Author: <blue>Myllyd_Ogoy"
+
+permission: "cosmetics.armor.flamebringer"
