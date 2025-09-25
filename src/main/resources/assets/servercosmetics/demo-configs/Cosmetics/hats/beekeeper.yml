@@ -1,8 +1,7 @@
 type: HAT
-cosmetic-item:
-  material: PAPER
-  display-name: "&bBeekeeper"
-  lore:
-    - "Some description"
+material: PAPER
+display-name: "&bBeekeeper"
+lore:
+  - "Some description"
 
 permission: "cosmetics.hat.beekeeper"

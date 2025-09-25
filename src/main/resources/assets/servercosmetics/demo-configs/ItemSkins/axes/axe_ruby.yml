@@ -1,7 +1,4 @@
 material: netherite_axe
-
-custom-model-data: 2
+display-name: "&dRuby Axe"
 
 permission: "itemskins.axe.axe_ruby"
-
-display-name: "&dRuby Axe"

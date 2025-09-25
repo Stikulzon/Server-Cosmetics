@@ -7,6 +7,7 @@ import com.zefir.servercosmetics.gui.core.ICosmeticProvider;
 import com.zefir.servercosmetics.gui.core.IItemAction;
 import com.zefir.servercosmetics.gui.filters.FilterManager;
 import com.zefir.servercosmetics.util.GUIUtils;
+import com.zefir.servercosmetics.util.Utils;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import lombok.Getter;
@@ -68,6 +69,8 @@ public class PagedItemDisplayGui extends SimpleGui {
         int[] displaySlots = guiConfig.getDisplaySlots();
         int itemsPerPage = displaySlots.length;
         int startIndex = currentPage * itemsPerPage;
+
+        itemsToDisplay.sort(Comparator.comparing(entry -> Utils.getSortablePriority(entry.sortingPriority())));
 
         for (int i = 0; i < itemsPerPage; i++) {
             int itemIndex = startIndex + i;

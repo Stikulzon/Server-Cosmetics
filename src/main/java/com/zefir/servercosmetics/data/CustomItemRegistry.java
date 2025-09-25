@@ -72,6 +72,7 @@ public class CustomItemRegistry {
         loadItemsFromDirectory(itemSkinsDir, null);
     }
 
+    // TODO: Refactor
     private static void loadItemsFromDirectory(Path directory, String itemPropertiesRootNode) {
         try {
             if (Files.notExists(directory)) {
@@ -109,13 +110,15 @@ public class CustomItemRegistry {
                 List<Text> lore;
 
                 String type = yamlFile.getString("type");
+                int sortingPriority = yamlFile.getInt("sortingPriority", 0);
 
                 if (type != null) {
-                    String namePath = itemPropertiesRootNode + ".display-name";
+                    String namePath = "display-name";
+                    String legacyNamePath = itemPropertiesRootNode + ".display-name";
                     String lorePath = "lore";
                     String legacyLorePath = itemPropertiesRootNode + ".lore";
 
-                    String tempName = yamlFile.getString(namePath);
+                    String tempName = yamlFile.getString(namePath) == null ? yamlFile.getString(legacyNamePath) : yamlFile.getString(namePath);
                     if (tempName == null) {
                         ServerCosmetics.LOGGER.warn("Cosmetic {}: '{}' not defined. Using empty display name.", fileName, namePath);
                         displayName = Utils.formatDisplayName("");
@@ -148,13 +151,14 @@ public class CustomItemRegistry {
 
                 if (type != null) {
                     String baseItemMaterial;
-                    String materialPath = itemPropertiesRootNode + ".material";
+                    String materialPath = "material";
+                    String legacyMaterialPath = itemPropertiesRootNode + ".material";
 
                     if (ItemType.valueOf(type.toUpperCase()) == ItemType.HELMET || ItemType.valueOf(type.toUpperCase()) == ItemType.CHESTPLATE || ItemType.valueOf(type.toUpperCase()) == ItemType.LEGGINGS || ItemType.valueOf(type.toUpperCase()) == ItemType.BOOTS) {
                         baseItemMaterial = "leather_" + type.toLowerCase();
                     }
                     else {
-                        baseItemMaterial = yamlFile.getString(materialPath);
+                        baseItemMaterial = yamlFile.getString(materialPath) == null ? yamlFile.getString(legacyMaterialPath) : yamlFile.getString(materialPath);
                         if (baseItemMaterial == null) {
                             ServerCosmetics.LOGGER.error("Error loading cosmetic {}: '{}' not defined, using paper as fallback", fileName, materialPath);
                             baseItemMaterial = "minecraft:paper";
@@ -174,7 +178,7 @@ public class CustomItemRegistry {
                         boolean offsetWhenSneaking = yamlFile.getBoolean("offsetWhenSneaking", false);
                         boolean autoscale = yamlFile.getBoolean("autoscale", false);
 
-                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, List.of(Tags.ENTITY, Tags.BODY_COSMETIC), new BodyCosmeticsData(polymerModelData, isMirrored, autoAlignment, offsetWhenSneaking, autoscale));
+                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, sortingPriority, List.of(Tags.ENTITY, Tags.BODY_COSMETIC), new BodyCosmeticsData(polymerModelData, isMirrored, autoAlignment, offsetWhenSneaking, autoscale));
                     } else if (ItemType.valueOf(type.toUpperCase()) == ItemType.CHESTPLATE_BODY_COSMETIC || ItemType.valueOf(type.toUpperCase()) == ItemType.HAT_BODY_COSMETIC || ItemType.valueOf(type.toUpperCase()) == ItemType.BOOTS_BODY_COSMETIC) {
                         PolymerModelData polymerModelData = PolymerResourcePackUtils.requestModel(Registries.ITEM.get(Identifier.of(baseItemMaterial)), Identifier.of(ServerCosmetics.MOD_ID, "item/" + itemId + "_sneaking"));
                         boolean isMirrored = yamlFile.getBoolean("isMirrored", false);
@@ -182,22 +186,22 @@ public class CustomItemRegistry {
                         boolean offsetWhenSneaking = yamlFile.getBoolean("offsetWhenSneaking", false);
                         boolean autoscale = yamlFile.getBoolean("autoscale", false);
 
-                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, List.of(Tags.ENTITY, Tags.ARMOR, Tags.BODY_COSMETIC), new BodyCosmeticsData(polymerModelData, isMirrored, autoAlignment, offsetWhenSneaking, autoscale));
+                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, sortingPriority, List.of(Tags.ENTITY, Tags.ARMOR, Tags.BODY_COSMETIC), new BodyCosmeticsData(polymerModelData, isMirrored, autoAlignment, offsetWhenSneaking, autoscale));
                     } else if (ItemType.valueOf(type.toUpperCase()) == ItemType.HELMET || ItemType.valueOf(type.toUpperCase()) == ItemType.CHESTPLATE || ItemType.valueOf(type.toUpperCase()) == ItemType.LEGGINGS || ItemType.valueOf(type.toUpperCase()) == ItemType.BOOTS) {
                         if(ServerCosmetics.DEV_ENV) {
                             for (int i = 0; i < 20; i++) {
                                 entry = new CustomItemEntry(itemId + i, permission, displayName, lore, itemStack,
-                                        ItemType.valueOf(type.toUpperCase()), baseItemMaterial, List.of(Tags.ARMOR, Tags.ITEM), new ArmorCosmeticsData());
+                                        ItemType.valueOf(type.toUpperCase()), baseItemMaterial, sortingPriority, List.of(Tags.ARMOR, Tags.ITEM), new ArmorCosmeticsData());
                                 cosmeticsList.add(entry);
                             }
                         }
 
                         entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack,
-                                ItemType.valueOf(type.toUpperCase()), baseItemMaterial, List.of(Tags.ARMOR, Tags.ITEM), new ArmorCosmeticsData());
+                                ItemType.valueOf(type.toUpperCase()), baseItemMaterial, sortingPriority, List.of(Tags.ARMOR, Tags.ITEM), new ArmorCosmeticsData());
 
                     } else {
                         // HAT
-                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, List.of(Tags.ITEM), null);
+                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, sortingPriority, List.of(Tags.ITEM), null);
                     }
                     cosmeticsList.add(entry);
 
@@ -218,7 +222,7 @@ public class CustomItemRegistry {
                             materialKey = "minecraft:" + materialKey.toLowerCase();
                         }
                         ItemStack itemStack = createItemStack(materialKey, displayName, itemId, lore);
-                        CustomItemEntry entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.ITEM_SKIN, materialKey, new ArrayList<>(), null);
+                        CustomItemEntry entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.ITEM_SKIN, materialKey, sortingPriority, new ArrayList<>(), null);
 
                         cosmeticsList.add(entry);
                     }

@@ -175,6 +175,10 @@ public class Utils {
         }
     }
 
+    public static int getSortablePriority(int actualPriority) {
+        return actualPriority == 0 ? Integer.MAX_VALUE : actualPriority;
+    }
+
 //    public static void updateServer(MinecraftServer server) {
 //        boolean apply = true;
 //

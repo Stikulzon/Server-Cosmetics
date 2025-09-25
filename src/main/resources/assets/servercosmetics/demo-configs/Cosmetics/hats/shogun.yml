@@ -1,6 +1,7 @@
 type: HAT
-cosmetic-item:
-  material: PAPER
-  display-name: "&bShogun"
+material: PAPER
+display-name: "&bShogun"
+
+sortingPriority: 1
 
 permission: "cosmetics.hat.shogun"

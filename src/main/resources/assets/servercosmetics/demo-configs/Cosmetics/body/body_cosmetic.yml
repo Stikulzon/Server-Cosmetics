@@ -1,8 +1,13 @@
 type: BODY_COSMETIC
-cosmetic-item:
-  material: PAPER
-  display-name: "<blue>Body cosmetic"
-  lore:
-    - "Some description"
+material: PAPER
+display-name: "<blue>Body cosmetic"
+lore:
+  - "Some description"
+
+# Model configuration, all false by default
+isMirrored: true
+autoAlignment: true
+offsetWhenSneaking: true
+autoscale: true
 
 permission: "cosmetics.body.body_cosmetic"
