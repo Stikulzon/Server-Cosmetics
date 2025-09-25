@@ -128,9 +128,9 @@ public class Utils {
     public static int getSlotForType(ItemType type) {
         return switch (type) {
             case HAT -> 5;
-            case CHESTPLATE -> 6;
-            case LEGGINGS -> 7;
-            case BOOTS -> 8;
+            case CHESTPLATE, CHESTPLATE_BODY_COSMETIC -> 6;
+            case LEGGINGS, LEGGINGS_BODY_COSMETIC -> 7;
+            case BOOTS, BOOTS_BODY_COSMETIC -> 8;
             default -> throw new IllegalStateException("Unsupported item type for slot calculation: " + type);
         };
     }

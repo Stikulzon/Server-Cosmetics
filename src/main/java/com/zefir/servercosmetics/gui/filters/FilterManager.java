@@ -56,16 +56,16 @@ public class FilterManager {
 
             ConfigManager.NavigationButton button = isActive ? reg.inactiveButton : reg.activeButton;
 
-            if (registeredFilters.get(key).filter() instanceof ItemTypeFilter(List<ItemType> type) && isActive) {
-                this.targetTypes = type;
+            if (registeredFilters.get(key).filter() instanceof ItemTypeFilter(List<ItemType> types) && isActive) {
+                this.targetTypes = types;
             }
 
             GUIUtils.setUpButton(gui, button, () -> {
-                if (registeredFilters.get(key).filter() instanceof ItemTypeFilter(List<ItemType> type)) {
+                if (registeredFilters.get(key).filter() instanceof ItemTypeFilter(List<ItemType> types)) {
                     if (isActive) {
                         return;
                     }
-                    this.targetTypes = type;
+                    this.targetTypes = types;
                     disableOtherItemTypeFilters(key);
                     activeStates.put(key, true);
                 } else {

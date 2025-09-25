@@ -1,7 +1,6 @@
 package com.zefir.servercosmetics.util;
 
 import com.google.common.collect.ImmutableList;
-import com.zefir.servercosmetics.data.CustomItemEntry;
 import com.zefir.servercosmetics.data.ItemType;
 import com.zefir.servercosmetics.data.BodyCosmeticsData;
 import com.zefir.servercosmetics.database.DatabaseManager;
@@ -52,27 +51,30 @@ public class BodyCosmetic implements ICosmetic {
         this.itemType = itemType;
     }
 
-    public void equip(ItemStack is) {
+    @Override
+    public void equip(ItemStack is, ItemType _type) {
         setCosmetic(player, itemType, is);
-        this.cosmeticItemStack = is;
+//        cosmeticItemStack = is;
+        if (is == ItemStack.EMPTY) {
+            this.unequip();
+            return;
+        }
         init();
     }
 
+    @Override
     public void init() {
+        cosmeticItemStack = DatabaseManager.getCosmeticItemStack(player, itemType);
         if (cosmeticItemStack != ItemStack.EMPTY) {
             player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
                     new EntitiesDestroyS2CPacket(bodyCosmeticsModel.getId()));
-        }
 
-        cosmeticItemStack = DatabaseManager.getCosmeticItemStack(player, itemType);
-        if (DatabaseManager.getCosmeticEntry(player, itemType) != null) {
-            cosmeticData = (BodyCosmeticsData) Objects.requireNonNull(DatabaseManager.getCosmeticEntry(player, itemType)).cosmeticData();
-            cosmeticItemStackWhenSneaking = getTiltedItemStack(cosmeticItemStack, cosmeticData.polymerModelWhenSneaking());
-        } else {
-            cosmeticItemStackWhenSneaking = cosmeticItemStack;
-        }
-
-        if (cosmeticItemStack != ItemStack.EMPTY) {
+            if (DatabaseManager.getCosmeticEntry(player, itemType) != null) {
+                cosmeticData = (BodyCosmeticsData) Objects.requireNonNull(DatabaseManager.getCosmeticEntry(player, itemType)).cosmeticData();
+                cosmeticItemStackWhenSneaking = getTiltedItemStack(cosmeticItemStack, cosmeticData.polymerModelWhenSneaking());
+            } else {
+                cosmeticItemStackWhenSneaking = cosmeticItemStack;
+            }
 
             bodyCosmeticsModel.setPosition(player.getX(), player.getY(), player.getZ());
             bodyCosmeticsModel.setInvulnerable(true);
@@ -100,6 +102,7 @@ public class BodyCosmetic implements ICosmetic {
         }
     }
 
+    @Override
     public void tick() {
         if (cosmeticItemStack == ItemStack.EMPTY) {
             return;
@@ -151,6 +154,19 @@ public class BodyCosmetic implements ICosmetic {
         } else {
             ((DisplayEntity.ItemDisplayEntity) bodyCosmeticsModel).setItemStack(itemStack);
         }
+    }
+
+    public void unequip() {
+        bodyCosmeticsModel.stopRiding();
+        player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
+                new EntitiesDestroyS2CPacket(bodyCosmeticsModel.getId()));
+        player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
+                new EntityPassengersSetS2CPacket(player));
+        System.out.println("Unequipping");
+        this.cosmeticItemStack = ItemStack.EMPTY;
+        this.cosmeticItemStackWhenSneaking = ItemStack.EMPTY;
+        this.isHidden = false;
+        this.isTilted = false;
     }
 
 }

@@ -12,7 +12,7 @@ public class OpenColorPickerAction implements IItemAction {
     @Override
     public void execute(ServerPlayerEntity player, CustomItemEntry entry, SimpleGui gui) {
         new ColorPickerComponent(player, entry.itemStack(), (coloredStack) -> (
-                (ICosmetics) player).getCosmeticFor(ItemType.HAT).equip(coloredStack)
+                (ICosmetics) player).getCosmeticFor(ItemType.HAT).equip(coloredStack, ItemType.HAT)
         ).open();
     }
 }

@@ -16,6 +16,6 @@ public class EquipCosmeticAction implements IItemAction {
     }
 
     public void execute(ServerPlayerEntity player, ItemStack cosmeticStack, ItemType type) {
-        ((ICosmetics) player).getCosmeticFor(type).equip(cosmeticStack);
+        ((ICosmetics) player).getCosmeticFor(type).equip(cosmeticStack, type);
     }
 }

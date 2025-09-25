@@ -7,5 +7,5 @@ public interface ICosmetic {
     ItemType getItemType();
     void tick();
     void init();
-    void equip(ItemStack cosmeticStack);
+    void equip(ItemStack cosmeticStack, ItemType type);
 }
