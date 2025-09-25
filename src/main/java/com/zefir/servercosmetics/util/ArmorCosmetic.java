@@ -27,37 +27,6 @@ public class ArmorCosmetic implements ICosmetic {
         this.bodyCosmeticDelegate = new BodyCosmetic(player, getBodyCosmeticType(itemType));
     }
 
-//    /**
-//     * Checks if a given ItemStack corresponds to a body cosmetic.
-//     */
-//    private boolean isBodyCosmetic(ItemStack stack) {
-//        if (stack == null || stack.isEmpty()) {
-//            return false;
-//        }
-//        if (itemType == ItemType.HAT && DatabaseManager.getCosmeticEntry(player, ItemType.HAT) != null) {
-//            return false;
-//        }
-//        return stack.getItem() != Items.LEATHER_BOOTS && stack.getItem() != Items.LEATHER_CHESTPLATE && stack.getItem() != Items.LEATHER_HELMET && stack.getItem() != Items.LEATHER_LEGGINGS;
-////        return DatabaseManager.getCosmeticEntry(player, getBodyCosmeticType(itemType)) != null;
-//    }
-
-//    public void equip(ItemStack newCosmeticStack) {
-//        if (bodyCosmeticDelegate.getCosmeticItemStack() != ItemStack.EMPTY) {
-//            this.bodyCosmeticDelegate.unequip();
-//        }
-//
-//        this.cosmeticItemStack = newCosmeticStack.copy();
-//
-//        if (isBodyCosmetic(this.cosmeticItemStack)) {
-//            this.bodyCosmeticDelegate.equip(this.cosmeticItemStack);
-//            DatabaseManager.setCosmetic(player, itemType, ItemStack.EMPTY);
-//        } else {
-//            DatabaseManager.setCosmetic(this.player, itemType, this.cosmeticItemStack);
-//        }
-//
-//        updatePlayerArmorView();
-//    }
-
 
     @Override
     public void equip(ItemStack newCosmeticStack, ItemType newType) {
@@ -67,7 +36,6 @@ public class ArmorCosmetic implements ICosmetic {
 
         this.itemType = newType;
         this.cosmeticItemStack = newCosmeticStack.copy();
-        System.out.println("Equip: " + this.cosmeticItemStack + " " + itemType);
 
         if (itemType == ItemType.HAT_BODY_COSMETIC || itemType == ItemType.CHESTPLATE_BODY_COSMETIC || itemType == ItemType.LEGGINGS_BODY_COSMETIC || itemType == ItemType.BOOTS_BODY_COSMETIC) {
             this.bodyCosmeticDelegate.equip(this.cosmeticItemStack, itemType);
@@ -132,7 +100,7 @@ public class ArmorCosmetic implements ICosmetic {
         sendInventorySlotPacket(player, getSlotFor(this.slotType), itemStackToSend);
     }
 
-    private static int getSlotFor(ItemType type) {
+    public static int getSlotFor(ItemType type) {
         return switch (type) {
             case HAT -> 5;
             case CHESTPLATE -> 6;
@@ -154,18 +122,4 @@ public class ArmorCosmetic implements ICosmetic {
             default -> type;
         };
     }
-
-
-//    /**
-//     * Maps a base armor type to its corresponding body cosmetic type.
-//     */
-//    private static ItemType getArmorCosmeticType(ItemType type) {
-//        return switch (type) {
-//            case HAT_BODY_COSMETIC -> ItemType.HAT;
-//            case CHESTPLATE_BODY_COSMETIC -> ItemType.CHESTPLATE;
-//            case LEGGINGS_BODY_COSMETIC -> ItemType.LEGGINGS;
-//            case BOOTS_BODY_COSMETIC -> ItemType.BOOTS;
-//            default -> type;
-//        };
-//    }
 }

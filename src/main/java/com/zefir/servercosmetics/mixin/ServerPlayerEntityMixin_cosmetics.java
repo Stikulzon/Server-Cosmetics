@@ -52,6 +52,11 @@ public abstract class ServerPlayerEntityMixin_cosmetics implements ICosmetics {
     }
 
     @Override
+    public List<ICosmetic> getCosmeticsList() {
+        return cosmeticsList;
+    }
+
+    @Override
     public ICosmetic getCosmeticFor(ItemType type) {
         ItemType primaryType = switch (type) {
             case HELMET, HAT_BODY_COSMETIC -> ItemType.HAT;

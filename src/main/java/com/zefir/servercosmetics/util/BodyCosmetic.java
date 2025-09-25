@@ -5,6 +5,7 @@ import com.zefir.servercosmetics.data.ItemType;
 import com.zefir.servercosmetics.data.BodyCosmeticsData;
 import com.zefir.servercosmetics.database.DatabaseManager;
 import com.zefir.servercosmetics.ext.ICosmetic;
+import com.zefir.servercosmetics.ext.ICosmetics;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -12,6 +13,7 @@ import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.entity.decoration.DisplayEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.server.network.ServerPlayerEntity;
 import com.mojang.datafixers.util.Pair;
@@ -45,8 +47,6 @@ public class BodyCosmetic implements ICosmetic {
         } else {
             this.bodyCosmeticsModel = new DisplayEntity.ItemDisplayEntity(EntityType.ITEM_DISPLAY, player.getServerWorld());
         }
-//        this.bodyCosmeticsModel.getWorld().getChunkManager().ge
-//        ServerChunkLoadingManager.EntityTracker entityTracker = new ServerChunkLoadingManager.EntityTracker(this.bodyCosmeticsModel, 2, this.bodyCosmeticsModel.getType().getTrackTickInterval(), this.bodyCosmeticsModel.getType().alwaysUpdateVelocity());
         this.player = player;
         this.itemType = itemType;
     }
@@ -54,7 +54,6 @@ public class BodyCosmetic implements ICosmetic {
     @Override
     public void equip(ItemStack is, ItemType _type) {
         setCosmetic(player, itemType, is);
-//        cosmeticItemStack = is;
         if (is == ItemStack.EMPTY) {
             this.unequip();
             return;
@@ -162,11 +161,9 @@ public class BodyCosmetic implements ICosmetic {
                 new EntitiesDestroyS2CPacket(bodyCosmeticsModel.getId()));
         player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
                 new EntityPassengersSetS2CPacket(player));
-        System.out.println("Unequipping");
         this.cosmeticItemStack = ItemStack.EMPTY;
         this.cosmeticItemStackWhenSneaking = ItemStack.EMPTY;
         this.isHidden = false;
         this.isTilted = false;
     }
-
 }

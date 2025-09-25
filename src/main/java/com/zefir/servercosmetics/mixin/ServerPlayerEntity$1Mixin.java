@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import static com.zefir.servercosmetics.util.Utils.getItemTypeForSlot;
 
 @Mixin(targets = "net.minecraft.server.network.ServerPlayerEntity$1")
-public class ArmorHeadSlotMixin {
+public class ServerPlayerEntity$1Mixin {
     @Final
     @Shadow
     ServerPlayerEntity field_29182;

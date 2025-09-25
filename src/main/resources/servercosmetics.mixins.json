@@ -3,7 +3,6 @@
   "package": "com.zefir.servercosmetics.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "ArmorHeadSlotMixin",
     "EntityMixin",
     "EntityPassengersSetS2CPacketAccessor",
     "EntityPassengersSetS2CPacketMixin",
@@ -15,6 +14,7 @@
     "PlayerInventoryMixin",
     "PlayerManagerMixin",
     "ServerChunkLoadingManagerMixin",
+    "ServerPlayerEntity$1Mixin",
     "ServerPlayerEntityMixin",
     "ServerPlayerEntityMixin_cosmetics",
     "ServerPlayNetworkHandlerMixin"
