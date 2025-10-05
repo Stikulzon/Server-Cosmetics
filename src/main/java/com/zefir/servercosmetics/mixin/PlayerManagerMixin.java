@@ -24,6 +24,6 @@ public class PlayerManagerMixin {
             at = @At( value = "TAIL" )
     )
     void remove(ServerPlayerEntity player, CallbackInfo ci) {
-        ((ICosmetics) player).initCosmetics();
+        ((ICosmetics) player).removeCosmetics();
     }
 }
