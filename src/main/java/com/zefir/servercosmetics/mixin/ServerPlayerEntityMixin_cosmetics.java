@@ -52,6 +52,11 @@ public abstract class ServerPlayerEntityMixin_cosmetics implements ICosmetics {
     }
 
     @Override
+    public void removeCosmetics() {
+        cosmeticsList.forEach(ICosmetic::onUnload);
+    }
+
+    @Override
     public List<ICosmetic> getCosmeticsList() {
         return cosmeticsList;
     }

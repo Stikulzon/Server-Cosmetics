@@ -7,6 +7,7 @@ import java.util.List;
 public interface ICosmetics {
     ICosmetic getCosmeticFor(ItemType type);
     void initCosmetics();
+    void removeCosmetics();
     void tickArmor();
     List<ICosmetic> getCosmeticsList();
 }

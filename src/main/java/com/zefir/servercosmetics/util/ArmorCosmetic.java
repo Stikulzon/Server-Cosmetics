@@ -77,6 +77,13 @@ public class ArmorCosmetic implements ICosmetic {
         return slotType;
     }
 
+    @Override
+    public void onUnload() {
+        if (bodyCosmeticDelegate.getCosmeticItemStack() != ItemStack.EMPTY) {
+            this.bodyCosmeticDelegate.unequip();
+        }
+    }
+
     @Nullable
     public Entity getBodyCosmeticModel() {
         if (bodyCosmeticDelegate.getCosmeticItemStack() != ItemStack.EMPTY) {
@@ -90,6 +97,9 @@ public class ArmorCosmetic implements ICosmetic {
      * If the cosmetic is empty, it makes them see their real armor.
      */
     private void updatePlayerArmorView() {
+        if(player.isRemoved()) {
+            return;
+        }
         ItemStack itemStackToSend;
         if (!cosmeticItemStack.isEmpty()) {
             itemStackToSend = cosmeticItemStack;

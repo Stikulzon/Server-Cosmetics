@@ -5,7 +5,6 @@ import com.zefir.servercosmetics.data.ItemType;
 import com.zefir.servercosmetics.data.BodyCosmeticsData;
 import com.zefir.servercosmetics.database.DatabaseManager;
 import com.zefir.servercosmetics.ext.ICosmetic;
-import com.zefir.servercosmetics.ext.ICosmetics;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -13,7 +12,6 @@ import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.entity.decoration.DisplayEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.server.network.ServerPlayerEntity;
 import com.mojang.datafixers.util.Pair;
@@ -99,6 +97,11 @@ public class BodyCosmetic implements ICosmetic {
                     new EntityPassengersSetS2CPacket(player));
             bodyCosmeticsModel.startRiding(player);
         }
+    }
+
+    @Override
+    public void onUnload() {
+        unequip();
     }
 
     @Override

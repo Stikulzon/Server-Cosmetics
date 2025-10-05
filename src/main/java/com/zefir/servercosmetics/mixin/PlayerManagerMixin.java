@@ -16,7 +16,14 @@ public class PlayerManagerMixin {
             method = "onPlayerConnect",
             at = @At( value = "TAIL" )
     )
-    void modifyHeadSlotItem(ClientConnection connection, ServerPlayerEntity player, ConnectedClientData clientData, CallbackInfo ci) {
+    void onPlayerConnect(ClientConnection connection, ServerPlayerEntity player, ConnectedClientData clientData, CallbackInfo ci) {
+        ((ICosmetics) player).initCosmetics();
+    }
+    @Inject(
+            method = "remove",
+            at = @At( value = "TAIL" )
+    )
+    void remove(ServerPlayerEntity player, CallbackInfo ci) {
         ((ICosmetics) player).initCosmetics();
     }
 }
