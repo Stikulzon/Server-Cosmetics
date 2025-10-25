@@ -12,8 +12,7 @@ public class ItemStackMixin implements IItemStack {
     @Mutable
     private Item item;
     @Unique
-    @Override
-    public void setItem(Item item){
+    public void server_Cosmetics$setItem(Item item){
         this.item = item;
     }
 }

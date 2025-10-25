@@ -2,6 +2,7 @@ package com.zefir.servercosmetics.mixin;
 
 import com.zefir.servercosmetics.data.ItemType;
 import com.zefir.servercosmetics.ext.ICosmetics;
+import com.zefir.servercosmetics.util.Utils;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.screen.ScreenHandler;
@@ -15,8 +16,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static com.zefir.servercosmetics.util.Utils.getItemTypeForSlot;
-
 @Mixin(targets = "net.minecraft.server.network.ServerPlayerEntity$1")
 public class ServerPlayerEntity$1Mixin {
     @Final
@@ -27,9 +26,9 @@ public class ServerPlayerEntity$1Mixin {
             at = @At("HEAD"),
             argsOnly = true
     )
-    private ItemStack modifyHeadSlotItem(ItemStack stack, ScreenHandler handler, int slot) {
+    private ItemStack modifyArmorItemStack(ItemStack stack, ScreenHandler handler, int slot) {
         ICosmetics cosmetics = (ICosmetics) field_29182;
-        ItemType itemType = getItemTypeForSlot(slot);
+        ItemType itemType = Utils.getItemTypeForSlot(slot);
         if(itemType != null) {
             cosmetics.getCosmeticFor(itemType).tick();
         }
@@ -41,10 +40,31 @@ public class ServerPlayerEntity$1Mixin {
                     value = "TAIL"
             )
     )
-    void modifyHeadSlotItem (ScreenHandler handler, DefaultedList<ItemStack> stacks, ItemStack cursorStack, int[] properties, CallbackInfo ci) {
+    void modifyArmorItemStack (ScreenHandler handler, DefaultedList<ItemStack> stacks, ItemStack cursorStack, int[] properties, CallbackInfo ci) {
         if(handler instanceof PlayerScreenHandler) {
             ICosmetics cosmetics = (ICosmetics) field_29182;
             cosmetics.tickArmor();
         }
+    }
+
+    @ModifyVariable(method = "updateState",
+            at = @At(
+                    value = "HEAD"
+            ),
+            argsOnly = true
+    )
+    private DefaultedList<ItemStack> injectFilterItems(DefaultedList<ItemStack> list) {
+        list.replaceAll(stack -> Utils.filterItemStack(stack, field_29182));
+        return list;
+    }
+
+    @ModifyVariable(method = "updateState",
+            at = @At(
+                    value = "HEAD"
+            ),
+            argsOnly = true
+    )
+    private ItemStack injectFilterItems(ItemStack itemStack) {
+        return Utils.filterItemStack(itemStack, field_29182);
     }
 }

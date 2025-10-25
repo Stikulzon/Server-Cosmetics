@@ -1,7 +1,9 @@
 package com.zefir.servercosmetics.mixin;
 
+import com.mojang.datafixers.util.Pair;
 import com.zefir.servercosmetics.data.ItemType;
 import com.zefir.servercosmetics.database.DatabaseManager;
+import com.zefir.servercosmetics.util.Utils;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
@@ -24,7 +26,7 @@ public class LivingEntityMixin {
                     ordinal = 0
             )
     )
-    ItemStack modifyHeadSlotItem (ItemStack instance, List list, EquipmentSlot slot, ItemStack stack) {
+    ItemStack modifyArmorItemStack (ItemStack instance, List<Pair<EquipmentSlot, ItemStack>> list, EquipmentSlot slot, ItemStack stack) {
         if ((LivingEntity) (Object) this instanceof ServerPlayerEntity player){
             ItemType itemType = getItemTypeForSlot(8 - slot.getEntitySlotId());
             if (itemType == null) {
@@ -32,9 +34,9 @@ public class LivingEntityMixin {
             }
             ItemStack cosmeticsIS = DatabaseManager.getCosmeticItemStack(player, itemType);
             if (cosmeticsIS != ItemStack.EMPTY) {
-                return cosmeticsIS;
+                return Utils.filterItemStack(cosmeticsIS, player);
             }
         }
-        return instance.copy();
+        return Utils.forceItemStack(instance);
     }
 }

@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import static com.zefir.servercosmetics.util.Utils.getItemTypeForSlot;
 
 @Mixin(targets = "net.minecraft.server.network.ServerPlayerEntity$2")
-public class ServerPlayerEntityMixin {
+public class ServerPlayerEntity$2Mixin {
     @Final
     @Shadow
     ServerPlayerEntity field_29183;
@@ -27,7 +27,7 @@ public class ServerPlayerEntityMixin {
                     target = "Lnet/minecraft/advancement/criterion/Criteria;INVENTORY_CHANGED:Lnet/minecraft/advancement/criterion/InventoryChangedCriterion;"
             )
     )
-    void modifyHeadSlotItem (ScreenHandler handler, int slot, ItemStack _stack, CallbackInfo ci) {
+    void modifyArmorItemStack (ScreenHandler handler, int slot, ItemStack _stack, CallbackInfo ci) {
         if(handler instanceof PlayerScreenHandler) {
             ICosmetics cosmetics = (ICosmetics) field_29183;
             ItemType itemType = getItemTypeForSlot(slot);

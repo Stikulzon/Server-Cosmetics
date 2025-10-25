@@ -7,15 +7,11 @@ import com.zefir.servercosmetics.ServerCosmetics;
 import com.zefir.servercosmetics.data.CustomItemEntry;
 import com.zefir.servercosmetics.data.CustomItemRegistry;
 import com.zefir.servercosmetics.data.ItemType;
-import com.zefir.servercosmetics.datagen.RuntimeModelManager;
+import com.zefir.servercosmetics.datafixer.NbtDatafixer;
 import com.zefir.servercosmetics.ext.IItemStack;
 import com.zefir.servercosmetics.gui.ColorPickerComponent;
 import com.zefir.servercosmetics.gui.actions.EquipCosmeticAction;
-import com.zefir.servercosmetics.mixin.EntityTrackerAccessor;
-import eu.pb4.polymer.core.mixin.block.packet.ServerChunkLoadingManagerAccessor;
-import eu.pb4.polymer.resourcepack.api.PolymerArmorModel;
 import eu.pb4.polymer.resourcepack.api.PolymerModelData;
-import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.standard.StandardTags;
@@ -23,15 +19,11 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.CustomModelDataComponent;
-import net.minecraft.component.type.DyedColorComponent;
-import net.minecraft.component.type.LoreComponent;
 import net.minecraft.component.type.NbtComponent;
-import net.minecraft.item.ArmorItem;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.Registries;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -44,8 +36,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static com.zefir.servercosmetics.ServerCosmetics.id;
 
 public class Utils {
     public static final LegacyComponentSerializer SERIALIZER = LegacyComponentSerializer.builder().hexColors().useUnusualXRepeatedCharacterHexFormat().build();
@@ -137,7 +127,7 @@ public class Utils {
 
     public static ItemStack getTiltedItemStack(ItemStack original, PolymerModelData polymerModel){
         ItemStack itemStack = original.copy();
-        ((IItemStack) (Object) itemStack).setItem(polymerModel.item());
+        ((IItemStack) (Object) itemStack).server_Cosmetics$setItem(polymerModel.item());
         itemStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(polymerModel.value()));
         return itemStack;
     }
@@ -179,19 +169,80 @@ public class Utils {
         return actualPriority == 0 ? Integer.MAX_VALUE : actualPriority;
     }
 
-//    public static void updateServer(MinecraftServer server) {
-//        boolean apply = true;
-//
-//        for (var world :server.getWorlds()) {
-//            for (var entry : ((ServerChunkLoadingManagerAccessor) world.getChunkManager().chunkLoadingManager).polymer$getEntityTrackers().int2ObjectEntrySet()) {
-//                var tracker = (EntityTrackerAccessor) entry.getValue();
-//
-//                var entity = tracker.getEntity();
-//                int value = 2;
-////                var value = apply ? ((EvdEntityType) entity.getType()).evd_getTrackingDistance() : -1;
-//
-//                tracker.setMaxDistance(2);
-//            }
-//        }
-//    }
+    public static ItemStack filterItemStack(ItemStack originalStack, ServerPlayerEntity player) {
+        NbtDatafixer.fixItemStackNbt(originalStack);
+        ItemStack stack = originalStack.copy();
+
+
+        if (stack == null || stack.isEmpty()) {
+            return stack;
+        }
+
+        NbtComponent customDataComponent = stack.get(DataComponentTypes.CUSTOM_DATA);
+
+        if (customDataComponent != null) {
+            NbtCompound nbt = customDataComponent.copyNbt();
+
+            if (nbt.contains("cosmeticItemId", NbtCompound.STRING_TYPE)) {
+                String itemSkinId = nbt.getString("cosmeticItemId");
+
+                CustomItemEntry skinEntry = CustomItemRegistry.getCosmetic(itemSkinId);
+
+                if (skinEntry == null) {
+                    stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(currentNbt -> currentNbt.remove("cosmeticItemId")));
+                    return stack;
+                } else if (skinEntry.type() != ItemType.ITEM_SKIN) {
+                    return stack;
+                }
+
+                if (!Permissions.check(player, skinEntry.permission())) {
+                    stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(currentNbt -> currentNbt.remove("cosmeticItemId")));
+                    return stack;
+                }
+
+                ItemStack skinDefinitionStack = skinEntry.itemStack();
+                CustomModelDataComponent expectedModelData = skinDefinitionStack.get(DataComponentTypes.CUSTOM_MODEL_DATA);
+                stack.set(DataComponentTypes.CUSTOM_MODEL_DATA, expectedModelData);
+
+                return stack;
+            }
+        }
+        return originalStack;
+    }
+
+    public static ItemStack forceItemStack(ItemStack originalStack) {
+        NbtDatafixer.fixItemStackNbt(originalStack);
+        ItemStack stack = originalStack.copy();
+
+
+        if (stack == null || stack.isEmpty()) {
+            return stack;
+        }
+
+        NbtComponent customDataComponent = stack.get(DataComponentTypes.CUSTOM_DATA);
+
+        if (customDataComponent != null) {
+            NbtCompound nbt = customDataComponent.copyNbt();
+
+            if (nbt.contains("cosmeticItemId", NbtCompound.STRING_TYPE)) {
+                String itemSkinId = nbt.getString("cosmeticItemId");
+
+                CustomItemEntry skinEntry = CustomItemRegistry.getCosmetic(itemSkinId);
+
+                if (skinEntry == null) {
+                    stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(currentNbt -> currentNbt.remove("cosmeticItemId")));
+                    return stack;
+                } else if (skinEntry.type() != ItemType.ITEM_SKIN) {
+                    return stack;
+                }
+
+                ItemStack skinDefinitionStack = skinEntry.itemStack();
+                CustomModelDataComponent expectedModelData = skinDefinitionStack.get(DataComponentTypes.CUSTOM_MODEL_DATA);
+                stack.set(DataComponentTypes.CUSTOM_MODEL_DATA, expectedModelData);
+
+                return stack;
+            }
+        }
+        return originalStack;
+    }
 }

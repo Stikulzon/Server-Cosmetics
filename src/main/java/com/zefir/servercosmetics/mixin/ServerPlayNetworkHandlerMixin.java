@@ -27,7 +27,7 @@ public class ServerPlayNetworkHandlerMixin {
                     target = "Lnet/minecraft/advancement/criterion/Criteria;INVENTORY_CHANGED:Lnet/minecraft/advancement/criterion/InventoryChangedCriterion;"
             )
     )
-    void modifyHeadSlotItem2 (PickFromInventoryC2SPacket packet, CallbackInfo ci) {
+    void modifyItemStack (PickFromInventoryC2SPacket packet, CallbackInfo ci) {
         ICosmetics cosmetics = (ICosmetics) player;
         cosmetics.tickArmor();
     }
@@ -39,7 +39,7 @@ public class ServerPlayNetworkHandlerMixin {
                     target = "Lnet/minecraft/advancement/criterion/Criteria;INVENTORY_CHANGED:Lnet/minecraft/advancement/criterion/InventoryChangedCriterion;"
             )
     )
-    void modifyHeadSlotItem3 (ClickSlotC2SPacket packet, CallbackInfo ci) {
+    void modifyItemStack (ClickSlotC2SPacket packet, CallbackInfo ci) {
         ScreenHandler handler = this.player.currentScreenHandler;
         if(handler instanceof PlayerScreenHandler) {
             ICosmetics cosmetics = (ICosmetics) player;

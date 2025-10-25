@@ -25,7 +25,6 @@ public class EntityTrackerEntryMixin {
     private void onSendPackets(ServerPlayerEntity observer, Consumer<Packet<ClientPlayPacketListener>> sender, CallbackInfo ci) {
         // That is ugly but works fairly well
         if (this.entity instanceof ServerPlayerEntity cosmeticOwner) {
-//            ((LivingEntityAccessor) cosmeticOwner).invokeSendEquipmentChanges();
             ((ICosmetics) cosmeticOwner).initCosmetics();
         }
     }
