@@ -6,13 +6,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.function.Predicate;
 
-public class PermissionFilter implements Predicate<CustomItemEntry> {
-    private final ServerPlayerEntity player;
-
-    public PermissionFilter(ServerPlayerEntity player) {
-        this.player = player;
-    }
-
+public record PermissionFilter(ServerPlayerEntity player) implements Predicate<CustomItemEntry> {
     @Override
     public boolean test(CustomItemEntry entry) {
         return Permissions.check(player, entry.permission(), 4);

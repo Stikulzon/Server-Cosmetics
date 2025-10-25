@@ -117,13 +117,8 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
 
     @Override
     protected void addDefaultButtons(ConfigurationSection buttonsSection) {
-        Map<String, Map<String, Object>> buttonDefaults = new java.util.HashMap<>();
-        buttonDefaults.put("next", Map.of(
-                "name", "Next", "item", "minecraft:paper", "textureName", "next", "slotIndex", 51));
-        buttonDefaults.put("previous", Map.of(
-                "name", "Back", "item", "minecraft:paper", "textureName", "previous", "slotIndex", 47));
-        buttonDefaults.put("removeSkin", Map.of(
-                "name", "Remove cosmetic", "item", "minecraft:paper", "textureName", "remove", "slotIndex", 49));
+        super.addDefaultButtons(buttonsSection);
+
         buttonDefaults.put("toggleColorView", Map.of(
                 "name", "Toggle view", "item", "minecraft:diamond_chestplate", "slotIndex", 10));
         buttonDefaults.put("enterColor", Map.of(
@@ -133,13 +128,6 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
                 "name", "Decrease brightness", "item", "minecraft:paper", "textureName", "previous", "slotIndex", 15));
         buttonDefaults.put("increaseBrightness", Map.of(
                 "name", "Increase brightness", "item", "minecraft:paper", "textureName", "next", "slotIndex", 16));
-
-        buttonDefaults.put("filter.show-all-skins", Map.of(
-                "name", "<blue>Cosmetic Filter", "item", "minecraft:ender_pearl", "slotIndex", 10,
-                "lore", List.of("&aAll cosmetics &7(Selected)", "&7Available cosmetics", "", "&aClick to change mode!")));
-        buttonDefaults.put("filter.show-owned-skins", Map.of(
-                "name", "<blue>Cosmetic Filter", "item", "minecraft:ender_eye", "slotIndex", 10,
-                "lore", List.of("&7All cosmetics", "&aAvailable cosmetics &7(Selected)", "", "&aClick to change mode!")));
         
         buttonDefaults.put("filter.hats-disabled", Map.of(
                 "name", "<blue>Hats", "item", "minecraft:leather_helmet", "slotIndex", 12,
@@ -176,24 +164,17 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
                 "name", "<blue>Boots Cosmetics", "item", "minecraft:diamond_boots", "slotIndex", 16,
                 "lore", List.of()));
 
-        buttonDefaults.put("pageIndicator", Map.of(
-                "name", "Page", "item", "minecraft:paper", "slotIndex", 53));
-
         buttonDefaults.forEach((buttonName, properties) -> addDefaultButtonToSection(buttonsSection, buttonName, properties));
     }
 
     @Override
     protected void loadAllNavigationButtons(YamlFile file) {
-        loadNavigationButton(file, "next");
-        loadNavigationButton(file, "previous");
-        loadNavigationButton(file, "removeSkin");
+        super.loadAllNavigationButtons(file);
+
         loadNavigationButton(file, "toggleColorView");
         loadNavigationButton(file, "enterColor");
         loadNavigationButton(file, "decreaseBrightness");
         loadNavigationButton(file, "increaseBrightness");
-
-        loadNavigationButton(file, "filter.show-all-skins");
-        loadNavigationButton(file, "filter.show-owned-skins");
 
         loadNavigationButton(file, "filter.hats-disabled");
         loadNavigationButton(file, "filter.hats-enabled");
@@ -209,9 +190,6 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
 
         loadNavigationButton(file, "filter.boots-cosmetics-disabled");
         loadNavigationButton(file, "filter.boots-cosmetics-enabled");
-
-
-        loadNavigationButton(file, "pageIndicator");
     }
 
     public static List<String> getTextLines() { // For sign

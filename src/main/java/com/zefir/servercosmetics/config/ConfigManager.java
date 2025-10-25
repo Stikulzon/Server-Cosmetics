@@ -395,6 +395,7 @@ public class ConfigManager {
 
         yamlFile.setHeader("Main Config File");
 
+        yamlFile.addDefault("configVersion", 1);
         yamlFile.addDefault("debug", false);
         yamlFile.addDefault("permissions.reloadAllConfigs", "servercosmetics.reload");
         yamlFile.addDefault("permissions.reloadItemSkins", "servercosmetics.reload.itemskins");

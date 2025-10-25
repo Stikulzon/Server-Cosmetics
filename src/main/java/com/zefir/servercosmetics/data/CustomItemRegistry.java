@@ -329,4 +329,14 @@ public class CustomItemRegistry {
         return CustomItemRegistry.getAllCosmeticsForMaterial(type, targetMaterialId);
     }
 
+    public static List<CustomItemEntry> getAllCosmeticsForType(ItemType type) {
+        List<CustomItemEntry> filteredList = new ArrayList<>();
+        for (CustomItemEntry entry : cosmeticsList) {
+            if (entry.type() == type) {
+                filteredList.add(entry);
+            }
+        }
+        return filteredList;
+    }
+
 }

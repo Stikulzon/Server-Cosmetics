@@ -8,14 +8,8 @@ import net.minecraft.item.Item;
 import java.util.List;
 
 public class ItemSkinProvider implements ICosmeticProvider {
-    private final Item targetItem;
-
-    public ItemSkinProvider(Item targetItem) {
-        this.targetItem = targetItem;
-    }
-
     @Override
     public List<CustomItemEntry> getItems() {
-        return CustomItemRegistry.getAllCosmeticsForMaterial(ItemType.ITEM_SKIN, targetItem);
+        return CustomItemRegistry.getAllCosmeticsForType(ItemType.ITEM_SKIN);
     }
 }

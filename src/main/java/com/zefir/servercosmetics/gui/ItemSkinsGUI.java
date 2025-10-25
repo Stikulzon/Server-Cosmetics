@@ -5,6 +5,7 @@ import com.zefir.servercosmetics.ServerCosmetics;
 import com.zefir.servercosmetics.config.ItemSkinsGUIConfig;
 import com.zefir.servercosmetics.gui.actions.ApplySkinAction;
 import com.zefir.servercosmetics.gui.filters.PermissionFilter;
+import com.zefir.servercosmetics.gui.filters.SelectedItemFilter;
 import com.zefir.servercosmetics.gui.providers.ItemSkinProvider;
 import com.zefir.servercosmetics.util.GUIUtils;
 import eu.pb4.sgui.api.ClickType;
@@ -32,7 +33,7 @@ public class ItemSkinsGUI {
         try {
             ItemStack handStack = player.getMainHandStack();
             var config = ITEM_SKINS_GUI_CONFIG;
-            var provider = new ItemSkinProvider(handStack.getItem());
+            var provider = new ItemSkinProvider();
             var action = new ApplySkinAction(handStack, ItemSkinsGUIConfig.getItemSlot());
             PagedItemDisplayGui gui = new PagedItemDisplayGui(player, config, provider, action) {
                 @Override
@@ -41,11 +42,11 @@ public class ItemSkinsGUI {
                         ItemStack newClicked = this.player.currentScreenHandler.getSlot(idx).getStack();
                         if (!newClicked.isEmpty()) {
                             GuiHelpers.sendPlayerScreenHandler(this.player);
-                            var newProvider = new ItemSkinProvider(newClicked.getItem());
+                            var newProvider = new ItemSkinProvider();
                             var newAction = new ApplySkinAction(newClicked, ItemSkinsGUIConfig.getItemSlot());
-                            this.reinitialize(newProvider, newAction);
 
                             setupDynamicSlots(this, newClicked);
+                            this.reinitialize(newProvider, newAction);
                         }
                     }
                     return super.onAnyClick(idx, ct, sa);
@@ -54,16 +55,21 @@ public class ItemSkinsGUI {
             gui.getFilterManager().addFilter(
                     "permission",
                     new PermissionFilter(player),
-                    config.getButtonConfig("filter.show-all-skins"),
-                    config.getButtonConfig("filter.show-owned-skins"),
+                    config.getButtonConfig("filter.show-owned-skins-disabled"),
+                    config.getButtonConfig("filter.show-owned-skins-enabled"),
                     false
             );
-
-            gui.setSlot(ItemSkinsGUIConfig.getItemSlot(), new GuiElementBuilder(Items.BARRIER)
-                    .setName(Text.literal("Select an Item"))
-                    .addLoreLine(Text.literal("Click an item in your inventory below.")));
+            gui.getFilterManager().addFilter(
+                    "selected-item",
+                    new SelectedItemFilter(),
+                    config.getButtonConfig("filter.show-skins-for-selected-item-disabled"),
+                    config.getButtonConfig("filter.show-skins-for-selected-item-enabled"),
+                    true,
+                    true
+            );
 
             setupDynamicSlots(gui, handStack);
+
             gui.reinitialize(provider, action);
 
             gui.setLockPlayerInventory(true);
@@ -77,7 +83,22 @@ public class ItemSkinsGUI {
 
 
     private static void setupDynamicSlots(PagedItemDisplayGui gui, ItemStack targetStack) {
-        gui.setSlot(ItemSkinsGUIConfig.getItemSlot(), targetStack.copy());
+        if(targetStack.getItem() == Items.AIR || targetStack.isEmpty() || targetStack.getItem() == null) {
+            gui.setSlot(ItemSkinsGUIConfig.getItemSlot(), new GuiElementBuilder(Items.BARRIER)
+                    .setName(Text.literal("Select item"))
+                    .addLoreLine(Text.literal("Click on the item in your inventory below.")));
+            ((SelectedItemFilter) (gui.getFilterManager().getFilter("selected-item").filter())).setSelectedItem(null);
+            return;
+        }
+
+        gui.setSlot(ItemSkinsGUIConfig.getItemSlot(),
+                new GuiElementBuilder(targetStack.copy())
+                .setCallback(
+                        () -> setupDynamicSlots(gui, ItemStack.EMPTY)
+                )
+        );
+
+        ((SelectedItemFilter) (gui.getFilterManager().getFilter("selected-item").filter())).setSelectedItem(targetStack.getItem());
 
         GUIUtils.setUpButton(gui, ITEM_SKINS_GUI_CONFIG.getButtonConfig("removeSkin"), () -> {
                 targetStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbt -> nbt.remove("cosmeticItemId")));

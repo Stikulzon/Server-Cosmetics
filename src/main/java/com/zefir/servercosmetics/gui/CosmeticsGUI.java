@@ -40,8 +40,8 @@ public class CosmeticsGUI {
             gui.getFilterManager().addFilter(
                     "permission",
                     new PermissionFilter(player),
-                    config.getButtonConfig("filter.show-all-skins"),
-                    config.getButtonConfig("filter.show-owned-skins"),
+                    config.getButtonConfig("filter.show-owned-skins-disabled"),
+                    config.getButtonConfig("filter.show-owned-skins-enabled"),
                     false
             );
 

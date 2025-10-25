@@ -17,6 +17,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
 import java.util.*;
@@ -54,18 +55,21 @@ public class PagedItemDisplayGui extends SimpleGui {
         List<CustomItemEntry> allItems = provider.getItems();
 
         Predicate<CustomItemEntry> combinedFilter = filterManager.getCombinedPredicate();
+        Set<String> duplicates = new HashSet<>();
+
         List<CustomItemEntry> filteredItems = allItems.stream()
                 .filter(combinedFilter)
+                .filter(entry -> duplicates.add(entry.id()))
                 .sorted(Comparator.comparing(CustomItemEntry::id))
                 .collect(Collectors.toList());
 
-        drawItems(filteredItems);
+        drawItems(filteredItems, combinedFilter);
 
         setupNavigation(filteredItems.size());
         filterManager.drawFilterButtons();
     }
 
-    private void drawItems(List<CustomItemEntry> itemsToDisplay) {
+    private void drawItems(List<CustomItemEntry> itemsToDisplay, Predicate<CustomItemEntry> combinedFilter) {
         int[] displaySlots = guiConfig.getDisplaySlots();
         int itemsPerPage = displaySlots.length;
         int startIndex = currentPage * itemsPerPage;
@@ -93,6 +97,11 @@ public class PagedItemDisplayGui extends SimpleGui {
             } else {
                 clearSlot(slot);
             }
+        }
+
+        if (itemsToDisplay.isEmpty()) {
+            setSlot(displaySlots[0], new GuiElementBuilder(Items.BARRIER)
+                    .setName(Text.literal("No cosmetics available")));
         }
     }
 

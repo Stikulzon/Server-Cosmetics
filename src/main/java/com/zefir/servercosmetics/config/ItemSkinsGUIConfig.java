@@ -43,33 +43,23 @@ public class ItemSkinsGUIConfig extends AbstractGuiConfig {
 
     @Override
     protected void addDefaultButtons(ConfigurationSection buttonsSection) {
-        Map<String, Map<String, Object>> buttonDefaults = new java.util.HashMap<>();
+        super.addDefaultButtons(buttonsSection);
 
-        buttonDefaults.put("next", Map.of(
-                "name", "Next", "item", "minecraft:paper", "textureName", "next", "slotIndex", 51));
-        buttonDefaults.put("previous", Map.of(
-                "name", "Back", "item", "minecraft:paper", "textureName", "previous", "slotIndex", 47));
-        buttonDefaults.put("removeSkin", Map.of(
-                "name", "Remove skin", "item", "minecraft:paper", "textureName", "remove", "slotIndex", 49));
-        buttonDefaults.put("filter.show-all-skins", Map.of(
-                "name", "&bCosmetic Filter", "item", "minecraft:diamond_chestplate", "slotIndex", 10,
-                "lore", List.of("&aAll skins &7(Selected)", "&7Available skins", "", "&aClick to change mode!")));
-        buttonDefaults.put("filter.show-owned-skins", Map.of(
-                "name", "&bCosmetic Filter", "item", "minecraft:golden_chestplate", "slotIndex", 10,
-                "lore", List.of("&7All skins", "&aAvailable skins &7(Selected)", "", "&aClick to change mode!")));
-        buttonDefaults.put("pageIndicator", Map.of(
-                "name", "Page", "item", "minecraft:paper", "slotIndex", 53));
+        buttonDefaults.put("filter.show-skins-for-selected-item-enabled", Map.of(
+                "name", "&bSelected Cosmetics Filter", "item", "minecraft:diamond_chestplate", "slotIndex", 11,
+                "lore", List.of("&aShow skins for selected item only <green>(Enabled)", "", "&aClick to change the mode!", "")));
+        buttonDefaults.put("filter.show-skins-for-selected-item-disabled", Map.of(
+                "name", "&bSelected Cosmetics Filter", "item", "minecraft:golden_chestplate", "slotIndex", 11,
+                "lore", List.of("&7Show skins for selected item only <blue>(Disabled)", "", "&aClick to change the mode!", "")));
 
         buttonDefaults.forEach((buttonName, properties) -> addDefaultButtonToSection(buttonsSection, buttonName, properties));
     }
     @Override
     protected void loadAllNavigationButtons(YamlFile file) {
-        loadNavigationButton(file, "next");
-        loadNavigationButton(file, "previous");
-        loadNavigationButton(file, "removeSkin");
-        loadNavigationButton(file, "filter.show-all-skins");
-        loadNavigationButton(file, "filter.show-owned-skins");
-        loadNavigationButton(file, "pageIndicator");
+        super.loadAllNavigationButtons(file);
+
+        loadNavigationButton(file, "filter.show-skins-for-selected-item-enabled");
+        loadNavigationButton(file, "filter.show-skins-for-selected-item-disabled");
     }
 
     public Text getGuiName() {

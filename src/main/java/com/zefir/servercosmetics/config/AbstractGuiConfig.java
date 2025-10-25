@@ -42,6 +42,7 @@ public abstract class AbstractGuiConfig {
     private List<String> disabledFilters;
     @Getter
     ScreenHandlerType<GenericContainerScreenHandler> screenHandlerType;
+    static final Map<String, Map<String, Object>> buttonDefaults = new java.util.HashMap<>();
 
     @Getter
     protected final Map<String, ConfigManager.NavigationButton> navigationButtons = new HashMap<>();
@@ -210,6 +211,35 @@ public abstract class AbstractGuiConfig {
     protected abstract String getGuiConfigHeader();
     protected abstract void addSpecificDefaults(YamlFile file);
     protected abstract void loadSpecificConfig(YamlFile file);
-    protected abstract void addDefaultButtons(ConfigurationSection buttonsSection);
-    protected abstract void loadAllNavigationButtons(YamlFile file);
+
+    protected void addDefaultButtons(ConfigurationSection buttonsSection) {
+        buttonDefaults.put("next", Map.of(
+                "name", "Next", "item", "minecraft:paper", "textureName", "next", "slotIndex", 51));
+
+        buttonDefaults.put("previous", Map.of(
+                "name", "Back", "item", "minecraft:paper", "textureName", "previous", "slotIndex", 47));
+
+        buttonDefaults.put("removeSkin", Map.of(
+                "name", "Remove skin", "item", "minecraft:paper", "textureName", "remove", "slotIndex", 49));
+
+        buttonDefaults.put("filter.show-owned-skins-enabled", Map.of(
+                "name", "&bOwned Cosmetics Filter", "item", "minecraft:diamond_chestplate", "slotIndex", 10,
+                "lore", List.of("&aShow owned cosmetics only <green>(Enabled)", "", "&aClick to change the mode!", "")));
+        buttonDefaults.put("filter.show-owned-skins-disabled", Map.of(
+                "name", "&bOwned Cosmetics Filter", "item", "minecraft:golden_chestplate", "slotIndex", 10,
+                "lore", List.of("&7Show owned cosmetics only <blue>(Disabled)", "", "&aClick to change the mode!", "")));
+
+        buttonDefaults.put("pageIndicator", Map.of(
+                "name", "Page", "item", "minecraft:paper", "slotIndex", 53));
+    }
+
+    protected void loadAllNavigationButtons(YamlFile file) {
+        loadNavigationButton(file, "next");
+        loadNavigationButton(file, "previous");
+        loadNavigationButton(file, "removeSkin");
+        loadNavigationButton(file, "pageIndicator");
+
+        loadNavigationButton(file, "filter.show-owned-skins-enabled");
+        loadNavigationButton(file, "filter.show-owned-skins-disabled");
+    }
 }
