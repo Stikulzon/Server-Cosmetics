@@ -23,8 +23,7 @@
 		]
 	},
 	"mixins": [
-		"servercosmetics.mixins.json",
-        "servercosmetics.client.mixins.json"
+		"servercosmetics.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.15.11",

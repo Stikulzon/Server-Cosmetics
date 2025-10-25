@@ -32,7 +32,7 @@ public class ServerPlayerEntity$1Mixin {
         if(itemType != null) {
             cosmetics.getCosmeticFor(itemType).tick();
         }
-        return stack;
+        return Utils.filterItemStack(stack, field_29182);
     }
     @Inject(
             method = "updateState",
@@ -58,13 +58,23 @@ public class ServerPlayerEntity$1Mixin {
         return list;
     }
 
+    @ModifyVariable(method = "updateCursorStack",
+            at = @At(
+                    value = "HEAD"
+            ),
+            argsOnly = true
+    )
+    private ItemStack injectFilterItems1(ItemStack stack) {
+        return Utils.filterItemStack(stack, field_29182);
+    }
+
     @ModifyVariable(method = "updateState",
             at = @At(
                     value = "HEAD"
             ),
             argsOnly = true
     )
-    private ItemStack injectFilterItems(ItemStack itemStack) {
-        return Utils.filterItemStack(itemStack, field_29182);
+    private ItemStack injectFilterItems(ItemStack cursorStack) {
+        return Utils.filterItemStack(cursorStack, field_29182);
     }
 }

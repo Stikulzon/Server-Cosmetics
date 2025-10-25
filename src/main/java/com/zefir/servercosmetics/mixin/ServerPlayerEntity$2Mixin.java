@@ -2,6 +2,7 @@ package com.zefir.servercosmetics.mixin;
 
 import com.zefir.servercosmetics.data.ItemType;
 import com.zefir.servercosmetics.ext.ICosmetics;
+import com.zefir.servercosmetics.util.Utils;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.screen.ScreenHandler;
@@ -11,6 +12,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static com.zefir.servercosmetics.util.Utils.getItemTypeForSlot;
@@ -35,5 +37,15 @@ public class ServerPlayerEntity$2Mixin {
                 cosmetics.getCosmeticFor(itemType).tick();
             }
         }
+    }
+
+    @ModifyVariable(method = "onSlotUpdate",
+            at = @At(
+                    value = "HEAD"
+            ),
+            argsOnly = true
+    )
+    private ItemStack injectFilterItems1(ItemStack stack) {
+        return Utils.filterItemStack(stack, field_29183);
     }
 }
