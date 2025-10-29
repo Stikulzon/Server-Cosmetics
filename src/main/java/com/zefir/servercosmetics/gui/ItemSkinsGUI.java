@@ -62,8 +62,8 @@ public class ItemSkinsGUI {
             gui.getFilterManager().addFilter(
                     "selected-item",
                     new SelectedItemFilter(),
-                    config.getButtonConfig("filter.show-skins-for-selected-item-disabled"),
-                    config.getButtonConfig("filter.show-skins-for-selected-item-enabled"),
+                    null,
+                    null,
                     true,
                     true
             );

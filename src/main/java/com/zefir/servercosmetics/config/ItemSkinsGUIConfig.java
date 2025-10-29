@@ -45,12 +45,12 @@ public class ItemSkinsGUIConfig extends AbstractGuiConfig {
     protected void addDefaultButtons(ConfigurationSection buttonsSection) {
         super.addDefaultButtons(buttonsSection);
 
-        buttonDefaults.put("filter.show-skins-for-selected-item-enabled", Map.of(
-                "name", "&bSelected Cosmetics Filter", "item", "minecraft:diamond_chestplate", "slotIndex", 11,
-                "lore", List.of("&aShow skins for selected item only <green>(Enabled)", "", "&aClick to change the mode!", "")));
-        buttonDefaults.put("filter.show-skins-for-selected-item-disabled", Map.of(
-                "name", "&bSelected Cosmetics Filter", "item", "minecraft:golden_chestplate", "slotIndex", 11,
-                "lore", List.of("&7Show skins for selected item only <blue>(Disabled)", "", "&aClick to change the mode!", "")));
+//        buttonDefaults.put("filter.show-skins-for-selected-item-enabled", Map.of(
+//                "name", "&bSelected Cosmetics Filter", "item", "minecraft:diamond_chestplate", "slotIndex", 11,
+//                "lore", List.of("&aShow skins for selected item only <green>(Enabled)", "", "&aClick to change the mode!", "")));
+//        buttonDefaults.put("filter.show-skins-for-selected-item-disabled", Map.of(
+//                "name", "&bSelected Cosmetics Filter", "item", "minecraft:golden_chestplate", "slotIndex", 11,
+//                "lore", List.of("&7Show skins for selected item only <blue>(Disabled)", "", "&aClick to change the mode!", "")));
 
         buttonDefaults.forEach((buttonName, properties) -> addDefaultButtonToSection(buttonsSection, buttonName, properties));
     }
@@ -58,8 +58,8 @@ public class ItemSkinsGUIConfig extends AbstractGuiConfig {
     protected void loadAllNavigationButtons(YamlFile file) {
         super.loadAllNavigationButtons(file);
 
-        loadNavigationButton(file, "filter.show-skins-for-selected-item-enabled");
-        loadNavigationButton(file, "filter.show-skins-for-selected-item-disabled");
+//        loadNavigationButton(file, "filter.show-skins-for-selected-item-enabled");
+//        loadNavigationButton(file, "filter.show-skins-for-selected-item-disabled");
     }
 
     public Text getGuiName() {
