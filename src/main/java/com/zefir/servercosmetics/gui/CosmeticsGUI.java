@@ -75,10 +75,6 @@ public class CosmeticsGUI {
                 }
             });
 
-            gui.setSlot(ItemSkinsGUIConfig.getItemSlot(), new GuiElementBuilder(Items.BARRIER)
-                    .setName(Text.literal("Select an Item"))
-                    .addLoreLine(Text.literal("Click an item in your inventory below.")));
-
             gui.reinitialize(provider, action);
             gui.open();
 

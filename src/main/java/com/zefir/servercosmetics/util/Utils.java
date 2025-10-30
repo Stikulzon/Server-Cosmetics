@@ -191,14 +191,11 @@ public class Utils {
                 if (skinEntry == null) {
                     stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(currentNbt -> currentNbt.remove("cosmeticItemId")));
                     return stack;
-                } else if (skinEntry.type() != ItemType.ITEM_SKIN) {
-                    return stack;
+                } else if (skinEntry.type() == ItemType.ITEM_SKIN && !Permissions.check(player, skinEntry.permission())) {
+                        stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(currentNbt -> currentNbt.remove("cosmeticItemId")));
+                        return stack;
                 }
 
-                if (!Permissions.check(player, skinEntry.permission())) {
-                    stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(currentNbt -> currentNbt.remove("cosmeticItemId")));
-                    return stack;
-                }
 
                 ItemStack skinDefinitionStack = skinEntry.itemStack();
                 CustomModelDataComponent expectedModelData = skinDefinitionStack.get(DataComponentTypes.CUSTOM_MODEL_DATA);
