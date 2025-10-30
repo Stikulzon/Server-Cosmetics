@@ -21,6 +21,8 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.zefir.servercosmetics.datafixer.NbtDatafixer.NEW_NBT_KEY_CUSTOM_ITEM_ID;
+
 public class DatabaseManager {
     private static final String DATABASE_URL = "jdbc:sqlite:cosmetics.db";
     private static final Dao<CosmeticTable, Integer> cosmeticDao;
@@ -134,8 +136,8 @@ public class DatabaseManager {
         NbtComponent customData = stack.get(DataComponentTypes.CUSTOM_DATA);
         if (customData != null) {
             NbtCompound nbt = customData.copyNbt();
-            if (nbt.contains("cosmeticItemId", NbtCompound.STRING_TYPE)) {
-                return nbt.getString("cosmeticItemId");
+            if (nbt.contains(NEW_NBT_KEY_CUSTOM_ITEM_ID, NbtCompound.STRING_TYPE)) {
+                return nbt.getString(NEW_NBT_KEY_CUSTOM_ITEM_ID);
             }
         }
         return null;

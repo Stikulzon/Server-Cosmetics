@@ -10,6 +10,8 @@ import net.minecraft.item.ArmorItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 
+import static com.zefir.servercosmetics.datafixer.NbtDatafixer.NEW_NBT_KEY_CUSTOM_ITEM_ID;
+
 public class ApplySkinAction implements IItemAction {
     private final ItemStack targetItemStack;
     private final int itemDisplaySlot;
@@ -23,7 +25,7 @@ public class ApplySkinAction implements IItemAction {
     public void execute(ServerPlayerEntity player, CustomItemEntry entry, SimpleGui gui) {
 
         targetItemStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp ->
-                comp.apply(nbt -> nbt.putString("cosmeticItemId", entry.id()))
+                comp.apply(nbt -> nbt.putString(NEW_NBT_KEY_CUSTOM_ITEM_ID, entry.id()))
         );
 //        targetItemStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, entry.itemStack().getOrDefault(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(0)));
 

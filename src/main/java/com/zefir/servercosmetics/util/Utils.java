@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.zefir.servercosmetics.datafixer.NbtDatafixer.NEW_NBT_KEY_CUSTOM_ITEM_ID;
+
 public class Utils {
     public static final LegacyComponentSerializer SERIALIZER = LegacyComponentSerializer.builder().hexColors().useUnusualXRepeatedCharacterHexFormat().build();
     public static final MiniMessage MINI_MESSAGE = MiniMessage.builder().tags(StandardTags.defaults()).build();
@@ -183,22 +185,26 @@ public class Utils {
         if (customDataComponent != null) {
             NbtCompound nbt = customDataComponent.copyNbt();
 
-            if (nbt.contains("cosmeticItemId", NbtCompound.STRING_TYPE)) {
-                String itemSkinId = nbt.getString("cosmeticItemId");
+            if (nbt.contains(NEW_NBT_KEY_CUSTOM_ITEM_ID, NbtCompound.STRING_TYPE)) {
+                String itemSkinId = nbt.getString(NEW_NBT_KEY_CUSTOM_ITEM_ID);
 
                 CustomItemEntry skinEntry = CustomItemRegistry.getCosmetic(itemSkinId);
-
                 if (skinEntry == null) {
-                    stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(currentNbt -> currentNbt.remove("cosmeticItemId")));
-                    return stack;
-                } else if (skinEntry.type() == ItemType.ITEM_SKIN && !Permissions.check(player, skinEntry.permission())) {
-                        stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(currentNbt -> currentNbt.remove("cosmeticItemId")));
-                        return stack;
+                    skinEntry = CustomItemRegistry.getCosmetic(itemSkinId + "_" + stack.getItem());
                 }
 
+                if (skinEntry == null) {
+//                    stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(currentNbt -> currentNbt.remove(NEW_NBT_KEY_CUSTOM_ITEM_ID)));
+                    return stack;
+                } else if (skinEntry.type() == ItemType.ITEM_SKIN) {
+                    if(player != null && !Permissions.check(player, skinEntry.permission())) {
+                        originalStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(currentNbt -> currentNbt.remove(NEW_NBT_KEY_CUSTOM_ITEM_ID)));
+                        return originalStack;
+                    }
 
-                ItemStack skinDefinitionStack = skinEntry.itemStack();
-                CustomModelDataComponent expectedModelData = skinDefinitionStack.get(DataComponentTypes.CUSTOM_MODEL_DATA);
+                }
+
+                CustomModelDataComponent expectedModelData = skinEntry.itemStack().get(DataComponentTypes.CUSTOM_MODEL_DATA);
                 stack.set(DataComponentTypes.CUSTOM_MODEL_DATA, expectedModelData);
 
                 return stack;
@@ -207,39 +213,7 @@ public class Utils {
         return originalStack;
     }
 
-    public static ItemStack forceItemStack(ItemStack originalStack) {
-        NbtDatafixer.fixItemStackNbt(originalStack);
-        ItemStack stack = originalStack.copy();
-
-
-        if (stack == null || stack.isEmpty()) {
-            return stack;
-        }
-
-        NbtComponent customDataComponent = stack.get(DataComponentTypes.CUSTOM_DATA);
-
-        if (customDataComponent != null) {
-            NbtCompound nbt = customDataComponent.copyNbt();
-
-            if (nbt.contains("cosmeticItemId", NbtCompound.STRING_TYPE)) {
-                String itemSkinId = nbt.getString("cosmeticItemId");
-
-                CustomItemEntry skinEntry = CustomItemRegistry.getCosmetic(itemSkinId);
-
-                if (skinEntry == null) {
-                    stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(currentNbt -> currentNbt.remove("cosmeticItemId")));
-                    return stack;
-                } else if (skinEntry.type() != ItemType.ITEM_SKIN) {
-                    return stack;
-                }
-
-                ItemStack skinDefinitionStack = skinEntry.itemStack();
-                CustomModelDataComponent expectedModelData = skinDefinitionStack.get(DataComponentTypes.CUSTOM_MODEL_DATA);
-                stack.set(DataComponentTypes.CUSTOM_MODEL_DATA, expectedModelData);
-
-                return stack;
-            }
-        }
-        return originalStack;
+    public static ItemStack filterItemStack(ItemStack originalStack) {
+        return filterItemStack(originalStack, null);
     }
 }

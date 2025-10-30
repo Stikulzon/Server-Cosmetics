@@ -26,7 +26,7 @@ public class EntityMixin {
 //        Entity entity = (Entity) (Object) this;
 //        if(entity instanceof ItemEntity itemEntity) {
 //            ItemEntity newItemEntity = itemEntity.copy();
-//            newItemEntity.setStack(Utils.forceItemStack(itemEntity.getStack()));
+//            newItemEntity.setStack(Utils.filterItemStack(itemEntity.getStack()));
 //            cir.setReturnValue(new EntitySpawnS2CPacket(newItemEntity, entityTrackerEntry));
 //        }
 //    }

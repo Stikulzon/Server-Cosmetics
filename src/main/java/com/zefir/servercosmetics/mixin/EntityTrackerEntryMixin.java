@@ -9,7 +9,6 @@ import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
 import net.minecraft.network.packet.s2c.play.EntityTrackerUpdateS2CPacket;
 import net.minecraft.server.network.EntityTrackerEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -50,7 +49,7 @@ public class EntityTrackerEntryMixin {
     private <T> void onSendPackets(Consumer instance, T t, Operation<Void> original) {
         if(entity instanceof ItemEntity itemEntity) {
             DataTracker dataTracker = entity.getDataTracker();
-            dataTracker.set(ItemEntityMixin.getStackConstant(), Utils.forceItemStack(itemEntity.getStack()));
+            dataTracker.set(ItemEntityMixin.getStackConstant(), Utils.filterItemStack(itemEntity.getStack()));
             List<DataTracker.SerializedEntry<?>> entries = dataTracker.getChangedEntries();
 
 

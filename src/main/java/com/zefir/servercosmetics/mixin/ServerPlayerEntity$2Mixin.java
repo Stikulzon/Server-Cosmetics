@@ -46,6 +46,6 @@ public class ServerPlayerEntity$2Mixin {
             argsOnly = true
     )
     private ItemStack injectFilterItems1(ItemStack stack) {
-        return Utils.filterItemStack(stack, field_29183);
+        return Utils.filterItemStack(stack);
     }
 }

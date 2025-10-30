@@ -32,7 +32,7 @@ public class ServerPlayerEntity$1Mixin {
         if(itemType != null) {
             cosmetics.getCosmeticFor(itemType).tick();
         }
-        return Utils.filterItemStack(stack, field_29182);
+        return Utils.filterItemStack(stack);
     }
     @Inject(
             method = "updateState",
@@ -54,7 +54,7 @@ public class ServerPlayerEntity$1Mixin {
             argsOnly = true
     )
     private DefaultedList<ItemStack> injectFilterItems(DefaultedList<ItemStack> list) {
-        list.replaceAll(stack -> Utils.filterItemStack(stack, field_29182));
+        list.replaceAll(Utils::filterItemStack);
         return list;
     }
 
@@ -65,7 +65,7 @@ public class ServerPlayerEntity$1Mixin {
             argsOnly = true
     )
     private ItemStack injectFilterItems1(ItemStack stack) {
-        return Utils.filterItemStack(stack, field_29182);
+        return Utils.filterItemStack(stack);
     }
 
     @ModifyVariable(method = "updateState",
@@ -75,6 +75,6 @@ public class ServerPlayerEntity$1Mixin {
             argsOnly = true
     )
     private ItemStack injectFilterItems(ItemStack cursorStack) {
-        return Utils.filterItemStack(cursorStack, field_29182);
+        return Utils.filterItemStack(cursorStack);
     }
 }

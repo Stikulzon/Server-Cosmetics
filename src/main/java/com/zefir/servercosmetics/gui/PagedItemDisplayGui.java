@@ -12,6 +12,8 @@ import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import lombok.Getter;
 import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -83,6 +85,11 @@ public class PagedItemDisplayGui extends SimpleGui {
             if (itemIndex < itemsToDisplay.size()) {
                 CustomItemEntry entry = itemsToDisplay.get(itemIndex);
                 ItemStack displayStack = entry.itemStack().copy();
+
+//                displayStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp ->
+//                        comp.apply(nbt -> nbt.putBoolean("isFilter", true)
+//                ));
+
                 GuiElementBuilder element = new GuiElementBuilder(displayStack);
 
                 if (Permissions.check(player, entry.permission(), 4)) {

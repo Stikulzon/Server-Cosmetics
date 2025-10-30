@@ -37,6 +37,6 @@ public class LivingEntityMixin {
                 return Utils.filterItemStack(cosmeticsIS, player);
             }
         }
-        return Utils.forceItemStack(instance);
+        return Utils.filterItemStack(instance);
     }
 }

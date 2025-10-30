@@ -29,6 +29,7 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import static com.zefir.servercosmetics.ServerCosmetics.id;
+import static com.zefir.servercosmetics.datafixer.NbtDatafixer.NEW_NBT_KEY_CUSTOM_ITEM_ID;
 
 public class CustomItemRegistry {
 
@@ -44,7 +45,7 @@ public class CustomItemRegistry {
     }
 
     public static void reloadAll() {
-        clearAll();
+        cosmeticsList.clear();
         initialize();
     }
 
@@ -56,10 +57,6 @@ public class CustomItemRegistry {
     public static void reloadItemSkins() {
         cosmeticsList.clear();
         loadAllItemSkins();
-    }
-
-    private static void clearAll() {
-        cosmeticsList.clear();
     }
 
     private static void loadAllCosmetics() {
@@ -221,10 +218,18 @@ public class CustomItemRegistry {
                         if (!materialKey.contains(":")) {
                             materialKey = "minecraft:" + materialKey.toLowerCase();
                         }
-                        ItemStack itemStack = createItemStack(materialKey, displayName, itemId, lore);
-                        CustomItemEntry entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.ITEM_SKIN, materialKey, sortingPriority, new ArrayList<>(), null);
+//                        if(ServerCosmetics.DEV_ENV) {
+//                            for (int i = 0; i < 25; i++) {
+//                                ItemStack itemStack = createItemStack(materialKey, displayName, itemId + i, lore);
+//                                CustomItemEntry entry = new CustomItemEntry(itemId + i, permission, displayName, lore, itemStack, ItemType.ITEM_SKIN, materialKey, sortingPriority, new ArrayList<>(), null);
+//                                cosmeticsList.add(entry);
+//                            }
+//                        } else {
+                            ItemStack itemStack = createItemStack(materialKey, displayName, itemId, lore);
 
-                        cosmeticsList.add(entry);
+                            CustomItemEntry entry = new CustomItemEntry(itemId + "_" + materialKey, permission, displayName, lore, itemStack, ItemType.ITEM_SKIN, materialKey, sortingPriority, new ArrayList<>(), null);
+                            cosmeticsList.add(entry);
+//                        }
                     }
                 }
             } catch (Exception e) {
@@ -267,7 +272,7 @@ public class CustomItemRegistry {
 
         itemStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT,
                 comp -> comp.apply(
-                        nbt -> nbt.putString("cosmeticItemId", cosmeticOrSkinId))
+                        nbt -> nbt.putString(NEW_NBT_KEY_CUSTOM_ITEM_ID, cosmeticOrSkinId))
         );
 
         if (baseItem instanceof ArmorItem armorItem && armorItem.getType() != ArmorItem.Type.BODY) {

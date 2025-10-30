@@ -8,6 +8,7 @@
     "ItemEntityMixin",
     "ItemStackMixin",
     "LivingEntityMixin",
+    "PlayerInventoryMixin",
     "PlayerManagerMixin",
     "ServerPlayerEntity$1Mixin",
     "ServerPlayerEntity$2Mixin",
