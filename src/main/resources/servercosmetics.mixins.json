@@ -3,6 +3,7 @@
   "package": "com.zefir.servercosmetics.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "DataTrackerMixin",
     "EntityPassengersSetS2CPacketMixin",
     "EntityTrackerEntryMixin",
     "ItemEntityMixin",

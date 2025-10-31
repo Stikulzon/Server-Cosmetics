@@ -7,6 +7,10 @@ import net.minecraft.item.ItemStack;
 
 public class GUIUtils {
     public static void setUpButton(SimpleGui gui, ConfigManager.NavigationButton buttonConfig, Runnable callback) {
+        setUpButton(gui, buttonConfig, callback, buttonConfig.slotIndex());
+    }
+
+    public static void setUpButton(SimpleGui gui, ConfigManager.NavigationButton buttonConfig, Runnable callback, int slotIndex) {
         if (buttonConfig != null) {
             ItemStack itemStack;
             if(buttonConfig.polymerModelData() != null) {
@@ -24,7 +28,7 @@ public class GUIUtils {
                 builder.setCustomModelData(buttonConfig.polymerModelData().value());
             }
 
-            gui.setSlot(buttonConfig.slotIndex(), builder);
+            gui.setSlot(slotIndex, builder);
         }
     }
 }

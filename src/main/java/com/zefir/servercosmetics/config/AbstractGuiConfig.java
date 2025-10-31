@@ -164,23 +164,28 @@ public abstract class AbstractGuiConfig {
 
         List<String> loreStrings = yamlFile.getStringList(basePath + ".lore");
 
+        int slotIndex = yamlFile.getInt(basePath + ".slotIndex");
+        if (yamlFile.getString(basePath + ".slotIndex") == null || yamlFile.getString(basePath + ".slotIndex").isEmpty()) {
+            slotIndex = -1;
+        }
+
         navigationButtons.put(buttonKey, new ConfigManager.NavigationButton(
                 Utils.formatDisplayName(yamlFile.getString(basePath + ".name", "Button " + buttonKey)),
                 item,
                 polymerModelData,
-                yamlFile.getInt(basePath + ".slotIndex"),
+                slotIndex,
                 loreStrings
         ));
     }
 
-    protected void addDefaultButtonToSection(ConfigurationSection buttonsSection, String buttonName, Map<String, Object> properties) {
+    public static void addDefaultButtonToSection(ConfigurationSection buttonsSection, String buttonName, Map<String, Object> properties) {
         ConfigurationSection buttonSection = buttonsSection.getConfigurationSection(buttonName);
         if (buttonSection == null) {
             buttonSection = buttonsSection.createSection(buttonName);
         }
         final ConfigurationSection finalButtonSection = buttonSection;
         properties.forEach((key, value) -> {
-            if (!finalButtonSection.contains(key)) {
+            if (!finalButtonSection.contains(key) && value != null && !value.equals("")) {
                 finalButtonSection.set(key, value);
             }
         });
@@ -229,6 +234,10 @@ public abstract class AbstractGuiConfig {
                 "name", "&bOwned Cosmetics Filter", "item", "minecraft:golden_chestplate", "slotIndex", 10,
                 "lore", List.of("&7Show owned cosmetics only <blue>(Disabled)", "", "&aClick to change the mode!", "")));
 
+        buttonDefaults.put("noCosmeticsAvailable", Map.of(
+                "name", "No cosmetics available", "item", "minecraft:barrier", "slotIndex", "",
+                "lore", List.of()));
+
         buttonDefaults.put("pageIndicator", Map.of(
                 "name", "Page", "item", "minecraft:paper", "slotIndex", 53));
     }
@@ -238,6 +247,7 @@ public abstract class AbstractGuiConfig {
         loadNavigationButton(file, "previous");
         loadNavigationButton(file, "removeSkin");
         loadNavigationButton(file, "pageIndicator");
+        loadNavigationButton(file, "noCosmeticsAvailable");
 
         loadNavigationButton(file, "filter.show-owned-skins-enabled");
         loadNavigationButton(file, "filter.show-owned-skins-disabled");

@@ -12,14 +12,11 @@ import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import lombok.Getter;
 import me.lucko.fabric.api.permissions.v0.Permissions;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
 import java.util.*;
@@ -59,9 +56,17 @@ public class PagedItemDisplayGui extends SimpleGui {
         Predicate<CustomItemEntry> combinedFilter = filterManager.getCombinedPredicate();
         Set<String> duplicates = new HashSet<>();
 
-        List<CustomItemEntry> filteredItems = allItems.stream()
+        List<CustomItemEntry> filteredItems = allItems
+                .stream()
                 .filter(combinedFilter)
-                .filter(entry -> duplicates.add(entry.id()))
+                .filter(entry ->
+                        {
+                            if(entry.id().endsWith(entry.baseItemForModel())){
+                                return duplicates.add(entry.id().replace("_" + entry.baseItemForModel(), ""));
+                            }
+                            return duplicates.add(entry.id());
+                        }
+                )
                 .sorted(Comparator.comparing(CustomItemEntry::id))
                 .collect(Collectors.toList());
 
@@ -86,10 +91,6 @@ public class PagedItemDisplayGui extends SimpleGui {
                 CustomItemEntry entry = itemsToDisplay.get(itemIndex);
                 ItemStack displayStack = entry.itemStack().copy();
 
-//                displayStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp ->
-//                        comp.apply(nbt -> nbt.putBoolean("isFilter", true)
-//                ));
-
                 GuiElementBuilder element = new GuiElementBuilder(displayStack);
 
                 if (Permissions.check(player, entry.permission(), 4)) {
@@ -107,8 +108,7 @@ public class PagedItemDisplayGui extends SimpleGui {
         }
 
         if (itemsToDisplay.isEmpty()) {
-            setSlot(displaySlots[0], new GuiElementBuilder(Items.BARRIER)
-                    .setName(Text.literal("No cosmetics available")));
+            GUIUtils.setUpButton(this, guiConfig.getButtonConfig("noCosmeticsAvailable"), () -> {}, displaySlots[0]);
         }
     }
 

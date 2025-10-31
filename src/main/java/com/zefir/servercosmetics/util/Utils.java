@@ -194,10 +194,10 @@ public class Utils {
                 }
 
                 if (skinEntry == null) {
-//                    stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(currentNbt -> currentNbt.remove(NEW_NBT_KEY_CUSTOM_ITEM_ID)));
+                    stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(currentNbt -> currentNbt.remove(NEW_NBT_KEY_CUSTOM_ITEM_ID)));
                     return stack;
                 } else if (skinEntry.type() == ItemType.ITEM_SKIN) {
-                    if(player != null && !Permissions.check(player, skinEntry.permission())) {
+                    if(player != null && !Permissions.check(player, skinEntry.permission(), 4)) {
                         originalStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(currentNbt -> currentNbt.remove(NEW_NBT_KEY_CUSTOM_ITEM_ID)));
                         return originalStack;
                     }

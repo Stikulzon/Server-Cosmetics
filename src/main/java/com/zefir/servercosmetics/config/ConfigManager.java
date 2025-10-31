@@ -26,8 +26,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.stream.Stream;
 
-//import static com.zefir.servercosmetics.util.Utils.updateServer;
-
 public class ConfigManager {
     public static final Path SERVER_COSMETICS_DIR = FabricLoader.getInstance().getConfigDir().resolve("ServerCosmetics");
 

@@ -20,6 +20,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
+import static com.zefir.servercosmetics.config.ConfigManager.COSMETICS_GUI_CONFIG;
 import static com.zefir.servercosmetics.config.ConfigManager.ITEM_SKINS_GUI_CONFIG;
 import static com.zefir.servercosmetics.datafixer.NbtDatafixer.NEW_NBT_KEY_CUSTOM_ITEM_ID;
 
@@ -85,9 +86,8 @@ public class ItemSkinsGUI {
 
     private static void setupDynamicSlots(PagedItemDisplayGui gui, ItemStack targetStack) {
         if(targetStack.getItem() == Items.AIR || targetStack.isEmpty() || targetStack.getItem() == null) {
-            gui.setSlot(ItemSkinsGUIConfig.getItemSlot(), new GuiElementBuilder(Items.BARRIER)
-                    .setName(Text.literal("Select item"))
-                    .addLoreLine(Text.literal("Click on the item in your inventory below.")));
+            GUIUtils.setUpButton(gui, ITEM_SKINS_GUI_CONFIG.getButtonConfig("selectItem"), () -> {});
+
             ((SelectedItemFilter) (gui.getFilterManager().getFilter("selected-item").filter())).setSelectedItem(null);
             return;
         }
