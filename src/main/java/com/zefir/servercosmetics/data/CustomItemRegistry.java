@@ -50,12 +50,12 @@ public class CustomItemRegistry {
     }
 
     public static void reloadCosmetics() {
-        cosmeticsList.clear();
+        cosmeticsList.removeIf(entry -> entry.type() != ItemType.ITEM_SKIN);
         loadAllCosmetics();
     }
 
     public static void reloadItemSkins() {
-        cosmeticsList.clear();
+        cosmeticsList.removeIf(entry -> entry.type() == ItemType.ITEM_SKIN);
         loadAllItemSkins();
     }
 
