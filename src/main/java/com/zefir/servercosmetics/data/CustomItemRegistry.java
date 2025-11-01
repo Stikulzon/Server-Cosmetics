@@ -185,14 +185,6 @@ public class CustomItemRegistry {
 
                         entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, sortingPriority, List.of(Tags.ENTITY, Tags.ARMOR, Tags.BODY_COSMETIC), new BodyCosmeticsData(polymerModelData, isMirrored, autoAlignment, offsetWhenSneaking, autoscale));
                     } else if (ItemType.valueOf(type.toUpperCase()) == ItemType.HELMET || ItemType.valueOf(type.toUpperCase()) == ItemType.CHESTPLATE || ItemType.valueOf(type.toUpperCase()) == ItemType.LEGGINGS || ItemType.valueOf(type.toUpperCase()) == ItemType.BOOTS) {
-                        if(ServerCosmetics.DEV_ENV) {
-                            for (int i = 0; i < 20; i++) {
-                                entry = new CustomItemEntry(itemId + i, permission, displayName, lore, itemStack,
-                                        ItemType.valueOf(type.toUpperCase()), baseItemMaterial, sortingPriority, List.of(Tags.ARMOR, Tags.ITEM), new ArmorCosmeticsData());
-                                cosmeticsList.add(entry);
-                            }
-                        }
-
                         entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack,
                                 ItemType.valueOf(type.toUpperCase()), baseItemMaterial, sortingPriority, List.of(Tags.ARMOR, Tags.ITEM), new ArmorCosmeticsData());
 
@@ -218,18 +210,10 @@ public class CustomItemRegistry {
                         if (!materialKey.contains(":")) {
                             materialKey = "minecraft:" + materialKey.toLowerCase();
                         }
-//                        if(ServerCosmetics.DEV_ENV) {
-//                            for (int i = 0; i < 25; i++) {
-//                                ItemStack itemStack = createItemStack(materialKey, displayName, itemId + i, lore);
-//                                CustomItemEntry entry = new CustomItemEntry(itemId + i, permission, displayName, lore, itemStack, ItemType.ITEM_SKIN, materialKey, sortingPriority, new ArrayList<>(), null);
-//                                cosmeticsList.add(entry);
-//                            }
-//                        } else {
                             ItemStack itemStack = createItemStack(materialKey, displayName, itemId, lore);
 
                             CustomItemEntry entry = new CustomItemEntry(itemId + "_" + materialKey, permission, displayName, lore, itemStack, ItemType.ITEM_SKIN, materialKey, sortingPriority, new ArrayList<>(), null);
                             cosmeticsList.add(entry);
-//                        }
                     }
                 }
             } catch (Exception e) {
