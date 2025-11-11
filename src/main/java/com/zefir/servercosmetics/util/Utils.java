@@ -42,6 +42,7 @@ import static com.zefir.servercosmetics.datafixer.NbtDatafixer.NEW_NBT_KEY_CUSTO
 public class Utils {
     public static final LegacyComponentSerializer SERIALIZER = LegacyComponentSerializer.builder().hexColors().useUnusualXRepeatedCharacterHexFormat().build();
     public static final MiniMessage MINI_MESSAGE = MiniMessage.builder().tags(StandardTags.defaults()).build();
+    private static final String MODEL_OVERRIDE_KEY = "servercosmeticsModelOverride";
 
     public static Text formatDisplayName(String st) {
         StringBuilder sb = new StringBuilder(st.length());
@@ -131,6 +132,7 @@ public class Utils {
         ItemStack itemStack = original.copy();
         ((IItemStack) (Object) itemStack).server_Cosmetics$setItem(polymerModel.item());
         itemStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(polymerModel.value()));
+        applyModelOverride(itemStack, polymerModel.value());
         return itemStack;
     }
 
@@ -193,34 +195,80 @@ public class Utils {
 
             if (nbt.contains(NEW_NBT_KEY_CUSTOM_ITEM_ID, NbtCompound.STRING_TYPE)) {
                 String itemSkinId = nbt.getString(NEW_NBT_KEY_CUSTOM_ITEM_ID);
+                int overrideModelData = nbt.contains(MODEL_OVERRIDE_KEY, NbtCompound.INT_TYPE) ? nbt.getInt(MODEL_OVERRIDE_KEY) : Integer.MIN_VALUE;
 
                 CustomItemEntry skinEntry = CustomItemRegistry.getCosmetic(itemSkinId);
                 if (skinEntry == null) {
-                    skinEntry = CustomItemRegistry.getCosmetic(itemSkinId + "_" + workingStack.getItem());
+                    Identifier itemId = Registries.ITEM.getId(workingStack.getItem());
+                    if (itemId != null) {
+                        skinEntry = CustomItemRegistry.getCosmetic(itemSkinId + "_" + itemId);
+                    }
                 }
 
                 if (skinEntry == null) {
-                    workingStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(currentNbt -> currentNbt.remove(NEW_NBT_KEY_CUSTOM_ITEM_ID)));
+                    clearCosmeticIdentifiers(workingStack);
                     return workingStack;
-                } else if (skinEntry.type() == ItemType.ITEM_SKIN) {
-                    if (player != null && !Permissions.check(player, skinEntry.permission(), 4)) {
-                        workingStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(currentNbt -> currentNbt.remove(NEW_NBT_KEY_CUSTOM_ITEM_ID)));
-                        return workingStack;
-                    }
+                }
 
+                if (skinEntry.type() != ItemType.ITEM_SKIN) {
+                    if (overrideModelData != Integer.MIN_VALUE) {
+                        workingStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(overrideModelData));
+                        applyModelOverride(workingStack, overrideModelData);
+                    } else {
+                        CustomModelDataComponent expectedModelData = skinEntry.itemStack().get(DataComponentTypes.CUSTOM_MODEL_DATA);
+                        if (expectedModelData != null) {
+                            workingStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, expectedModelData);
+                            applyModelOverride(workingStack, expectedModelData.value());
+                        } else {
+                            workingStack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
+                            clearModelOverride(workingStack);
+                        }
+                    }
+                    return workingStack;
+                }
+
+                if (player != null && !Permissions.check(player, skinEntry.permission(), 4)) {
+                    clearCosmeticIdentifiers(workingStack);
+                    return workingStack;
+                }
+
+                if (overrideModelData != Integer.MIN_VALUE) {
+                    workingStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(overrideModelData));
+                    applyModelOverride(workingStack, overrideModelData);
+                    return workingStack;
                 }
 
                 CustomModelDataComponent expectedModelData = skinEntry.itemStack().get(DataComponentTypes.CUSTOM_MODEL_DATA);
                 if (expectedModelData != null) {
                     workingStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, expectedModelData);
+                    applyModelOverride(workingStack, expectedModelData.value());
                 } else {
                     workingStack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
+                    clearModelOverride(workingStack);
                 }
 
                 return workingStack;
             }
         }
         return workingStack;
+    }
+
+    public static void applyModelOverride(ItemStack stack, int value) {
+        stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT,
+                comp -> comp.apply(nbt -> nbt.putInt(MODEL_OVERRIDE_KEY, value)));
+    }
+
+    public static void clearModelOverride(ItemStack stack) {
+        stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT,
+                comp -> comp.apply(nbt -> nbt.remove(MODEL_OVERRIDE_KEY)));
+    }
+
+    public static void clearCosmeticIdentifiers(ItemStack stack) {
+        stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT,
+                comp -> comp.apply(nbt -> {
+                    nbt.remove(NEW_NBT_KEY_CUSTOM_ITEM_ID);
+                    nbt.remove(MODEL_OVERRIDE_KEY);
+                }));
     }
 
     public static ItemStack filterItemStack(ItemStack originalStack) {

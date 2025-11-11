@@ -8,11 +8,11 @@ import com.zefir.servercosmetics.gui.filters.PermissionFilter;
 import com.zefir.servercosmetics.gui.filters.SelectedItemFilter;
 import com.zefir.servercosmetics.gui.providers.ItemSkinProvider;
 import com.zefir.servercosmetics.util.GUIUtils;
+import com.zefir.servercosmetics.util.Utils;
 import eu.pb4.sgui.api.ClickType;
 import eu.pb4.sgui.api.GuiHelpers;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.screen.slot.SlotActionType;
@@ -20,9 +20,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
-import static com.zefir.servercosmetics.config.ConfigManager.COSMETICS_GUI_CONFIG;
 import static com.zefir.servercosmetics.config.ConfigManager.ITEM_SKINS_GUI_CONFIG;
-import static com.zefir.servercosmetics.datafixer.NbtDatafixer.NEW_NBT_KEY_CUSTOM_ITEM_ID;
 
 public class ItemSkinsGUI {
     public static int openItemSkinsGui(CommandContext<ServerCommandSource> ctx) {
@@ -101,11 +99,11 @@ public class ItemSkinsGUI {
 
         ((SelectedItemFilter) (gui.getFilterManager().getFilter("selected-item").filter())).setSelectedItem(targetStack.getItem());
 
-        GUIUtils.setUpButton(gui, ITEM_SKINS_GUI_CONFIG.getButtonConfig("removeSkin"), () -> {
-                targetStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbt -> nbt.remove(NEW_NBT_KEY_CUSTOM_ITEM_ID)));
-                targetStack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
+    GUIUtils.setUpButton(gui, ITEM_SKINS_GUI_CONFIG.getButtonConfig("removeSkin"), () -> {
+        Utils.clearCosmeticIdentifiers(targetStack);
+        targetStack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
 
-                gui.setSlot(ItemSkinsGUIConfig.getItemSlot(), targetStack.copy());
+        gui.setSlot(ItemSkinsGUIConfig.getItemSlot(), targetStack.copy());
         });
     }
 }

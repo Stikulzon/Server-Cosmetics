@@ -2,6 +2,7 @@ package com.zefir.servercosmetics.gui.actions;
 
 import com.zefir.servercosmetics.data.CustomItemEntry;
 import com.zefir.servercosmetics.gui.core.IItemAction;
+import com.zefir.servercosmetics.util.Utils;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.CustomModelDataComponent;
@@ -27,7 +28,14 @@ public class ApplySkinAction implements IItemAction {
         targetItemStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp ->
                 comp.apply(nbt -> nbt.putString(NEW_NBT_KEY_CUSTOM_ITEM_ID, entry.id()))
         );
-//        targetItemStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, entry.itemStack().getOrDefault(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(0)));
+        CustomModelDataComponent modelData = entry.itemStack().get(DataComponentTypes.CUSTOM_MODEL_DATA);
+        if (modelData != null) {
+            targetItemStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, modelData);
+            Utils.applyModelOverride(targetItemStack, modelData.value());
+        } else {
+            targetItemStack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
+            Utils.clearModelOverride(targetItemStack);
+        }
 
         if (entry.itemStack().getItem() instanceof ArmorItem armorItem && armorItem.getType() != ArmorItem.Type.BODY) {
             // TODO: Rewrite the whole itemskins thing

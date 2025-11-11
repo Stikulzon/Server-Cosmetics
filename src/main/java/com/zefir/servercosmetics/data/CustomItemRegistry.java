@@ -272,6 +272,7 @@ public class CustomItemRegistry {
         }
 
         itemStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(polymerModel.value()));
+        Utils.applyModelOverride(itemStack, polymerModel.value());
         itemStack.set(DataComponentTypes.CUSTOM_NAME, displayName);
 
         return itemStack;
@@ -279,10 +280,10 @@ public class CustomItemRegistry {
 
     private static Item getItemFor(ArmorItem.Type type) {
         return switch (type) {
-            case ArmorItem.Type.HELMET -> Items.LEATHER_HELMET;
-            case ArmorItem.Type.CHESTPLATE -> Items.LEATHER_CHESTPLATE;
-            case ArmorItem.Type.LEGGINGS -> Items.LEATHER_LEGGINGS;
-            case ArmorItem.Type.BOOTS -> Items.LEATHER_BOOTS;
+            case HELMET -> Items.LEATHER_HELMET;
+            case CHESTPLATE -> Items.LEATHER_CHESTPLATE;
+            case LEGGINGS -> Items.LEATHER_LEGGINGS;
+            case BOOTS -> Items.LEATHER_BOOTS;
             default -> Items.STONE;
         };
     }
