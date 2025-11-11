@@ -245,11 +245,18 @@ public class Utils {
             CustomModelDataComponent expectedModelData = skinEntry.itemStack().get(DataComponentTypes.CUSTOM_MODEL_DATA);
             if (expectedModelData != null) {
                 ensureBaseModelData(workingStack, expectedModelData.value());
-                setActiveModel(workingStack, expectedModelData.value());
-            } else if (overrideModelData != Integer.MIN_VALUE) {
-                setActiveModel(workingStack, overrideModelData);
-            } else if (baseModelData != Integer.MIN_VALUE) {
-                setActiveModel(workingStack, baseModelData);
+                if (baseModelData == Integer.MIN_VALUE) {
+                    baseModelData = expectedModelData.value();
+                }
+            }
+
+            int desiredModel = overrideModelData != Integer.MIN_VALUE
+                    ? overrideModelData
+                    : (baseModelData != Integer.MIN_VALUE ? baseModelData
+                    : (expectedModelData != null ? expectedModelData.value() : Integer.MIN_VALUE));
+
+            if (desiredModel != Integer.MIN_VALUE) {
+                setActiveModel(workingStack, desiredModel);
             } else {
                 workingStack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
                 clearModelOverride(workingStack);
