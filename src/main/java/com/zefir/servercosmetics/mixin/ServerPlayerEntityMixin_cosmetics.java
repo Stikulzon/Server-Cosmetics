@@ -5,6 +5,7 @@ import com.zefir.servercosmetics.ext.ICosmetic;
 import com.zefir.servercosmetics.ext.ICosmetics;
 import com.zefir.servercosmetics.util.ArmorCosmetic;
 import com.zefir.servercosmetics.util.BodyCosmetic;
+import com.zefir.servercosmetics.util.Utils;
 import lombok.extern.slf4j.Slf4j;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -44,6 +45,7 @@ public abstract class ServerPlayerEntityMixin_cosmetics implements ICosmetics {
     @Override
     public void tickArmor(){
         cosmeticsList.forEach(ICosmetic::tick);
+        Utils.updateShieldBlockingState((ServerPlayerEntity) (Object) this);
     }
 
     @Override

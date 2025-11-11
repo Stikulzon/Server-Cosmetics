@@ -12,7 +12,6 @@ import com.zefir.servercosmetics.util.Utils;
 import eu.pb4.sgui.api.ClickType;
 import eu.pb4.sgui.api.GuiHelpers;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
-import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.screen.slot.SlotActionType;
@@ -101,7 +100,6 @@ public class ItemSkinsGUI {
 
     GUIUtils.setUpButton(gui, ITEM_SKINS_GUI_CONFIG.getButtonConfig("removeSkin"), () -> {
         Utils.clearCosmeticIdentifiers(targetStack);
-        targetStack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
 
         gui.setSlot(ItemSkinsGUIConfig.getItemSlot(), targetStack.copy());
         });

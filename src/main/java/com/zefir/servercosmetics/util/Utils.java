@@ -3,6 +3,7 @@ package com.zefir.servercosmetics.util;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.datafixers.util.Pair;
 import com.zefir.servercosmetics.ServerCosmetics;
 import com.zefir.servercosmetics.data.CustomItemEntry;
 import com.zefir.servercosmetics.data.CustomItemRegistry;
@@ -20,18 +21,23 @@ import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.component.type.NbtComponent;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.network.packet.s2c.play.EntityEquipmentUpdateS2CPacket;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Hand;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,6 +49,8 @@ public class Utils {
     public static final LegacyComponentSerializer SERIALIZER = LegacyComponentSerializer.builder().hexColors().useUnusualXRepeatedCharacterHexFormat().build();
     public static final MiniMessage MINI_MESSAGE = MiniMessage.builder().tags(StandardTags.defaults()).build();
     private static final String MODEL_OVERRIDE_KEY = "servercosmeticsModelOverride";
+    private static final String MODEL_BASE_KEY = "servercosmeticsModelBase";
+    private static final String MODEL_BLOCKING_KEY = "servercosmeticsBlockingModel";
 
     public static Text formatDisplayName(String st) {
         StringBuilder sb = new StringBuilder(st.length());
@@ -131,8 +139,7 @@ public class Utils {
     public static ItemStack getTiltedItemStack(ItemStack original, PolymerModelData polymerModel){
         ItemStack itemStack = original.copy();
         ((IItemStack) (Object) itemStack).server_Cosmetics$setItem(polymerModel.item());
-        itemStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(polymerModel.value()));
-        applyModelOverride(itemStack, polymerModel.value());
+        initializeModelData(itemStack, polymerModel.value(), null);
         return itemStack;
     }
 
@@ -181,7 +188,6 @@ public class Utils {
         boolean mutateOriginal = player != null;
         ItemStack workingStack = mutateOriginal ? originalStack : originalStack.copy();
 
-        // Ensure legacy data is migrated without mutating the live stack during network encoding.
         NbtDatafixer.fixItemStackNbt(workingStack);
 
         if (workingStack.isEmpty()) {
@@ -189,73 +195,119 @@ public class Utils {
         }
 
         NbtComponent customDataComponent = workingStack.get(DataComponentTypes.CUSTOM_DATA);
+        if (customDataComponent == null) {
+            return workingStack;
+        }
 
-        if (customDataComponent != null) {
-            NbtCompound nbt = customDataComponent.copyNbt();
+        NbtCompound nbt = customDataComponent.copyNbt();
+        if (!nbt.contains(NEW_NBT_KEY_CUSTOM_ITEM_ID, NbtCompound.STRING_TYPE)) {
+            return workingStack;
+        }
 
-            if (nbt.contains(NEW_NBT_KEY_CUSTOM_ITEM_ID, NbtCompound.STRING_TYPE)) {
-                String itemSkinId = nbt.getString(NEW_NBT_KEY_CUSTOM_ITEM_ID);
-                int overrideModelData = nbt.contains(MODEL_OVERRIDE_KEY, NbtCompound.INT_TYPE) ? nbt.getInt(MODEL_OVERRIDE_KEY) : Integer.MIN_VALUE;
+        String itemSkinId = nbt.getString(NEW_NBT_KEY_CUSTOM_ITEM_ID);
 
-                CustomItemEntry skinEntry = CustomItemRegistry.getCosmetic(itemSkinId);
-                if (skinEntry == null) {
-                    Identifier itemId = Registries.ITEM.getId(workingStack.getItem());
-                    if (itemId != null) {
-                        skinEntry = CustomItemRegistry.getCosmetic(itemSkinId + "_" + itemId);
-                    }
-                }
-
-                if (skinEntry == null) {
-                    clearCosmeticIdentifiers(workingStack);
-                    return workingStack;
-                }
-
-                if (skinEntry.type() != ItemType.ITEM_SKIN) {
-                    if (overrideModelData != Integer.MIN_VALUE) {
-                        workingStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(overrideModelData));
-                        applyModelOverride(workingStack, overrideModelData);
-                    } else {
-                        CustomModelDataComponent expectedModelData = skinEntry.itemStack().get(DataComponentTypes.CUSTOM_MODEL_DATA);
-                        if (expectedModelData != null) {
-                            workingStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, expectedModelData);
-                            applyModelOverride(workingStack, expectedModelData.value());
-                        } else {
-                            workingStack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
-                            clearModelOverride(workingStack);
-                        }
-                    }
-                    return workingStack;
-                }
-
-                if (player != null && !Permissions.check(player, skinEntry.permission(), 4)) {
-                    clearCosmeticIdentifiers(workingStack);
-                    return workingStack;
-                }
-
-                if (overrideModelData != Integer.MIN_VALUE) {
-                    workingStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(overrideModelData));
-                    applyModelOverride(workingStack, overrideModelData);
-                    return workingStack;
-                }
-
-                CustomModelDataComponent expectedModelData = skinEntry.itemStack().get(DataComponentTypes.CUSTOM_MODEL_DATA);
-                if (expectedModelData != null) {
-                    workingStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, expectedModelData);
-                    applyModelOverride(workingStack, expectedModelData.value());
-                } else {
-                    workingStack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
-                    clearModelOverride(workingStack);
-                }
-
-                return workingStack;
+        CustomItemEntry skinEntry = CustomItemRegistry.getCosmetic(itemSkinId);
+        if (skinEntry == null) {
+            Identifier itemId = Registries.ITEM.getId(workingStack.getItem());
+            if (itemId != null) {
+                skinEntry = CustomItemRegistry.getCosmetic(itemSkinId + "_" + itemId);
             }
         }
+
+        if (skinEntry == null) {
+            clearCosmeticIdentifiers(workingStack);
+            return workingStack;
+        }
+
+        if (mutateOriginal) {
+            NbtComponent definitionData = skinEntry.itemStack().get(DataComponentTypes.CUSTOM_DATA);
+            if (definitionData != null) {
+                NbtCompound definitionNbt = definitionData.copyNbt();
+                if (!nbt.contains(MODEL_BASE_KEY, NbtCompound.INT_TYPE) && definitionNbt.contains(MODEL_BASE_KEY, NbtCompound.INT_TYPE)) {
+                    int baseValue = definitionNbt.getInt(MODEL_BASE_KEY);
+                    workingStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT,
+                            comp -> comp.apply(dataNbt -> dataNbt.putInt(MODEL_BASE_KEY, baseValue)));
+                    nbt.putInt(MODEL_BASE_KEY, baseValue);
+                }
+                if (!nbt.contains(MODEL_BLOCKING_KEY, NbtCompound.INT_TYPE) && definitionNbt.contains(MODEL_BLOCKING_KEY, NbtCompound.INT_TYPE)) {
+                    int blockingValue = definitionNbt.getInt(MODEL_BLOCKING_KEY);
+                    workingStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT,
+                            comp -> comp.apply(dataNbt -> dataNbt.putInt(MODEL_BLOCKING_KEY, blockingValue)));
+                    nbt.putInt(MODEL_BLOCKING_KEY, blockingValue);
+                }
+            }
+        }
+
+        int overrideModelData = readModelValue(nbt, MODEL_OVERRIDE_KEY);
+        int baseModelData = readModelValue(nbt, MODEL_BASE_KEY);
+
+        if (skinEntry.type() != ItemType.ITEM_SKIN) {
+            CustomModelDataComponent expectedModelData = skinEntry.itemStack().get(DataComponentTypes.CUSTOM_MODEL_DATA);
+            if (expectedModelData != null) {
+                ensureBaseModelData(workingStack, expectedModelData.value());
+                setActiveModel(workingStack, expectedModelData.value());
+            } else if (overrideModelData != Integer.MIN_VALUE) {
+                setActiveModel(workingStack, overrideModelData);
+            } else if (baseModelData != Integer.MIN_VALUE) {
+                setActiveModel(workingStack, baseModelData);
+            } else {
+                workingStack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
+                clearModelOverride(workingStack);
+            }
+            return workingStack;
+        }
+
+        if (player != null && !Permissions.check(player, skinEntry.permission(), 4)) {
+            clearCosmeticIdentifiers(workingStack);
+            return workingStack;
+        }
+
+        CustomModelDataComponent expectedModelData = skinEntry.itemStack().get(DataComponentTypes.CUSTOM_MODEL_DATA);
+        if (expectedModelData != null) {
+            ensureBaseModelData(workingStack, expectedModelData.value());
+            if (overrideModelData == Integer.MIN_VALUE) {
+                setActiveModel(workingStack, expectedModelData.value());
+            } else {
+                workingStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(overrideModelData));
+            }
+        } else {
+            workingStack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
+            clearModelOverride(workingStack);
+        }
+
         return workingStack;
     }
 
-    public static void applyModelOverride(ItemStack stack, int value) {
+    private static int readModelValue(NbtCompound nbt, String key) {
+        return nbt.contains(key, NbtCompound.INT_TYPE) ? nbt.getInt(key) : Integer.MIN_VALUE;
+    }
+
+    public static void initializeModelData(ItemStack stack, int baseModelValue, @Nullable Integer blockingModelValue) {
+        setActiveModel(stack, baseModelValue);
         stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT,
-                comp -> comp.apply(nbt -> nbt.putInt(MODEL_OVERRIDE_KEY, value)));
+                comp -> comp.apply(nbt -> {
+                    nbt.putInt(MODEL_BASE_KEY, baseModelValue);
+                    if (blockingModelValue != null) {
+                        nbt.putInt(MODEL_BLOCKING_KEY, blockingModelValue);
+                    } else {
+                        nbt.remove(MODEL_BLOCKING_KEY);
+                    }
+                }));
+    }
+
+    public static void ensureBaseModelData(ItemStack stack, int baseModelValue) {
+        stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT,
+                comp -> comp.apply(nbt -> {
+                    if (!nbt.contains(MODEL_BASE_KEY, NbtCompound.INT_TYPE)) {
+                        nbt.putInt(MODEL_BASE_KEY, baseModelValue);
+                    }
+                }));
+    }
+
+    public static void setActiveModel(ItemStack stack, int modelValue) {
+        stack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(modelValue));
+        stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT,
+                comp -> comp.apply(nbt -> nbt.putInt(MODEL_OVERRIDE_KEY, modelValue)));
     }
 
     public static void clearModelOverride(ItemStack stack) {
@@ -263,12 +315,114 @@ public class Utils {
                 comp -> comp.apply(nbt -> nbt.remove(MODEL_OVERRIDE_KEY)));
     }
 
+    public static void clearModelOverride(ItemStack stack, boolean removeModelComponent) {
+        clearModelOverride(stack);
+        if (removeModelComponent) {
+            stack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
+        }
+    }
+
     public static void clearCosmeticIdentifiers(ItemStack stack) {
         stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT,
                 comp -> comp.apply(nbt -> {
                     nbt.remove(NEW_NBT_KEY_CUSTOM_ITEM_ID);
                     nbt.remove(MODEL_OVERRIDE_KEY);
+                    nbt.remove(MODEL_BASE_KEY);
+                    nbt.remove(MODEL_BLOCKING_KEY);
                 }));
+        stack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
+    }
+
+    public static void copyModelData(ItemStack source, ItemStack target) {
+        NbtComponent sourceData = source.get(DataComponentTypes.CUSTOM_DATA);
+        if (sourceData == null) {
+            clearModelOverride(target, true);
+            target.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT,
+                    comp -> comp.apply(nbt -> {
+                        nbt.remove(MODEL_BASE_KEY);
+                        nbt.remove(MODEL_BLOCKING_KEY);
+                    }));
+        } else {
+            NbtCompound srcNbt = sourceData.copyNbt();
+            target.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT,
+                    comp -> comp.apply(nbt -> {
+                        copyKey(srcNbt, nbt, MODEL_BASE_KEY);
+                        copyKey(srcNbt, nbt, MODEL_BLOCKING_KEY);
+                        copyKey(srcNbt, nbt, MODEL_OVERRIDE_KEY);
+                    }));
+        }
+
+        CustomModelDataComponent sourceModel = source.get(DataComponentTypes.CUSTOM_MODEL_DATA);
+        if (sourceModel != null) {
+            target.set(DataComponentTypes.CUSTOM_MODEL_DATA, sourceModel);
+        } else {
+            target.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
+        }
+    }
+
+    private static void copyKey(NbtCompound src, NbtCompound dst, String key) {
+        if (src.contains(key, NbtCompound.INT_TYPE)) {
+            dst.putInt(key, src.getInt(key));
+        } else {
+            dst.remove(key);
+        }
+    }
+
+    public static void updateShieldBlockingState(ServerPlayerEntity player) {
+        boolean blocking = player.isBlocking();
+        Hand activeHand = blocking ? player.getActiveHand() : null;
+
+        boolean mainChanged = updateShieldStack(player.getMainHandStack(), blocking && activeHand == Hand.MAIN_HAND);
+        boolean offChanged = updateShieldStack(player.getOffHandStack(), blocking && activeHand == Hand.OFF_HAND);
+
+        if (mainChanged || offChanged) {
+            player.playerScreenHandler.sendContentUpdates();
+
+            List<Pair<EquipmentSlot, ItemStack>> updates = new ArrayList<>();
+            if (mainChanged) {
+                updates.add(new Pair<>(EquipmentSlot.MAINHAND, player.getMainHandStack().copy()));
+            }
+            if (offChanged) {
+                updates.add(new Pair<>(EquipmentSlot.OFFHAND, player.getOffHandStack().copy()));
+            }
+
+            if (!updates.isEmpty()) {
+                player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
+                        new EntityEquipmentUpdateS2CPacket(player.getId(), updates));
+            }
+        }
+    }
+
+    private static boolean updateShieldStack(ItemStack stack, boolean useBlockingModel) {
+        if (stack == null || stack.isEmpty()) {
+            return false;
+        }
+
+        NbtComponent data = stack.get(DataComponentTypes.CUSTOM_DATA);
+        if (data == null) {
+            return false;
+        }
+
+        NbtCompound nbt = data.copyNbt();
+        if (!nbt.contains(MODEL_BLOCKING_KEY, NbtCompound.INT_TYPE)) {
+            return false;
+        }
+
+        int baseModel = readModelValue(nbt, MODEL_BASE_KEY);
+        int blockingModel = nbt.getInt(MODEL_BLOCKING_KEY);
+        int currentModel = readModelValue(nbt, MODEL_OVERRIDE_KEY);
+        if (currentModel == Integer.MIN_VALUE) {
+            currentModel = baseModel;
+        }
+
+        int desiredModel = useBlockingModel ? blockingModel : (baseModel != Integer.MIN_VALUE ? baseModel : blockingModel);
+
+        if (currentModel == desiredModel) {
+            return false;
+        }
+
+        setActiveModel(stack, desiredModel);
+        return true;
     }
 
     public static ItemStack filterItemStack(ItemStack originalStack) {
