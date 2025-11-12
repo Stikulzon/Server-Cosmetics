@@ -38,14 +38,4 @@ public class ServerPlayerEntity$2Mixin {
             }
         }
     }
-
-    @ModifyVariable(method = "onSlotUpdate",
-            at = @At(
-                    value = "HEAD"
-            ),
-            argsOnly = true
-    )
-    private ItemStack injectFilterItems1(ItemStack stack) {
-        return Utils.filterItemStack(stack);
-    }
 }
