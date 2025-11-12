@@ -18,25 +18,25 @@ import static com.zefir.servercosmetics.util.Utils.getItemTypeForSlot;
 
 @Mixin(LivingEntity.class)
 public class LivingEntityMixin {
-//    @Redirect(
-//            method = "method_30120",
-//            at = @At(
-//                    value = "INVOKE",
-//                    target = "Lnet/minecraft/item/ItemStack;copy()Lnet/minecraft/item/ItemStack;",
-//                    ordinal = 0
-//            )
-//    )
-//    ItemStack modifyArmorItemStack (ItemStack instance, List<Pair<EquipmentSlot, ItemStack>> list, EquipmentSlot slot, ItemStack stack) {
-//        if ((LivingEntity) (Object) this instanceof ServerPlayerEntity player){
-//            ItemType itemType = getItemTypeForSlot(8 - slot.getEntitySlotId());
-//            if (itemType == null) {
-//                throw new IllegalStateException("Invalid slot for cosmetic: " + (slot.getEntitySlotId() - 8));
-//            }
-//            ItemStack cosmeticsIS = DatabaseManager.getCosmeticItemStack(player, itemType);
-//            if (cosmeticsIS != ItemStack.EMPTY) {
-//                return Utils.filterItemStack(cosmeticsIS, player);
-//            }
-//        }
-//        return Utils.filterItemStack(instance);
-//    }
+    @Redirect(
+            method = "method_30120",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/item/ItemStack;copy()Lnet/minecraft/item/ItemStack;",
+                    ordinal = 0
+            )
+    )
+    ItemStack modifyArmorItemStack (ItemStack instance, List<Pair<EquipmentSlot, ItemStack>> list, EquipmentSlot slot, ItemStack stack) {
+        if ((LivingEntity) (Object) this instanceof ServerPlayerEntity player){
+            ItemType itemType = getItemTypeForSlot(8 - slot.getEntitySlotId());
+            if (itemType == null) {
+                throw new IllegalStateException("Invalid slot for cosmetic: " + (slot.getEntitySlotId() - 8));
+            }
+            ItemStack cosmeticsIS = DatabaseManager.getCosmeticItemStack(player, itemType);
+            if (cosmeticsIS != ItemStack.EMPTY) {
+                return Utils.filterItemStack(cosmeticsIS, player);
+            }
+        }
+        return Utils.filterItemStack(instance);
+    }
 }

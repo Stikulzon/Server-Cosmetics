@@ -32,7 +32,7 @@ public class ServerPlayerEntity$1Mixin {
         if(itemType != null) {
             cosmetics.getCosmeticFor(itemType).tick();
         }
-        return stack;
+        return Utils.filterItemStack(stack);
     }
     @Inject(
             method = "updateState",
@@ -45,5 +45,36 @@ public class ServerPlayerEntity$1Mixin {
             ICosmetics cosmetics = (ICosmetics) field_29182;
             cosmetics.tickArmor();
         }
+    }
+
+    @ModifyVariable(method = "updateState",
+            at = @At(
+                    value = "HEAD"
+            ),
+            argsOnly = true
+    )
+    private DefaultedList<ItemStack> injectFilterItems(DefaultedList<ItemStack> list) {
+        list.replaceAll(Utils::filterItemStack);
+        return list;
+    }
+
+    @ModifyVariable(method = "updateCursorStack",
+            at = @At(
+                    value = "HEAD"
+            ),
+            argsOnly = true
+    )
+    private ItemStack injectFilterItems1(ItemStack stack) {
+        return Utils.filterItemStack(stack);
+    }
+
+    @ModifyVariable(method = "updateState",
+            at = @At(
+                    value = "HEAD"
+            ),
+            argsOnly = true
+    )
+    private ItemStack injectFilterItems(ItemStack cursorStack) {
+        return Utils.filterItemStack(cursorStack);
     }
 }

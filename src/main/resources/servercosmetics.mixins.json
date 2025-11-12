@@ -3,6 +3,7 @@
   "package": "com.zefir.servercosmetics.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "DataTrackerMixin",
     "EntityPassengersSetS2CPacketMixin",
     "EntityTrackerEntryMixin",
     "ItemEntityMixin",
@@ -10,8 +11,6 @@
     "LivingEntityMixin",
     "PlayerInventoryMixin",
     "PlayerManagerMixin",
-    "PolymerItemStackMixinMixin",
-    "PolymerItemStackPacketCodecMixin",
     "ServerPlayerEntity$1Mixin",
     "ServerPlayerEntity$2Mixin",
     "ServerPlayerEntityMixin_cosmetics",
