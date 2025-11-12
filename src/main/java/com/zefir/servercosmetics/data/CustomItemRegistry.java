@@ -230,7 +230,6 @@ public class CustomItemRegistry {
         }
 
         PolymerModelData polymerModel;
-        Integer blockingModelData = null;
         try {
             if (baseItem instanceof ArmorItem armorItem && armorItem.getType() != ArmorItem.Type.BODY) {
 
@@ -244,16 +243,6 @@ public class CustomItemRegistry {
 
             } else {
                 polymerModel = PolymerResourcePackUtils.requestModel(baseItem, Identifier.of(ServerCosmetics.MOD_ID, "item/" + cosmeticOrSkinId));
-                if (baseItem instanceof net.minecraft.item.ShieldItem) {
-                    try {
-                        PolymerModelData blockingModel = PolymerResourcePackUtils.requestModel(baseItem, Identifier.of(ServerCosmetics.MOD_ID, "item/" + cosmeticOrSkinId + "_blocking"));
-                        blockingModelData = blockingModel.value();
-                    } catch (Exception ignored) {
-                        if (ServerCosmetics.LOGGER.isDebugEnabled()) {
-                            ServerCosmetics.LOGGER.debug("No blocking model defined for shield cosmetic '{}'.", cosmeticOrSkinId);
-                        }
-                    }
-                }
             }
         } catch (Exception e) {
             ServerCosmetics.LOGGER.error("Failed to request model for item id '{}' with base item '{}': {}", cosmeticOrSkinId, baseMaterialId, e.getMessage());
@@ -269,8 +258,6 @@ public class CustomItemRegistry {
                 comp -> comp.apply(
                         nbt -> nbt.putString(NEW_NBT_KEY_CUSTOM_ITEM_ID, cosmeticOrSkinId))
         );
-
-        Utils.initializeModelData(itemStack, polymerModel.value(), blockingModelData);
 
         if (baseItem instanceof ArmorItem armorItem && armorItem.getType() != ArmorItem.Type.BODY) {
             String armorId = cosmeticOrSkinId.replace("_" + armorItem.getType().getName().toLowerCase(), "");
@@ -292,13 +279,14 @@ public class CustomItemRegistry {
 
     private static Item getItemFor(ArmorItem.Type type) {
         return switch (type) {
-            case HELMET -> Items.LEATHER_HELMET;
-            case CHESTPLATE -> Items.LEATHER_CHESTPLATE;
-            case LEGGINGS -> Items.LEATHER_LEGGINGS;
-            case BOOTS -> Items.LEATHER_BOOTS;
+            case ArmorItem.Type.HELMET -> Items.LEATHER_HELMET;
+            case ArmorItem.Type.CHESTPLATE -> Items.LEATHER_CHESTPLATE;
+            case ArmorItem.Type.LEGGINGS -> Items.LEATHER_LEGGINGS;
+            case ArmorItem.Type.BOOTS -> Items.LEATHER_BOOTS;
             default -> Items.STONE;
         };
     }
+
     // --- Accessor methods ---
 
     public static CustomItemEntry getCosmetic(String id) {
