@@ -2,7 +2,6 @@ package com.zefir.servercosmetics.mixin;
 
 import com.zefir.servercosmetics.data.ItemType;
 import com.zefir.servercosmetics.ext.ICosmetics;
-import com.zefir.servercosmetics.util.Utils;
 import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket;
 import net.minecraft.network.packet.c2s.play.PickFromInventoryC2SPacket;
 import net.minecraft.screen.PlayerScreenHandler;

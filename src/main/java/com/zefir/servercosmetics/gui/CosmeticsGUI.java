@@ -2,16 +2,13 @@ package com.zefir.servercosmetics.gui;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.zefir.servercosmetics.ServerCosmetics;
-import com.zefir.servercosmetics.config.ItemSkinsGUIConfig;
 import com.zefir.servercosmetics.data.ItemType;
 import com.zefir.servercosmetics.gui.actions.EquipCosmeticAction;
 import com.zefir.servercosmetics.gui.filters.ItemTypeFilter;
 import com.zefir.servercosmetics.gui.filters.PermissionFilter;
 import com.zefir.servercosmetics.gui.providers.StandaloneCosmeticProvider;
 import com.zefir.servercosmetics.util.GUIUtils;
-import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;

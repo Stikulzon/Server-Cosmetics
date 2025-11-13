@@ -16,6 +16,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.List;
+
 @Mixin(targets = "net.minecraft.server.network.ServerPlayerEntity$1")
 public class ServerPlayerEntity$1Mixin {
     @Final
@@ -40,7 +42,7 @@ public class ServerPlayerEntity$1Mixin {
                     value = "TAIL"
             )
     )
-    void modifyArmorItemStack (ScreenHandler handler, DefaultedList<ItemStack> stacks, ItemStack cursorStack, int[] properties, CallbackInfo ci) {
+    void modifyArmorItemStack (ScreenHandler handler, List<ItemStack> stacks, ItemStack cursorStack, int[] properties, CallbackInfo ci) {
         if(handler instanceof PlayerScreenHandler) {
             ICosmetics cosmetics = (ICosmetics) field_29182;
             cosmetics.tickArmor();

@@ -18,21 +18,6 @@ import java.util.List;
 
 @Mixin(value = ItemStack.class, priority = 1500)
 public class PolymerItemStackMixinMixin {
-//    @TargetHandler(
-//            mixin = "eu.pb4.polymer.core.mixin.item.ItemStackMixin",
-//            name = "lambda$patchCodec$0"
-//    )
-//    @WrapOperation(
-//            method = "@MixinSquared:Handler",
-//            at = @At(
-//                    value = "INVOKE",
-//                    target = "Leu/pb4/polymer/core/api/item/PolymerItemUtils;getRealItemStack(Lnet/minecraft/item/ItemStack;Lnet/minecraft/registry/RegistryWrapper$WrapperLookup;)Lnet/minecraft/item/ItemStack;"
-//            )
-//    )
-//    private static ItemStack reduceLogLevel(ItemStack itemStack, RegistryWrapper.WrapperLookup lookup, Operation<ItemStack> original) {
-//        return original.call(Utils.filterItemStack(itemStack), lookup);
-//    }
-
     @TargetHandler(
             mixin = "eu.pb4.polymer.core.mixin.item.ItemStackMixin",
             name = "lambda$patchCodec$1"

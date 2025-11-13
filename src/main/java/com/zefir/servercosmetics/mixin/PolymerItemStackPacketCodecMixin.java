@@ -27,19 +27,4 @@ public class PolymerItemStackPacketCodecMixin {
     private static ItemStack reduceLogLevel1(ItemStack itemStack, TooltipType tooltipType, RegistryWrapper.WrapperLookup tooltipContext, ServerPlayerEntity lookup, Operation<ItemStack> original) {
         return original.call(Utils.filterItemStack(itemStack), tooltipType, tooltipContext, lookup);
     }
-
-//    @TargetHandler(
-//            mixin = "eu.pb4.polymer.core.mixin.item.packet.ItemStackPacketCodecMixin",
-//            name = "polymerCore$decodeItemStackServer"
-//    )
-//    @WrapOperation(
-//            method = "@MixinSquared:Handler",
-//            at = @At(
-//                    value = "INVOKE",
-//                    target = "Leu/pb4/polymer/core/api/item/PolymerItemUtils;getRealItemStack(Lnet/minecraft/item/ItemStack;Lnet/minecraft/registry/RegistryWrapper$WrapperLookup;)Lnet/minecraft/item/ItemStack;"
-//            )
-//    )
-//    private static ItemStack reduceLogLevel(ItemStack itemStack, RegistryWrapper.WrapperLookup lookup, Operation<ItemStack> original) {
-//        return original.call(Utils.filterItemStack(itemStack), lookup);
-//    }
 }

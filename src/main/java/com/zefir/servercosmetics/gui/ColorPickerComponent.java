@@ -29,7 +29,7 @@ import java.util.function.Consumer;
 
 import static com.zefir.servercosmetics.config.ConfigManager.COSMETICS_GUI_CONFIG;
 
-// TODO: remove mutable variables
+// TODO: remove mutable variables, refactor
 public class ColorPickerComponent {
 
     private final ServerPlayerEntity player;
