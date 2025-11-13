@@ -98,7 +98,7 @@ public class Utils {
         }
 
         boolean isColorable = Items.LEATHER_HORSE_ARMOR.equals(
-                Registries.ITEM.get(Identifier.tryParse(entry.baseItemForModel()))
+                Registries.ITEM.getEntry(Identifier.tryParse(entry.baseItemForModel()))
         );
 
         if (isColorable) {

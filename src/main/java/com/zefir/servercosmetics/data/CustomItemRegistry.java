@@ -8,12 +8,10 @@ import eu.pb4.polymer.resourcepack.api.PolymerArmorModel;
 import eu.pb4.polymer.resourcepack.api.PolymerModelData;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import lombok.Setter;
+import net.minecraft.component.ComponentMap;
 import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.CustomModelDataComponent;
-import net.minecraft.component.type.DyedColorComponent;
-import net.minecraft.component.type.LoreComponent;
-import net.minecraft.component.type.NbtComponent;
-import net.minecraft.item.ArmorItem;
+import net.minecraft.component.type.*;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -231,7 +229,8 @@ public class CustomItemRegistry {
 
         PolymerModelData polymerModel;
         try {
-            if (baseItem instanceof ArmorItem armorItem && armorItem.getType() != ArmorItem.Type.BODY) {
+            ComponentMap baseItemComponents = baseItem.getComponents();
+            if (baseItemComponents.getTyped(DataComponentTypes.EQUIPPABLE).value() instanceof EquippableComponent equippableComponent && equippableComponent.slot() != EquipmentSlot.BODY) {
 
                 String armorId = cosmeticOrSkinId.replace("_" + armorItem.getType().getName().toLowerCase(), "");
 

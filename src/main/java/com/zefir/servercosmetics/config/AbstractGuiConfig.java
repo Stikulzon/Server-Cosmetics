@@ -42,7 +42,7 @@ public abstract class AbstractGuiConfig {
     private List<String> disabledFilters;
     @Getter
     ScreenHandlerType<GenericContainerScreenHandler> screenHandlerType;
-    static final Map<String, Map<String, Object>> buttonDefaults = new java.util.HashMap<>();
+    static final Map<String, Map<String, Object>> buttonDefaults = new HashMap<>();
 
     @Getter
     protected final Map<String, ConfigManager.NavigationButton> navigationButtons = new HashMap<>();

@@ -5,7 +5,6 @@ import com.zefir.servercosmetics.ServerCosmetics;
 import com.zefir.servercosmetics.data.*;
 import com.zefir.servercosmetics.datagen.RuntimeModelManager;
 import com.zefir.servercosmetics.util.Utils;
-import eu.pb4.polymer.resourcepack.api.PolymerModelData;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import eu.pb4.polymer.resourcepack.api.ResourcePackBuilder;
 import lombok.Getter;
