@@ -1,7 +1,4 @@
 material: netherite_sword
-
-custom-model-data: 3
+display-name: "&dDark Queen Sword"
 
 permission: "itemskins.sword.sword_dark_queen"
-
-display-name: "&dDark Queen Sword"

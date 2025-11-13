@@ -1,24 +1,15 @@
 package com.zefir.servercosmetics.mixin;
 
-import com.zefir.servercosmetics.config.ItemSkinsGUIConfig;
-import me.lucko.fabric.api.permissions.v0.Permissions;
-import net.minecraft.component.ComponentMap;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.NbtComponent;
+import com.zefir.servercosmetics.util.Utils;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
-
-import java.util.AbstractMap;
-import java.util.Map;
-import java.util.Objects;
 
 @Mixin(PlayerInventory.class)
 public class PlayerInventoryMixin {
@@ -31,7 +22,10 @@ public class PlayerInventoryMixin {
             argsOnly = true
     )
     public ItemStack injectedSetStack(ItemStack stack){
-        return checkItemPermission(stack);
+        if(player instanceof ServerPlayerEntity serverPlayerEntity) {
+            Utils.filterItemStack(stack, serverPlayerEntity);
+        }
+        return stack;
     }
 
     @ModifyVariable(
@@ -40,38 +34,9 @@ public class PlayerInventoryMixin {
             argsOnly = true
     )
     public ItemStack injectedInsertStack(ItemStack stack) {
-        checkItemPermission(stack);
-        return stack;
-    }
-
-    @Unique
-    public ItemStack checkItemPermission(ItemStack stack) {
-        NbtComponent sourceCustomData =  stack.getComponents().get(DataComponentTypes.CUSTOM_DATA);
-
-        if (sourceCustomData != null) {
-            NbtCompound copiedCustomData = sourceCustomData.copyNbt();
-            if (copiedCustomData.contains("itemSkinsID")) {
-                Map<Integer, AbstractMap.SimpleEntry<String, AbstractMap.SimpleEntry<String, ItemStack>>> ism = ItemSkinsGUIConfig.getItemSkinsItems(stack.getItem());
-                if (ism != null) {
-                    String itemSkinsID = copiedCustomData.getString("itemSkinsID");
-                    for (int i = 0; i < ism.size(); i++) {
-                        if (Objects.equals(ism.get(i).getKey(), itemSkinsID)) {
-                            if (!Permissions.check(player, ism.get(i).getValue().getKey())) {
-                                // Remove itemSkinsID
-                                stack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbt -> {
-                                    nbt.remove("itemSkinsID");
-                                }));
-
-                                // Remove data component data
-                                stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT);
-                            }
-                            return stack;
-                        }
-                    }
-                }
-            }
+        if(player instanceof ServerPlayerEntity serverPlayerEntity) {
+            Utils.filterItemStack(stack, serverPlayerEntity);
         }
         return stack;
     }
-
 }

@@ -1,181 +1,111 @@
 package com.zefir.servercosmetics.gui;
 
 import com.mojang.brigadier.context.CommandContext;
+import com.zefir.servercosmetics.ServerCosmetics;
 import com.zefir.servercosmetics.config.ItemSkinsGUIConfig;
+import com.zefir.servercosmetics.gui.actions.ApplySkinAction;
+import com.zefir.servercosmetics.gui.filters.PermissionFilter;
+import com.zefir.servercosmetics.gui.filters.SelectedItemFilter;
+import com.zefir.servercosmetics.gui.providers.ItemSkinProvider;
 import com.zefir.servercosmetics.util.GUIUtils;
 import eu.pb4.sgui.api.ClickType;
 import eu.pb4.sgui.api.GuiHelpers;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
-import eu.pb4.sgui.api.elements.GuiElementInterface;
-import eu.pb4.sgui.api.gui.SimpleGui;
-import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.ItemStack;
-import net.minecraft.screen.ScreenHandlerType;
+import net.minecraft.item.Items;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import org.apache.commons.lang3.mutable.MutableInt;
-import org.apache.commons.lang3.mutable.MutableObject;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.AbstractMap;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Supplier;
+import static com.zefir.servercosmetics.config.ConfigManager.COSMETICS_GUI_CONFIG;
+import static com.zefir.servercosmetics.config.ConfigManager.ITEM_SKINS_GUI_CONFIG;
+import static com.zefir.servercosmetics.datafixer.NbtDatafixer.NEW_NBT_KEY_CUSTOM_ITEM_ID;
 
 public class ItemSkinsGUI {
-    public static int openIsGui(CommandContext<ServerCommandSource> ctx) {
+    public static int openItemSkinsGui(CommandContext<ServerCommandSource> ctx) {
         ServerPlayerEntity player = ctx.getSource().getPlayer();
         if (player == null) {
-            ctx.getSource().sendFeedback(() -> Text.literal("Player not find"), false);
+            ctx.getSource().sendFeedback(() -> Text.literal("This command can only be run by a player."), false);
             return 1;
         }
 
         try {
-            var currentItemStack = new MutableInt(-1);
-            var filterRegime = new MutableInt(0);
-            drawItemSkins(player, currentItemStack, filterRegime);
+            ItemStack handStack = player.getMainHandStack();
+            var config = ITEM_SKINS_GUI_CONFIG;
+            var provider = new ItemSkinProvider();
+            var action = new ApplySkinAction(handStack, ItemSkinsGUIConfig.getItemSlot());
+            PagedItemDisplayGui gui = new PagedItemDisplayGui(player, config, provider, action) {
+                @Override
+                public boolean onAnyClick(int idx, ClickType ct, SlotActionType sa) {
+                    if (idx >= this.getVirtualSize()) {
+                        ItemStack newClicked = this.player.currentScreenHandler.getSlot(idx).getStack();
+                        if (!newClicked.isEmpty()) {
+                            GuiHelpers.sendPlayerScreenHandler(this.player);
+                            var newProvider = new ItemSkinProvider();
+                            var newAction = new ApplySkinAction(newClicked, ItemSkinsGUIConfig.getItemSlot());
+
+                            setupDynamicSlots(this, newClicked);
+                            this.reinitialize(newProvider, newAction);
+                        }
+                    }
+                    return super.onAnyClick(idx, ct, sa);
+                }
+            };
+            gui.getFilterManager().addFilter(
+                    "permission",
+                    new PermissionFilter(player),
+                    config.getButtonConfig("filter.show-owned-skins-disabled"),
+                    config.getButtonConfig("filter.show-owned-skins-enabled"),
+                    false
+            );
+            gui.getFilterManager().addFilter(
+                    "selected-item",
+                    new SelectedItemFilter(),
+                    null,
+                    null,
+                    true,
+                    true
+            );
+
+            setupDynamicSlots(gui, handStack);
+
+            gui.reinitialize(provider, action);
+
+            gui.setLockPlayerInventory(true);
+            gui.open();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            ctx.getSource().sendError(Text.literal("An error occurred opening the Item Skins GUI. See console for details."));
+            ServerCosmetics.LOGGER.error("Failed to open item skins GUI for player {}", player.getName().getString(), e);
         }
         return 0;
     }
 
-    private static void drawItemSkins(ServerPlayerEntity player, MutableInt currentItemStack, MutableInt filterRegime){
-        var creator = new MutableObject<Supplier<SimpleGui>>();
-        var num = new MutableInt();
 
-        creator.setValue(() -> {
-            num.increment();
-            int pageNumber = num.getValue();
-            SimpleGui gui = getSimpleGui(player, currentItemStack, filterRegime);
-            gui.setTitle(GuiTextures.ITEM_SKINS_MENU.apply(ItemSkinsGUIConfig.getItemSkinsGuiName()));
-            var previousGui = GuiHelpers.getCurrentGui(player);
-            var next = new MutableObject<SimpleGui>();
-            int[] cosmeticSlots = ItemSkinsGUIConfig.getCosmeticSlots();
+    private static void setupDynamicSlots(PagedItemDisplayGui gui, ItemStack targetStack) {
+        if(targetStack.getItem() == Items.AIR || targetStack.isEmpty() || targetStack.getItem() == null) {
+            GUIUtils.setUpButton(gui, ITEM_SKINS_GUI_CONFIG.getButtonConfig("selectItem"), () -> {});
 
-            // filtering all/unlocked
-            if(currentItemStack.getValue() != -1) {
-                Map<Integer, AbstractMap.SimpleEntry<String, AbstractMap.SimpleEntry<String, ItemStack>>> allItemSkinsMap = ItemSkinsGUIConfig.getItemSkinsItems(player.currentScreenHandler.getSlot(currentItemStack.getValue()).getStack().getItem());
+            ((SelectedItemFilter) (gui.getFilterManager().getFilter("selected-item").filter())).setSelectedItem(null);
+            return;
+        }
 
-//                System.out.println("allItemSkinsMap: " + allItemSkinsMap);
+        gui.setSlot(ItemSkinsGUIConfig.getItemSlot(),
+                new GuiElementBuilder(targetStack.copy())
+                .setCallback(
+                        () -> setupDynamicSlots(gui, ItemStack.EMPTY)
+                )
+        );
 
-                if (allItemSkinsMap != null) {
-                    Map<Integer, AbstractMap.SimpleEntry<String, AbstractMap.SimpleEntry<String, ItemStack>>> itemSkinsMap = new HashMap<>();
-                    if (filterRegime.getValue() == 0){
-                        itemSkinsMap = allItemSkinsMap;
-                    } else {
-                        int itemSkinId = 0;
-                        for (Map.Entry<Integer, AbstractMap.SimpleEntry<String, AbstractMap.SimpleEntry<String, ItemStack>>> entry : allItemSkinsMap.entrySet()) {
-                            AbstractMap.SimpleEntry<String, AbstractMap.SimpleEntry<String, ItemStack>> skinEntry = entry.getValue();
-                            String skinId = skinEntry.getKey();
-                            String permission = skinEntry.getValue().getKey();
-                            ItemStack itemStack = skinEntry.getValue().getValue();
-//                            System.out.println("itemStack: " + itemStack);
+        ((SelectedItemFilter) (gui.getFilterManager().getFilter("selected-item").filter())).setSelectedItem(targetStack.getItem());
 
-                            // Check if the player has permission for this item (unlocked)
-                            if (Permissions.check(player, permission)) {
-                                itemSkinsMap.put(itemSkinId, new AbstractMap.SimpleEntry<>(skinId, new AbstractMap.SimpleEntry<>(permission, itemStack.copy())));
-                                itemSkinId++;
-                            }
-                        }
-                    }
+        GUIUtils.setUpButton(gui, ITEM_SKINS_GUI_CONFIG.getButtonConfig("removeSkin"), () -> {
+                targetStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbt -> nbt.remove(NEW_NBT_KEY_CUSTOM_ITEM_ID)));
+                targetStack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
 
-                    for (int i = 0; i < Math.min(Math.min(itemSkinsMap.size(), cosmeticSlots.length), (itemSkinsMap.size() - cosmeticSlots.length * (pageNumber - 1))); i++) {
-                        int finalI = Math.min(i + (cosmeticSlots.length * (pageNumber - 1)), itemSkinsMap.size() - 1);
-                        ItemStack is = itemSkinsMap.get(finalI).getValue().getValue().copy(); // IMPORTANT TO USE .copy()!!!
-
-                        String permission = itemSkinsMap.get(finalI).getValue().getKey();
-                        if (Permissions.check(player, permission)) {
-                            // loading unlocked item
-                            Map<Integer, AbstractMap.SimpleEntry<String, AbstractMap.SimpleEntry<String, ItemStack>>> finalItemSkinsMap = itemSkinsMap;
-                            gui.setSlot(cosmeticSlots[i], GuiElementBuilder.from(is)
-                                    .addLoreLine(ItemSkinsGUIConfig.getMessageUnlocked())
-                                    .setCallback((e) -> {
-                                        String itemSkinsID = finalItemSkinsMap.get(finalI).getKey();
-                                        ItemStack playerItemsStack = player.currentScreenHandler.getSlot(currentItemStack.getValue()).getStack();
-                                        playerItemsStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbt -> nbt.putString("itemSkinsID", itemSkinsID)));
-                                        playerItemsStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, is.getOrDefault(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(0)));
-                                        player.currentScreenHandler.getSlot(currentItemStack.getValue()).setStack(playerItemsStack);
-                                        gui.setSlot(ItemSkinsGUIConfig.getItemSlot(), GuiElementBuilder.from(playerItemsStack));
-                                    })
-                            );
-                        } else {
-                                // loading locked item
-                                gui.setSlot(cosmeticSlots[i], GuiElementBuilder.from(is)
-                                        .addLoreLine(ItemSkinsGUIConfig.getMessageLocked()));
-                        }
-                    }
-                    if (cosmeticSlots.length < (itemSkinsMap.size() - cosmeticSlots.length * (pageNumber - 1))) {
-                        GUIUtils.setUpButton(gui, ItemSkinsGUIConfig::getButtonConfig, "next", () -> {
-                            if (next.getValue() == null) {
-                                next.setValue(creator.getValue().get());
-                            }
-                            next.getValue().open();
-                        });
-                    }
-
-                    if (num.getValue() > 1 && previousGui != null) {
-                        GUIUtils.setUpButton(gui, ItemSkinsGUIConfig::getButtonConfig, "previous", previousGui::open);
-                    }
-                }
-                gui.setSlot(ItemSkinsGUIConfig.getItemSlot(), GuiElementBuilder.from(player.currentScreenHandler.getSlot(currentItemStack.getValue()).getStack()));
-
-                GUIUtils.setUpButton(gui, ItemSkinsGUIConfig::getButtonConfig, "removeItem", () -> {
-                    ItemStack playerItemsStack = player.playerScreenHandler.getSlot(currentItemStack.getValue() - 53 + 8).getStack();
-                    playerItemsStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbt -> nbt.remove("itemSkinsID")));
-                    playerItemsStack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
-                    player.currentScreenHandler.getSlot(currentItemStack.getValue()).setStack(playerItemsStack);
-                });
-            }
-
-            if(filterRegime.getValue() == 0) {
-                GUIUtils.setUpButton(gui, ItemSkinsGUIConfig::getButtonConfig, "skinFilter.show-all-skins", () -> {
-                    filterRegime.setValue(1);
-                    drawItemSkins(player, currentItemStack, filterRegime);
-                });
-            } else if (filterRegime.getValue() == 1) {
-                GUIUtils.setUpButton(gui, ItemSkinsGUIConfig::getButtonConfig, "skinFilter.show-owned-skins", () -> {
-                    filterRegime.setValue(0);
-                    drawItemSkins(player, currentItemStack, filterRegime);
-                });
-            }
-
-
-
-            if(ItemSkinsGUIConfig.isPageIndicatorEnabled()) {
-                GUIUtils.setUpButton(gui, ItemSkinsGUIConfig::getButtonConfig, "pageIndicator", () -> {
-                });
-            }
-
-            return gui;
+                gui.setSlot(ItemSkinsGUIConfig.getItemSlot(), targetStack.copy());
         });
-        creator.getValue().get().open();
-    }
-
-    @NotNull
-    private static SimpleGui getSimpleGui(ServerPlayerEntity player, MutableInt currentItemStack, MutableInt filterRegime) {
-        SimpleGui gui = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false) {
-            @Override
-            public boolean onClick(int index, ClickType type, SlotActionType action, GuiElementInterface element) {
-                return super.onClick(index, type, action, element);
-            }
-
-            @Override
-            public boolean onAnyClick(int index, ClickType type, SlotActionType action){
-                if(index>53) {
-                    GuiHelpers.sendPlayerScreenHandler(this.player);
-                    currentItemStack.setValue(index);
-                    drawItemSkins(player, currentItemStack, filterRegime);
-                }
-                return true;
-            }
-        };
-        gui.setLockPlayerInventory(true);
-        return gui;
     }
 }

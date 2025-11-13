@@ -1,0 +1,6 @@
+type: boots
+display-name: "<color:#FF5555>Flame Bringer"
+lore:
+  - "Author: <blue>Myllyd_Ogoy"
+
+permission: "cosmetics.armor.flamebringer"

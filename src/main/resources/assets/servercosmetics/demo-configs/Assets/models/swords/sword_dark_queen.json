@@ -2,8 +2,7 @@
 	"credit": "Made with Blockbench",
 	"texture_size": [32, 32],
 	"textures": {
-		"0": "servercosmetics:item/sword_dark_queen",
-		"particle": "servercosmetics:item/sword_dark_queen"
+		"0": "servercosmetics:item/sword_dark_queen"
 	},
 	"elements": [
 		{

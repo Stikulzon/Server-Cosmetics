@@ -3,13 +3,18 @@
   "package": "com.zefir.servercosmetics.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "ArmorHeadSlotMixin",
-    "EntityDataSaverMixin",
+    "EntityPassengersSetS2CPacketMixin",
+    "EntityTrackerEntryMixin",
+    "ItemEntityMixin",
+    "ItemStackMixin",
     "LivingEntityMixin",
     "PlayerInventoryMixin",
     "PlayerManagerMixin",
-    "ScreenHandlerMixin",
-    "ServerPlayerEntityMixin",
+    "PolymerItemStackMixinMixin",
+    "PolymerItemStackPacketCodecMixin",
+    "ServerPlayerEntity$1Mixin",
+    "ServerPlayerEntity$2Mixin",
+    "ServerPlayerEntityMixin_cosmetics",
     "ServerPlayNetworkHandlerMixin"
   ],
   "injectors": {

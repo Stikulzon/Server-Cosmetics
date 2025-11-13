@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.9-SNAPSHOT'
+	id 'fabric-loom' version "${loom_version}"
 	id 'maven-publish'
 }
 
@@ -11,6 +11,8 @@ base {
 }
 
 repositories {
+	maven { url "https://maven.bawnorton.com/releases" }
+	maven { url "https://maven.enjarai.dev/mirrors" }
 	maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots' }
 	maven { url 'https://maven.nucleoid.xyz' }
 	maven { url 'https://jitpack.io' }
@@ -22,11 +24,18 @@ fabricApi {
 	configureDataGeneration()
 }
 
+loom {
+    accessWidenerPath = file("src/main/resources/servercosmetics.accesswidener")
+}
+
 dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.5.0")))
+	include(implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.3.7-beta.1")))
 
 	include (modImplementation ("eu.pb4:sgui:${project.sgui_version}"))
 	include (modImplementation ("me.lucko:fabric-permissions-api:${project.fabric_permissions_api_version}"))
@@ -40,11 +49,15 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok:1.18.34'
 	annotationProcessor 'org.projectlombok:lombok:1.18.34'
 
+	include (implementation("org.json:json:20250107"))
+
 	modImplementation ("eu.pb4:polymer-core:[${polymer_version}]")
 	modImplementation ("eu.pb4:polymer-blocks:[${polymer_version}]")
 	modImplementation ("eu.pb4:polymer-resource-pack:[${polymer_version}]")
 	modImplementation ("eu.pb4:polymer-virtual-entity:[${polymer_version}]")
 	modImplementation ("eu.pb4:polymer-autohost:${polymer_version}")
+
+	modImplementation include ("eu.pb4:factorytools:[${factorytools_version}]")
 
 	include(modImplementation "net.kyori:adventure-api:${project.adventure_version}")
 	include(modImplementation "net.kyori:adventure-text-serializer-legacy:${project.adventure_version}")

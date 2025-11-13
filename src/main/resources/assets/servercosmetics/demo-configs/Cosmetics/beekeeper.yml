@@ -1,7 +1,0 @@
-cosmetic-item:
-  material: PAPER
-  display-name: "&bBeekeeper"
-  lore:
-    - "Some description"
-
-permission: "cosmetics.helmet.beekeeper"
