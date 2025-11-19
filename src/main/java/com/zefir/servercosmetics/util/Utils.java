@@ -8,10 +8,8 @@ import com.zefir.servercosmetics.data.CustomItemEntry;
 import com.zefir.servercosmetics.data.CustomItemRegistry;
 import com.zefir.servercosmetics.data.ItemType;
 import com.zefir.servercosmetics.datafixer.NbtDatafixer;
-import com.zefir.servercosmetics.ext.IItemStack;
 import com.zefir.servercosmetics.gui.ColorPickerComponent;
 import com.zefir.servercosmetics.gui.actions.EquipCosmeticAction;
-import eu.pb4.polymer.resourcepack.api.PolymerModelData;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.standard.StandardTags;
@@ -127,10 +125,11 @@ public class Utils {
         };
     }
 
-    public static ItemStack getTiltedItemStack(ItemStack original, PolymerModelData polymerModel){
+    public static ItemStack getTiltedItemStack(ItemStack original, Identifier modelPath){
         ItemStack itemStack = original.copy();
-        ((IItemStack) (Object) itemStack).server_Cosmetics$setItem(polymerModel.item());
-        itemStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(polymerModel.value()));
+//        ((IItemStack) (Object) itemStack).server_Cosmetics$setItem(modelPath.item());
+//        itemStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(modelPath.value()));
+        itemStack.set(DataComponentTypes.ITEM_MODEL, modelPath);
         return itemStack;
     }
 
@@ -184,8 +183,8 @@ public class Utils {
         if (customDataComponent != null) {
             NbtCompound nbt = customDataComponent.copyNbt();
 
-            if (nbt.contains(NEW_NBT_KEY_CUSTOM_ITEM_ID, NbtCompound.STRING_TYPE)) {
-                String itemSkinId = nbt.getString(NEW_NBT_KEY_CUSTOM_ITEM_ID);
+            if (nbt.contains(NEW_NBT_KEY_CUSTOM_ITEM_ID)) {
+                String itemSkinId = nbt.getString(NEW_NBT_KEY_CUSTOM_ITEM_ID, "unknown");
 
                 CustomItemEntry skinEntry = CustomItemRegistry.getCosmetic(itemSkinId);
                 if (skinEntry == null) {

@@ -4,8 +4,13 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.zefir.servercosmetics.ServerCosmetics;
 import lombok.Getter;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.EquippableComponent;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.*;
-import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.item.equipment.ArmorMaterials;
+import net.minecraft.item.equipment.EquipmentAsset;
+import net.minecraft.registry.RegistryKey;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -21,11 +26,11 @@ public class ArmorModelGenerator {
     private record TrimMaterial(
             String name,
             float itemModelIndex,
-            Map<RegistryEntry<ArmorMaterial>, String> overrideArmorMaterials,
+            Map<RegistryKey<EquipmentAsset>, String> overrideArmorMaterials,
             TrimMaterialSource source
     ) {
-        public String getAppliedName(RegistryEntry<ArmorMaterial> armorMaterial) {
-            return overrideArmorMaterials.getOrDefault(armorMaterial, name);
+        public String getAppliedName(RegistryKey<EquipmentAsset> assetKey) {
+            return overrideArmorMaterials.getOrDefault(assetKey, name);
         }
     }
 
@@ -34,44 +39,40 @@ public class ArmorModelGenerator {
     private static List<TrimMaterial> createTrimMaterials() {
         return List.of(
                 new TrimMaterial("quartz", 0.1F, Map.of(), TrimMaterialSource.VANILLA),
-                new TrimMaterial("iron", 0.2F, Map.of(ArmorMaterials.IRON, "iron_darker"), TrimMaterialSource.VANILLA),
-                new TrimMaterial("netherite", 0.3F, Map.of(ArmorMaterials.NETHERITE, "netherite_darker"), TrimMaterialSource.VANILLA),
+                new TrimMaterial("iron", 0.2F, Map.of(ArmorMaterials.IRON.assetId(), "iron_darker"), TrimMaterialSource.VANILLA),
+                new TrimMaterial("netherite", 0.3F, Map.of(ArmorMaterials.NETHERITE.assetId(), "netherite_darker"), TrimMaterialSource.VANILLA),
                 new TrimMaterial("redstone", 0.4F, Map.of(), TrimMaterialSource.VANILLA),
                 new TrimMaterial("copper", 0.5F, Map.of(), TrimMaterialSource.VANILLA),
-                new TrimMaterial("gold", 0.6F, Map.of(ArmorMaterials.GOLD, "gold_darker"), TrimMaterialSource.VANILLA),
+                new TrimMaterial("gold", 0.6F, Map.of(ArmorMaterials.GOLD.assetId(), "gold_darker"), TrimMaterialSource.VANILLA),
                 new TrimMaterial("emerald", 0.7F, Map.of(), TrimMaterialSource.VANILLA),
-                new TrimMaterial("diamond", 0.8F, Map.of(ArmorMaterials.DIAMOND, "diamond_darker"), TrimMaterialSource.VANILLA),
+                new TrimMaterial("diamond", 0.8F, Map.of(ArmorMaterials.DIAMOND.assetId(), "diamond_darker"), TrimMaterialSource.VANILLA),
                 new TrimMaterial("lapis", 0.9F, Map.of(), TrimMaterialSource.VANILLA),
                 new TrimMaterial("amethyst", 1.0F, Map.of(), TrimMaterialSource.VANILLA)
         );
     }
 
-
-    /**
-     * Generates all necessary item model JSONs for a single piece of custom armor.
-     *
-     * @param cosmeticId The ID of the cosmetic, e.g., "magma_armor".
-     * @param armorType  The type of armor piece.
-     * @return A map where the key is the resource pack path and the value is the JSON file content.
-     */
-    public static Map<String, byte[]> generateModels(String cosmeticId, ArmorItem.Type armorType) {
+    public static Map<String, byte[]> generateModels(String cosmeticId, EquipmentSlot slot) {
         Map<String, byte[]> generatedModels = new HashMap<>();
 
-        ArmorItem dummyArmorItem = getDummyArmorItem(armorType);
-        String modelName = cosmeticId + "_" + armorType.getName().toLowerCase();
+        Item dummyArmorItem = getDummyArmorItem(slot);
+        EquippableComponent equippable = dummyArmorItem.getComponents().get(DataComponentTypes.EQUIPPABLE);
+
+        String modelName = cosmeticId + "_" + slot.getName().toLowerCase();
         String baseModelPath = "assets/servercosmetics/models/item/armor/" + modelName + ".json";
         String baseTexturePath = ServerCosmetics.MOD_ID + ":item/armor/" + modelName;
 
         // 1. Generate the base model with overrides for each trim
-        JsonObject baseModel = createArmorJsonWithOverrides(dummyArmorItem, cosmeticId);
+        JsonObject baseModel = createArmorJsonWithOverrides(equippable, cosmeticId, slot);
         generatedModels.put(baseModelPath, baseModel.toString().getBytes(StandardCharsets.UTF_8));
 
         // 2. Generate a separate model for each trim variant
         for (TrimMaterial trimMaterial : ALL_TRIM_MATERIALS) {
-            String appliedTrimName = trimMaterial.getAppliedName(dummyArmorItem.getMaterial());
+            if (equippable == null || equippable.assetId().isEmpty()) continue;
+
+            String appliedTrimName = trimMaterial.getAppliedName(equippable.assetId().get());
             String trimModelName = modelName + "_" + appliedTrimName + "_trim";
             String trimModelPath = "assets/servercosmetics/models/item/armor/" + trimModelName + ".json";
-            String trimTexturePath = "minecraft:trims/items/" + armorType.getName() + "_trim_" + appliedTrimName;
+            String trimTexturePath = "minecraft:trims/items/" + slot.getName() + "_trim_" + appliedTrimName;
 
             JsonObject trimModelJson = createTrimmedArmorJson(baseTexturePath, trimTexturePath);
             generatedModels.put(trimModelPath, trimModelJson.toString().getBytes(StandardCharsets.UTF_8));
@@ -80,19 +81,19 @@ public class ArmorModelGenerator {
         return generatedModels;
     }
 
-    private static ArmorItem getDummyArmorItem(ArmorItem.Type armorType) {
-        return switch (armorType) {
-            case HELMET -> (ArmorItem) Items.LEATHER_HELMET;
-            case CHESTPLATE -> (ArmorItem) Items.LEATHER_CHESTPLATE;
-            case LEGGINGS -> (ArmorItem) Items.LEATHER_LEGGINGS;
-            case BOOTS -> (ArmorItem) Items.LEATHER_BOOTS;
-            default -> throw new IllegalStateException("Unsupported armor type for model generation: " + armorType);
+    private static Item getDummyArmorItem(EquipmentSlot slot) {
+        return switch (slot) {
+            case HEAD -> Items.LEATHER_HELMET;
+            case CHEST -> Items.LEATHER_CHESTPLATE;
+            case LEGS -> Items.LEATHER_LEGGINGS;
+            case FEET -> Items.LEATHER_BOOTS;
+            default -> throw new IllegalStateException("Unsupported armor type for model generation: " + slot);
         };
     }
 
-    private static JsonObject createArmorJsonWithOverrides(ArmorItem armor, String cosmeticId) {
+    private static JsonObject createArmorJsonWithOverrides(EquippableComponent equippableComponent, String cosmeticId, EquipmentSlot slot) {
         JsonObject root = new JsonObject();
-        String modelName = cosmeticId + "_" + armor.getType().getName().toLowerCase();
+        String modelName = cosmeticId + "_" + slot.getName().toLowerCase();
 
         root.addProperty("parent", "minecraft:item/generated");
         JsonObject textures = new JsonObject();
@@ -107,10 +108,12 @@ public class ArmorModelGenerator {
             predicate.addProperty("trim_type", trimMaterial.itemModelIndex());
             override.add("predicate", predicate);
 
-            String appliedTrimName = trimMaterial.getAppliedName(armor.getMaterial());
-            String trimModelId = ServerCosmetics.MOD_ID + ":item/armor/" + modelName + "_" + appliedTrimName + "_trim";
-            override.addProperty("model", trimModelId);
-            overrides.add(override);
+            if (equippableComponent.assetId().isPresent()) {
+                String appliedTrimName = trimMaterial.getAppliedName(equippableComponent.assetId().get());
+                String trimModelId = ServerCosmetics.MOD_ID + ":item/armor/" + modelName + "_" + appliedTrimName + "_trim";
+                override.addProperty("model", trimModelId);
+                overrides.add(override);
+            }
         }
         root.add("overrides", overrides);
 

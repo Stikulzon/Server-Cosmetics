@@ -5,6 +5,7 @@ import com.zefir.servercosmetics.database.DatabaseManager;
 import com.zefir.servercosmetics.ext.ICosmetic;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.jetbrains.annotations.Nullable;
@@ -105,7 +106,7 @@ public class ArmorCosmetic implements ICosmetic {
             itemStackToSend = cosmeticItemStack;
         } else {
             // If no cosmetic, show the real armor piece
-            itemStackToSend = player.getInventory().getArmorStack(8 - getSlotFor(this.slotType));
+            itemStackToSend = player.getEquippedStack(getEquipmentSlotFor(this.slotType));
         }
         sendInventorySlotPacket(player, getSlotFor(this.slotType), itemStackToSend);
     }
@@ -116,6 +117,16 @@ public class ArmorCosmetic implements ICosmetic {
             case CHESTPLATE -> 6;
             case LEGGINGS -> 7;
             case BOOTS -> 8;
+            default -> throw new IllegalArgumentException("Invalid ItemType for ArmorCosmetic: " + type);
+        };
+    }
+
+    public static EquipmentSlot getEquipmentSlotFor(ItemType type) {
+        return switch (type) {
+            case HAT -> EquipmentSlot.HEAD;
+            case CHESTPLATE -> EquipmentSlot.CHEST;
+            case LEGGINGS -> EquipmentSlot.LEGS;
+            case BOOTS -> EquipmentSlot.FEET;
             default -> throw new IllegalArgumentException("Invalid ItemType for ArmorCosmetic: " + type);
         };
     }

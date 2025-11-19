@@ -8,7 +8,6 @@ import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.SignGui;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.component.type.DyedColorComponent;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.ItemStack;
@@ -87,9 +86,10 @@ public class ColorPickerComponent {
 
         public void drawBaseColorSlots() {
             ItemStack templateStack;
-            if (usePaintBrushView.getValue() && CosmeticsGUIConfig.getPaintItemPolymerModelData() != null) {
+            if (usePaintBrushView.getValue() && CosmeticsGUIConfig.getPaintItemStack() != null) {
                 templateStack = new ItemStack(Items.LEATHER_HORSE_ARMOR);
-                templateStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(CosmeticsGUIConfig.getPaintItemPolymerModelData().value()));
+//                templateStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(CosmeticsGUIConfig.getPaintItemStack().value()));
+                templateStack.set(DataComponentTypes.ITEM_MODEL, CosmeticsGUIConfig.getPaintItemStack().get(DataComponentTypes.ITEM_MODEL));
             } else {
                 templateStack = hatItemStack.copy();
                 templateStack.remove(DataComponentTypes.DYED_COLOR);
@@ -102,7 +102,7 @@ public class ColorPickerComponent {
                 ItemStack displayColorStack = templateStack.copy();
                 try {
                     int decimalColor = Integer.parseInt(colorHexValues[i], 16);
-                    displayColorStack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(decimalColor, true));
+                    displayColorStack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(decimalColor));
 
                     NbtCompound nbt = new NbtCompound();
                     nbt.putInt("baseColorHexIndex", i);
@@ -142,7 +142,8 @@ public class ColorPickerComponent {
             ItemStack gradientItem;
             if(usePaintBrushView.getValue()){
                 gradientItem = new ItemStack(Items.LEATHER_HORSE_ARMOR);
-                gradientItem.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(CosmeticsGUIConfig.getPaintItemPolymerModelData().value()));
+//                gradientItem.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(CosmeticsGUIConfig.getPaintItemStack().value()));
+                gradientItem.set(DataComponentTypes.ITEM_MODEL, CosmeticsGUIConfig.getPaintItemStack().get(DataComponentTypes.ITEM_MODEL));
             } else {
                 gradientItem = hatItemStack.copy();
             }
@@ -159,12 +160,12 @@ public class ColorPickerComponent {
                         : new Color(Color.HSBtoRGB(hsv[0], saturation.getValue() / 100F, brightnessFactor));
 
                 int stepColorRgb = gradientStepColor.getRGB();
-                gradientItem.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(stepColorRgb, true));
+                gradientItem.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(stepColorRgb));
 
                 this.setSlot(gradientDisplaySlots[j], GuiElementBuilder.from(gradientItem)
                         .setCallback(() -> {
                             ItemStack finalColoredHat = hatItemStack.copy();
-                            finalColoredHat.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(stepColorRgb, true));
+                            finalColoredHat.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(stepColorRgb));
 
                             this.setSlot(CosmeticsGUIConfig.getColorOutputSlot(), GuiElementBuilder.from(finalColoredHat.copy())
                                     .setName(Text.literal("Click to Confirm"))
@@ -239,7 +240,7 @@ public class ColorPickerComponent {
                 Color color = Color.decode(colorString);
 
                 ItemStack coloredStack = itemToColor.copy();
-                coloredStack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(color.getRGB(), true));
+                coloredStack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(color.getRGB()));
 
                 this.player.sendMessage(CosmeticsGUIConfig.getSuccessColorChangeMessage(), false);
 

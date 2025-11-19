@@ -21,9 +21,9 @@ public class NbtDatafixer {
             NbtCompound nbt = customDataComponent.copyNbt();
 
 
-            if (nbt.contains(OLD_NBT_KEY_ITEM_SKIN_ID, NbtCompound.STRING_TYPE)) {
-                if (!nbt.contains(NEW_NBT_KEY_CUSTOM_ITEM_ID, NbtCompound.STRING_TYPE)) {
-                    String idValue = nbt.getString(OLD_NBT_KEY_ITEM_SKIN_ID);
+            if (nbt.contains(OLD_NBT_KEY_ITEM_SKIN_ID)) {
+                if (!nbt.contains(NEW_NBT_KEY_CUSTOM_ITEM_ID)) {
+                    String idValue = nbt.getString(OLD_NBT_KEY_ITEM_SKIN_ID, "unknown");
                     nbt.putString(NEW_NBT_KEY_CUSTOM_ITEM_ID, idValue);
                 }
                 nbt.remove(OLD_NBT_KEY_ITEM_SKIN_ID);
@@ -35,7 +35,7 @@ public class NbtDatafixer {
                 );
             }
 
-            if (nbt.contains(NbtDatafixer.NEW_NBT_KEY_CUSTOM_ITEM_ID, NbtCompound.STRING_TYPE)) {
+            if (nbt.contains(NbtDatafixer.NEW_NBT_KEY_CUSTOM_ITEM_ID)) {
                 CustomModelDataComponent expectedModelData = stack.get(DataComponentTypes.CUSTOM_MODEL_DATA);
                 if (expectedModelData != null) {
                     stack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);

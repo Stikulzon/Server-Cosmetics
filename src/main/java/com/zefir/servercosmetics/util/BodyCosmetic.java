@@ -68,7 +68,7 @@ public class BodyCosmetic implements ICosmetic {
 
             if (DatabaseManager.getCosmeticEntry(player, itemType) != null) {
                 cosmeticData = (BodyCosmeticsData) Objects.requireNonNull(DatabaseManager.getCosmeticEntry(player, itemType)).cosmeticData();
-                cosmeticItemStackWhenSneaking = getTiltedItemStack(cosmeticItemStack, cosmeticData.polymerModelWhenSneaking());
+                cosmeticItemStackWhenSneaking = getTiltedItemStack(cosmeticItemStack, cosmeticData.modelWhenSneaking());
             } else {
                 cosmeticItemStackWhenSneaking = cosmeticItemStack;
             }

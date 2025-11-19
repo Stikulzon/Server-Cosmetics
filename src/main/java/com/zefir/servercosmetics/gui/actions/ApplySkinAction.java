@@ -1,16 +1,13 @@
 package com.zefir.servercosmetics.gui.actions;
 
+import com.zefir.servercosmetics.ServerCosmetics;
 import com.zefir.servercosmetics.data.CustomItemEntry;
 import com.zefir.servercosmetics.gui.core.IItemAction;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.CustomModelDataComponent;
-import net.minecraft.component.type.NbtComponent;
-import net.minecraft.item.ArmorItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
-
-import static com.zefir.servercosmetics.datafixer.NbtDatafixer.NEW_NBT_KEY_CUSTOM_ITEM_ID;
+import net.minecraft.util.Identifier;
 
 public class ApplySkinAction implements IItemAction {
     private final ItemStack targetItemStack;
@@ -24,14 +21,16 @@ public class ApplySkinAction implements IItemAction {
     @Override
     public void execute(ServerPlayerEntity player, CustomItemEntry entry, SimpleGui gui) {
 
-        targetItemStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp ->
-                comp.apply(nbt -> nbt.putString(NEW_NBT_KEY_CUSTOM_ITEM_ID, entry.id()))
-        );
-//        targetItemStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, entry.itemStack().getOrDefault(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(0)));
+//        targetItemStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp ->
+//                comp.apply(nbt -> nbt.putString(NEW_NBT_KEY_CUSTOM_ITEM_ID, entry.id()))
+//        );
+////        targetItemStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, entry.itemStack().getOrDefault(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(0)));
+//
+//        if (entry.itemStack().getItem() instanceof ArmorItem armorItem && armorItem.getType() != ArmorItem.Type.BODY) {
+//            // TODO: Rewrite the whole itemskins thing
+//        }
 
-        if (entry.itemStack().getItem() instanceof ArmorItem armorItem && armorItem.getType() != ArmorItem.Type.BODY) {
-            // TODO: Rewrite the whole itemskins thing
-        }
+        targetItemStack.set(DataComponentTypes.ITEM_MODEL, Identifier.of(ServerCosmetics.MOD_ID, "item/" + entry.id()));
 
         gui.setSlot(itemDisplaySlot, targetItemStack.copy());
     }

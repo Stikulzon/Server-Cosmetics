@@ -2,8 +2,6 @@ package com.zefir.servercosmetics.config;
 
 import com.zefir.servercosmetics.ServerCosmetics;
 import com.zefir.servercosmetics.util.Utils;
-import eu.pb4.polymer.resourcepack.api.PolymerModelData;
-import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import lombok.Getter;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
@@ -150,12 +148,12 @@ public abstract class AbstractGuiConfig {
             complitedItemString = "minecraft:paper";
         }
 
-        PolymerModelData polymerModelData = null;
+        Identifier modelPath = null;
         if (yamlFile.isSet(basePath + ".textureName")) {
             String textureName = yamlFile.getString(basePath + ".textureName");
             if (textureName != null && !textureName.isEmpty()) {
                 try {
-                    polymerModelData = PolymerResourcePackUtils.requestModel(item, Identifier.of(ServerCosmetics.MOD_ID, "item/" + textureName));
+                    modelPath = Identifier.of(ServerCosmetics.MOD_ID, "item/" + textureName);
                 } catch (Exception e) {
                     ServerCosmetics.LOGGER.error("Failed to request model for button '{}' (item: {}, texture: {}): {}", buttonKey, complitedItemString, textureName, e.getMessage());
                 }
@@ -172,7 +170,7 @@ public abstract class AbstractGuiConfig {
         navigationButtons.put(buttonKey, new ConfigManager.NavigationButton(
                 Utils.formatDisplayName(yamlFile.getString(basePath + ".name", "Button " + buttonKey)),
                 item,
-                polymerModelData,
+                modelPath,
                 slotIndex,
                 loreStrings
         ));

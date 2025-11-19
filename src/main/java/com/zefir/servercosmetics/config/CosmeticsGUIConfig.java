@@ -3,9 +3,9 @@ package com.zefir.servercosmetics.config;
 import com.zefir.servercosmetics.ServerCosmetics;
 import com.zefir.servercosmetics.gui.resources.GuiTextures;
 import com.zefir.servercosmetics.util.Utils;
-import eu.pb4.polymer.resourcepack.api.PolymerModelData;
-import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import lombok.Getter;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.text.Text;
 import net.minecraft.util.DyeColor;
@@ -33,7 +33,7 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
     @Getter
     private static String signType;
     @Getter
-    private static PolymerModelData paintItemPolymerModelData;
+    private static ItemStack paintItemStack;
     @Getter
     private static DyeColor signColor;
     private static List<String> textLines;
@@ -93,13 +93,15 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
         String paintItemModelPath = file.getString("paintItemModelPath");
         if (paintItemModelPath != null && !paintItemModelPath.isEmpty()) {
             try {
-                paintItemPolymerModelData = PolymerResourcePackUtils.requestModel(Items.LEATHER_HORSE_ARMOR, Identifier.of(ServerCosmetics.MOD_ID, "item/" + paintItemModelPath));
+                paintItemStack = Items.LEATHER_HORSE_ARMOR.getDefaultStack();
+                paintItemStack.set(DataComponentTypes.ITEM_MODEL, Identifier.of(ServerCosmetics.MOD_ID, "item/" + paintItemModelPath));
+                        //PolymerResourcePackUtils.requestModel(Items.LEATHER_HORSE_ARMOR, Identifier.of(ServerCosmetics.MOD_ID, "item/" + paintItemModelPath));
             } catch (Exception e) {
                 ServerCosmetics.LOGGER.error("Failed to load paintItemModelData for path '{}': {}", paintItemModelPath, e.getMessage());
-                paintItemPolymerModelData = null;
+                paintItemStack = null;
             }
         } else {
-            paintItemPolymerModelData = null;
+            paintItemStack = null;
         }
 
 

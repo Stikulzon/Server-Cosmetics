@@ -99,11 +99,11 @@ public class DatabaseManager {
                 return ItemStack.EMPTY;
             }
 
-            ItemStack cosmeticStack = cosmeticDefinition.itemStack().copy();
-            if (cosmeticData.getDyedColor() != null) {
-                cosmeticStack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(cosmeticData.getDyedColor(), true));
-            }
-            return cosmeticStack;
+//            ItemStack cosmeticStack = cosmeticDefinition.itemStack().copy();
+//            if (cosmeticData.getDyedColor() != null) {
+//                cosmeticStack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(cosmeticData.getDyedColor(), true));
+//            }
+            return cosmeticDefinition.itemStack().copy();
         } catch (SQLException e) {
             ServerCosmetics.LOGGER.error("Error loading cosmetic data for player {} and type {}", player.getUuidAsString(), type, e);
             throw new RuntimeException("Error loading cosmetic data", e);
@@ -136,8 +136,8 @@ public class DatabaseManager {
         NbtComponent customData = stack.get(DataComponentTypes.CUSTOM_DATA);
         if (customData != null) {
             NbtCompound nbt = customData.copyNbt();
-            if (nbt.contains(NEW_NBT_KEY_CUSTOM_ITEM_ID, NbtCompound.STRING_TYPE)) {
-                return nbt.getString(NEW_NBT_KEY_CUSTOM_ITEM_ID);
+            if (nbt.contains(NEW_NBT_KEY_CUSTOM_ITEM_ID)) {
+                return nbt.getString(NEW_NBT_KEY_CUSTOM_ITEM_ID, "unknown");
             }
         }
         return null;

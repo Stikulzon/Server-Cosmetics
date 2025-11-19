@@ -12,6 +12,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.item.Item;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.simpleyaml.configuration.comments.format.YamlCommentFormat;
@@ -31,7 +32,7 @@ public class ConfigManager {
     private static final String TARGET_TEXTURE_PATH = "assets/servercosmetics/textures/";
     private static final String TARGET_MODEL_PATH = "assets/servercosmetics/models/item/";
 
-    public record NavigationButton(Text name, Item baseItem, PolymerModelData polymerModelData, int slotIndex,
+    public record NavigationButton(Text name, Item baseItem, Identifier modelPath, int slotIndex,
                                    List<String> lore) {
     }
 
