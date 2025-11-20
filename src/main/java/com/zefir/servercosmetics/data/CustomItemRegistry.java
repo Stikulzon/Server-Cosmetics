@@ -234,6 +234,10 @@ public class CustomItemRegistry {
                 RuntimeModelManager.requestArmorModel(armorId, equippableComponent.slot());
 
                 newStack = getItemFor(equippableComponent.slot()).getDefaultStack();
+
+                EquippableComponent newEquippableComponent = newStack.get(DataComponentTypes.EQUIPPABLE);
+                newEquippableComponent.
+                newStack.set(DataComponentTypes.EQUIPPABLE, newEquippableComponent);
                 newStack.set(DataComponentTypes.ITEM_MODEL, Identifier.of(ServerCosmetics.MOD_ID,"item/armor/" + cosmeticOrSkinId));
 
             } else {

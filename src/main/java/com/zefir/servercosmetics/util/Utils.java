@@ -16,7 +16,7 @@ import net.kyori.adventure.text.minimessage.tag.standard.StandardTags;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.CustomModelDataComponent;
+import net.minecraft.component.type.EquippableComponent;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -201,8 +201,12 @@ public class Utils {
                     }
                 }
 
-                CustomModelDataComponent expectedModelData = skinEntry.itemStack().get(DataComponentTypes.CUSTOM_MODEL_DATA);
-                stack.set(DataComponentTypes.CUSTOM_MODEL_DATA, expectedModelData);
+                Identifier expectedItemModel = skinEntry.itemStack().get(DataComponentTypes.ITEM_MODEL);
+                stack.set(DataComponentTypes.ITEM_MODEL, expectedItemModel);
+
+
+                EquippableComponent equippableComponent = skinEntry.itemStack().get(DataComponentTypes.EQUIPPABLE);
+                stack.set(DataComponentTypes.EQUIPPABLE, equippableComponent);
 
                 return stack;
             }
