@@ -162,26 +162,6 @@ public class CustomItemModelGenerator {
         };
     }
 
-    public static Map<String, byte[]> generateEquipmentDefinition(String armorSetId) {
-        Map<String, byte[]> models = new HashMap<>();
-
-        JsonObject root = new JsonObject();
-        JsonObject layers = new JsonObject();
-        JsonArray humanoid = new JsonArray();
-        JsonObject layerEntry = new JsonObject();
-
-        layerEntry.addProperty("texture", ServerCosmetics.MOD_ID + ":" + armorSetId);
-
-        humanoid.add(layerEntry);
-        layers.add("humanoid", humanoid);
-        root.add("layers", layers);
-
-        models.put("assets/servercosmetics/equipment/" + armorSetId + ".json",
-                root.toString().getBytes(StandardCharsets.UTF_8));
-
-        return models;
-    }
-
     // --- Trim Data definitions ---
 
     private enum TrimMaterialSource {

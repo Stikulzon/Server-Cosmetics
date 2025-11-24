@@ -11,7 +11,6 @@ import java.util.function.BiConsumer;
 public class RuntimeModelManager {
     private static final Map<String, Set<EquipmentSlot>> requestedArmorModels = new ConcurrentHashMap<>();
     private static final Set<String> requestedItemModels = ConcurrentHashMap.newKeySet();
-    private static final Set<String> generatedEquipmentDefinitions = ConcurrentHashMap.newKeySet();
 
     public static void requestArmorModel(String cosmeticId, EquipmentSlot slot) {
         requestedArmorModels.computeIfAbsent(cosmeticId, k -> ConcurrentHashMap.newKeySet()).add(slot);
@@ -24,7 +23,6 @@ public class RuntimeModelManager {
     public static void clearRequestedModels() {
         requestedArmorModels.clear();
         requestedItemModels.clear();
-        generatedEquipmentDefinitions.clear();
     }
 
     public static void generateAndProvideModels(BiConsumer<String, byte[]> provider) {
@@ -40,16 +38,9 @@ public class RuntimeModelManager {
             provideModels(models, provider);
         }
 
-        requestedArmorModels.forEach((armorSetId, equipmentSlots) -> {
-
-            if (!generatedEquipmentDefinitions.contains(armorSetId)) {
-                Map<String, byte[]> equipmentDef = CustomItemModelGenerator.generateEquipmentDefinition(armorSetId);
-                provideModels(equipmentDef, provider);
-                generatedEquipmentDefinitions.add(armorSetId);
-            }
-
+        requestedArmorModels.forEach((cosmeticId, equipmentSlots) -> {
             for (EquipmentSlot slot : equipmentSlots) {
-                Map<String, byte[]> models = CustomItemModelGenerator.generateArmorModels(armorSetId, slot);
+                Map<String, byte[]> models = CustomItemModelGenerator.generateArmorModels(cosmeticId, slot);
                 provideModels(models, provider);
             }
         });
