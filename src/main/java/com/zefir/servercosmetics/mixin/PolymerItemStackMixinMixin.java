@@ -13,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.List;
 
@@ -26,10 +27,25 @@ public class PolymerItemStackMixinMixin {
             method = "@MixinSquared:Handler",
             at = @At(
                     value = "INVOKE",
-                    target = "Leu/pb4/polymer/core/api/item/PolymerItemUtils;getPolymerItemStack(Lnet/minecraft/item/ItemStack;Lnet/minecraft/registry/RegistryWrapper$WrapperLookup;Lnet/minecraft/server/network/ServerPlayerEntity;)Lnet/minecraft/item/ItemStack;"
+                    target = "Leu/pb4/polymer/core/api/item/PolymerItemUtils;getPolymerItemStack(Lnet/minecraft/item/ItemStack;Lxyz/nucleoid/packettweaker/PacketContext;)Lnet/minecraft/item/ItemStack;"
             )
     )
-    private static ItemStack reduceLogLevel1(ItemStack itemStack, RegistryWrapper.WrapperLookup lookup, @Nullable ServerPlayerEntity player, Operation<ItemStack> original) {
-        return original.call(Utils.filterItemStack(itemStack), lookup, player);
+    private static ItemStack reduceLogLevel2(ItemStack itemStack, PacketContext context, Operation<ItemStack> original) {
+        return original.call(Utils.filterItemStack(itemStack), context);
+    }
+
+    @TargetHandler(
+            mixin = "eu.pb4.polymer.core.mixin.item.ItemStackMixin",
+            name = "lambda$patchCodec2$4"
+    )
+    @WrapOperation(
+            method = "@MixinSquared:Handler",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Leu/pb4/polymer/core/api/item/PolymerItemUtils;getPolymerItemStack(Lnet/minecraft/item/ItemStack;Lxyz/nucleoid/packettweaker/PacketContext;)Lnet/minecraft/item/ItemStack;"
+            )
+    )
+    private static ItemStack reduceLogLevel1(ItemStack itemStack, PacketContext context, Operation<ItemStack> original) {
+        return original.call(Utils.filterItemStack(itemStack), context);
     }
 }

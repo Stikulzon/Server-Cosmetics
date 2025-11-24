@@ -2,8 +2,8 @@ package com.zefir.servercosmetics.mixin;
 
 import com.zefir.servercosmetics.data.ItemType;
 import com.zefir.servercosmetics.ext.ICosmetics;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket;
-import net.minecraft.network.packet.c2s.play.PickFromInventoryC2SPacket;
 import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
@@ -21,13 +21,12 @@ public class ServerPlayNetworkHandlerMixin {
     @Shadow public ServerPlayerEntity player;
 
     @Inject(
-            method = "onPickFromInventory",
+            method = "onPickItem",
             at = @At(
-                    value = "TAIL",
-                    target = "Lnet/minecraft/advancement/criterion/Criteria;INVENTORY_CHANGED:Lnet/minecraft/advancement/criterion/InventoryChangedCriterion;"
+                    value = "TAIL"
             )
     )
-    void modifyItemStack (PickFromInventoryC2SPacket packet, CallbackInfo ci) {
+    void modifyItemStack (ItemStack stack, CallbackInfo ci) {
         ICosmetics cosmetics = (ICosmetics) player;
         cosmetics.tickArmor();
     }
@@ -35,15 +34,14 @@ public class ServerPlayNetworkHandlerMixin {
     @Inject(
             method = "onClickSlot",
             at = @At(
-                    value = "TAIL",
-                    target = "Lnet/minecraft/advancement/criterion/Criteria;INVENTORY_CHANGED:Lnet/minecraft/advancement/criterion/InventoryChangedCriterion;"
+                    value = "TAIL"
             )
     )
     void modifyItemStack (ClickSlotC2SPacket packet, CallbackInfo ci) {
         ScreenHandler handler = this.player.currentScreenHandler;
         if(handler instanceof PlayerScreenHandler) {
             ICosmetics cosmetics = (ICosmetics) player;
-            ItemType itemType = getItemTypeForSlot(packet.getSlot());
+            ItemType itemType = getItemTypeForSlot(packet.slot());
             if(itemType != null) {
                 cosmetics.getCosmeticFor(itemType).tick();
             }
