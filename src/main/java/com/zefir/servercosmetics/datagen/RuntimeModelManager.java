@@ -9,50 +9,54 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 
 public class RuntimeModelManager {
-    private static final Map<String, Set<EquipmentSlot>> requestedModels = new ConcurrentHashMap<>();
+    private static final Map<String, Set<EquipmentSlot>> requestedArmorModels = new ConcurrentHashMap<>();
+    private static final Set<String> requestedItemModels = ConcurrentHashMap.newKeySet();
+    private static final Set<String> generatedEquipmentDefinitions = ConcurrentHashMap.newKeySet();
 
-    /**
-     * Submits a request to generate an armor model at runtime.
-     * This should be called when an armor cosmetic is loaded from the config.
-     *
-     * @param cosmeticId The unique ID of the cosmetic set (e.g., "magma_armor").
-     * @param slot       The slot of armor piece (e.g., HEAD).
-     */
     public static void requestArmorModel(String cosmeticId, EquipmentSlot slot) {
-        requestedModels.computeIfAbsent(cosmeticId, k -> ConcurrentHashMap.newKeySet()).add(slot);
-        ServerCosmetics.LOGGER.debug("Requested runtime model generation for cosmetic '{}' of type {}", cosmeticId, slot.getName());
+        requestedArmorModels.computeIfAbsent(cosmeticId, k -> ConcurrentHashMap.newKeySet()).add(slot);
     }
 
-    /**
-     * Generates all requested models and provides them to the given consumer.
-     * This is called during the Polymer resource pack creation event.
-     *
-     * @param provider A consumer that accepts a resource path and the corresponding file data.
-     */
-    public static void generateAndProvideModels(BiConsumer<String, byte[]> provider) {
-
-        if (requestedModels.isEmpty()) {
-            return;
-        }
-
-        ServerCosmetics.LOGGER.info("Starting runtime generation of {} cosmetic armor model set(s).", requestedModels.size());
-
-        requestedModels.forEach((cosmeticId, equipmentSlots) -> {
-            for (EquipmentSlot slot : equipmentSlots) {
-                Map<String, byte[]> models = ArmorModelGenerator.generateModels(cosmeticId, slot);
-                models.forEach((path, data) -> {
-                    if (provider != null) {
-                        provider.accept(path, data);
-                        ServerCosmetics.LOGGER.debug("Provided runtime model: {}", path);
-                    }
-                });
-            }
-        });
-
-//        requestedModels.clear();
+    public static void requestItemModel(String cosmeticId) {
+        requestedItemModels.add(cosmeticId);
     }
 
     public static void clearRequestedModels() {
-        requestedModels.clear();
+        requestedArmorModels.clear();
+        requestedItemModels.clear();
+        generatedEquipmentDefinitions.clear();
+    }
+
+    public static void generateAndProvideModels(BiConsumer<String, byte[]> provider) {
+        if (requestedArmorModels.isEmpty() && requestedItemModels.isEmpty()) {
+            return;
+        }
+
+        ServerCosmetics.LOGGER.info("Generating runtime models: {} armor sets, {} simple items.",
+                requestedArmorModels.size(), requestedItemModels.size());
+
+        for (String itemId : requestedItemModels) {
+            Map<String, byte[]> models = CustomItemModelGenerator.generateSimpleItemModel(itemId);
+            provideModels(models, provider);
+        }
+
+        requestedArmorModels.forEach((armorSetId, equipmentSlots) -> {
+
+            if (!generatedEquipmentDefinitions.contains(armorSetId)) {
+                Map<String, byte[]> equipmentDef = CustomItemModelGenerator.generateEquipmentDefinition(armorSetId);
+                provideModels(equipmentDef, provider);
+                generatedEquipmentDefinitions.add(armorSetId);
+            }
+
+            for (EquipmentSlot slot : equipmentSlots) {
+                Map<String, byte[]> models = CustomItemModelGenerator.generateArmorModels(armorSetId, slot);
+                provideModels(models, provider);
+            }
+        });
+    }
+
+    private static void provideModels(Map<String, byte[]> models, BiConsumer<String, byte[]> provider) {
+        if (provider == null) return;
+        models.forEach(provider::accept);
     }
 }

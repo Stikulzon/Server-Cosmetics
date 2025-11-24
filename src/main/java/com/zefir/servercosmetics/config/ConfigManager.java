@@ -52,6 +52,7 @@ public class ConfigManager {
     public static final AbstractGuiConfig COSMETICS_GUI_CONFIG = new CosmeticsGUIConfig();
 
     public static void registerConfigs() {
+        RuntimeModelManager.clearRequestedModels();
         createAndLoadMainConfig();
         CustomItemRegistry.setLegacyMode(legacyMode);
 
@@ -122,9 +123,9 @@ public class ConfigManager {
     private static void processPngFile(ResourcePackBuilder builder, String fileName, String fileNameLower, byte[] data) {
         String targetBaseDir;
         if (fileNameLower.endsWith("_helmet.png") || fileNameLower.endsWith("_chestplate.png") || fileNameLower.endsWith("_leggings.png") || fileNameLower.endsWith("_boots.png")) {
-            targetBaseDir = TARGET_TEXTURE_PATH + "item/armor/";
+            targetBaseDir = TARGET_TEXTURE_PATH + "item/";
         } else if (fileNameLower.endsWith("_layer_1.png") || fileNameLower.endsWith("_layer_2.png")) {
-            targetBaseDir = TARGET_TEXTURE_PATH + "models/armor/";
+            targetBaseDir = TARGET_TEXTURE_PATH + "models/";
         } else {
             targetBaseDir = TARGET_TEXTURE_PATH + "item/";
         }
@@ -311,6 +312,7 @@ public class ConfigManager {
 
     public static int reloadAllConfigsCommand(CommandContext<ServerCommandSource> context) {
         try {
+            RuntimeModelManager.clearRequestedModels();
             createAndLoadMainConfig();
             CustomItemRegistry.setLegacyMode(legacyMode);
 

@@ -2,7 +2,7 @@ package com.zefir.servercosmetics.gui;
 
 import com.zefir.servercosmetics.ServerCosmetics;
 import com.zefir.servercosmetics.config.CosmeticsGUIConfig;
-import com.zefir.servercosmetics.gui.resources.GuiTextures;
+import com.zefir.servercosmetics.datagen.ui.GuiTextures;
 import com.zefir.servercosmetics.util.GUIUtils;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.SignGui;

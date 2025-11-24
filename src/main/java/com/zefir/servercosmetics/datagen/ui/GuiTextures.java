@@ -1,10 +1,10 @@
-package com.zefir.servercosmetics.gui.resources;
+package com.zefir.servercosmetics.datagen.ui;
 
 import net.minecraft.text.Text;
 
 import java.util.function.Function;
 
-import static com.zefir.servercosmetics.gui.resources.UiResourceCreator.*;
+import static com.zefir.servercosmetics.datagen.ui.UiResourceCreator.*;
 
 public class GuiTextures {
     public static final Function<Text, Text> COLOR_PICKER_MENU = background("color_picker_menu");

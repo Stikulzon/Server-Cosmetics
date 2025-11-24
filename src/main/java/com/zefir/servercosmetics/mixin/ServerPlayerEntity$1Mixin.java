@@ -22,14 +22,14 @@ import java.util.List;
 public class ServerPlayerEntity$1Mixin {
     @Final
     @Shadow
-    ServerPlayerEntity field_29182;
+    ServerPlayerEntity field_58075;
     @ModifyVariable(
             method = "updateSlot",
             at = @At("HEAD"),
             argsOnly = true
     )
     private ItemStack modifyArmorItemStack(ItemStack stack, ScreenHandler handler, int slot) {
-        ICosmetics cosmetics = (ICosmetics) field_29182;
+        ICosmetics cosmetics = (ICosmetics) field_58075;
         ItemType itemType = Utils.getItemTypeForSlot(slot);
         if(itemType != null) {
             cosmetics.getCosmeticFor(itemType).tick();
@@ -44,7 +44,7 @@ public class ServerPlayerEntity$1Mixin {
     )
     void modifyArmorItemStack (ScreenHandler handler, List<ItemStack> stacks, ItemStack cursorStack, int[] properties, CallbackInfo ci) {
         if(handler instanceof PlayerScreenHandler) {
-            ICosmetics cosmetics = (ICosmetics) field_29182;
+            ICosmetics cosmetics = (ICosmetics) field_58075;
             cosmetics.tickArmor();
         }
     }

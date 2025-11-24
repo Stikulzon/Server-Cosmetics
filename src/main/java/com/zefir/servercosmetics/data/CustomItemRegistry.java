@@ -34,7 +34,6 @@ public class CustomItemRegistry {
     private static boolean legacyMode = false;
 
     public static void initialize() {
-        RuntimeModelManager.clearRequestedModels();
         loadAllCosmetics();
         loadAllItemSkins();
     }
@@ -228,20 +227,24 @@ public class CustomItemRegistry {
         ComponentMap baseItemComponents = baseItem.getComponents();
         try {
             if (baseItemComponents.get(DataComponentTypes.EQUIPPABLE) instanceof EquippableComponent equippableComponent && equippableComponent.slot() != EquipmentSlot.BODY) {
-
+                // --- Armor Logic ---
                 String armorId = cosmeticOrSkinId.replace("_" + equippableComponent.slot().getName().toLowerCase(), "");
-
                 RuntimeModelManager.requestArmorModel(armorId, equippableComponent.slot());
 
                 newStack = getItemFor(equippableComponent.slot()).getDefaultStack();
 
+                Identifier modelId = Identifier.of(ServerCosmetics.MOD_ID, cosmeticOrSkinId);
+                newStack.set(DataComponentTypes.ITEM_MODEL, modelId);
+
                 EquippableComponent newEquippableComponent = newStack.get(DataComponentTypes.EQUIPPABLE);
-                newEquippableComponent.
                 newStack.set(DataComponentTypes.EQUIPPABLE, newEquippableComponent);
-                newStack.set(DataComponentTypes.ITEM_MODEL, Identifier.of(ServerCosmetics.MOD_ID,"item/armor/" + cosmeticOrSkinId));
 
             } else {
-                newStack.set(DataComponentTypes.ITEM_MODEL, Identifier.of(ServerCosmetics.MOD_ID, "item/" + cosmeticOrSkinId));
+                // --- Standard Item Logic ---
+                RuntimeModelManager.requestItemModel(cosmeticOrSkinId);
+
+                Identifier modelId = Identifier.of(ServerCosmetics.MOD_ID, cosmeticOrSkinId);
+                newStack.set(DataComponentTypes.ITEM_MODEL, modelId);
             }
         } catch (Exception e) {
             ServerCosmetics.LOGGER.error("Failed to request model for item id '{}' with base item '{}': {}", cosmeticOrSkinId, baseMaterialId, e.getMessage());
@@ -250,26 +253,12 @@ public class CustomItemRegistry {
             return errorStack;
         }
 
-
-//        newStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT,
-//                comp -> comp.apply(
-//                        nbt -> nbt.putString(NEW_NBT_KEY_CUSTOM_ITEM_ID, cosmeticOrSkinId))
-//        );
-
-        // Мені здається це вже не потрібно
-//        if (baseItemComponents.get(DataComponentTypes.EQUIPPABLE) instanceof EquippableComponent equippableComponent && equippableComponent.slot() != EquipmentSlot.BODY) {
-//            String armorId = cosmeticOrSkinId.replace("_" + equippableComponent.slot().getName().toLowerCase(), "");
-//            PolymerArmorModel armorModel = PolymerResourcePackUtils.requestArmor(id(armorId));
-//            newStack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(armorModel.color(), true));
-//        }
-
         if (loreTexts != null && !loreTexts.isEmpty()) {
             newStack.set(DataComponentTypes.LORE, new LoreComponent(loreTexts));
         } else {
             newStack.set(DataComponentTypes.LORE, new LoreComponent(Collections.emptyList()));
         }
 
-//        newStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(polymerModel.value()));
         newStack.set(DataComponentTypes.CUSTOM_NAME, displayName);
 
         return newStack;
@@ -308,6 +297,12 @@ public class CustomItemRegistry {
                 filteredList.add(entry);
             }
         }
+        return filteredList;
+    }
+
+    public static List<ItemStack> getAllCosmeticItemStacks() {
+        List<ItemStack> filteredList = new ArrayList<>();
+        cosmeticsList.forEach(entry -> filteredList.add(entry.itemStack()));
         return filteredList;
     }
 

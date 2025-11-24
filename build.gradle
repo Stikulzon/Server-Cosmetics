@@ -57,7 +57,7 @@ dependencies {
 	modImplementation ("eu.pb4:polymer-virtual-entity:[${polymer_version}]")
 	modImplementation ("eu.pb4:polymer-autohost:${polymer_version}")
 
-	modImplementation include ("eu.pb4:factorytools:[${factorytools_version}]")
+//	modImplementation include ("eu.pb4:factorytools:${factorytools_version}")
 
 	include(modImplementation "net.kyori:adventure-api:${project.adventure_version}")
 	include(modImplementation "net.kyori:adventure-text-serializer-legacy:${project.adventure_version}")

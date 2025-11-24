@@ -1,6 +1,6 @@
 package com.zefir.servercosmetics.config;
 
-import com.zefir.servercosmetics.gui.resources.GuiTextures;
+import com.zefir.servercosmetics.datagen.ui.GuiTextures;
 import com.zefir.servercosmetics.util.Utils;
 import lombok.Getter;
 import net.minecraft.text.Text;

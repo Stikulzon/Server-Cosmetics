@@ -2,7 +2,7 @@ package com.zefir.servercosmetics.datagen;
 
 import com.google.common.hash.HashCode;
 import com.zefir.servercosmetics.ServerCosmetics;
-import com.zefir.servercosmetics.gui.resources.UiResourceCreator;
+import com.zefir.servercosmetics.datagen.ui.UiResourceCreator;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.minecraft.data.DataOutput;
 import net.minecraft.data.DataProvider;

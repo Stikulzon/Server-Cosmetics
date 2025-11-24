@@ -1,6 +1,7 @@
 package com.zefir.servercosmetics.config;
 
 import com.zefir.servercosmetics.ServerCosmetics;
+import com.zefir.servercosmetics.datagen.RuntimeModelManager;
 import com.zefir.servercosmetics.util.Utils;
 import lombok.Getter;
 import net.minecraft.item.Item;
@@ -153,7 +154,8 @@ public abstract class AbstractGuiConfig {
             String textureName = yamlFile.getString(basePath + ".textureName");
             if (textureName != null && !textureName.isEmpty()) {
                 try {
-                    modelPath = Identifier.of(ServerCosmetics.MOD_ID, "item/" + textureName);
+                    RuntimeModelManager.requestItemModel(textureName);
+                    modelPath = Identifier.of(ServerCosmetics.MOD_ID, textureName);
                 } catch (Exception e) {
                     ServerCosmetics.LOGGER.error("Failed to request model for button '{}' (item: {}, texture: {}): {}", buttonKey, complitedItemString, textureName, e.getMessage());
                 }

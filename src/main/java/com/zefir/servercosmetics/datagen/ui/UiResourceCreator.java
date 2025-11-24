@@ -1,4 +1,4 @@
-package com.zefir.servercosmetics.gui.resources;
+package com.zefir.servercosmetics.datagen.ui;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;

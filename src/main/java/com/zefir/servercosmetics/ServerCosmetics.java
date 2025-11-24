@@ -3,8 +3,8 @@ package com.zefir.servercosmetics;
 import com.zefir.servercosmetics.command.CosmeticCommands;
 import com.zefir.servercosmetics.config.ConfigManager;
 import com.zefir.servercosmetics.database.DatabaseManager;
-import com.zefir.servercosmetics.gui.resources.GuiTextures;
-import com.zefir.servercosmetics.gui.resources.UiResourceCreator;
+import com.zefir.servercosmetics.datagen.ui.GuiTextures;
+import com.zefir.servercosmetics.datagen.ui.UiResourceCreator;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import net.fabricmc.api.ModInitializer;
 
