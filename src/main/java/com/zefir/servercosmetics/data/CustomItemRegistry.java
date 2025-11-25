@@ -12,7 +12,10 @@ import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.item.equipment.EquipmentAsset;
+import net.minecraft.item.equipment.EquipmentAssetKeys;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.simpleyaml.configuration.file.YamlFile;
@@ -228,15 +231,34 @@ public class CustomItemRegistry {
         try {
             if (baseItemComponents.get(DataComponentTypes.EQUIPPABLE) instanceof EquippableComponent equippableComponent && equippableComponent.slot() != EquipmentSlot.BODY) {
                 // --- Armor Logic ---
-                String armorId = cosmeticOrSkinId.replace("_" + equippableComponent.slot().getName().toLowerCase(), "");
+                int pos = cosmeticOrSkinId.indexOf('_');
+                String armorId = pos == -1 ? cosmeticOrSkinId : cosmeticOrSkinId.substring(0, pos);
+//                String armorId = cosmeticOrSkinId.replace("_" + equippableComponent.slot().getName().toLowerCase(), "");
+
                 RuntimeModelManager.requestArmorModel(armorId, equippableComponent.slot());
 
                 newStack = getItemFor(equippableComponent.slot()).getDefaultStack();
 
-                Identifier modelId = Identifier.of(ServerCosmetics.MOD_ID, cosmeticOrSkinId);
-                newStack.set(DataComponentTypes.ITEM_MODEL, modelId);
+                Identifier itemModelId = Identifier.of(ServerCosmetics.MOD_ID, cosmeticOrSkinId);
+                newStack.set(DataComponentTypes.ITEM_MODEL, itemModelId);
 
-                EquippableComponent newEquippableComponent = newStack.get(DataComponentTypes.EQUIPPABLE);
+                Identifier armorModelId = Identifier.of(ServerCosmetics.MOD_ID, armorId);
+                RegistryKey<EquipmentAsset> layers = RegistryKey.of(EquipmentAssetKeys.REGISTRY_KEY, armorModelId);
+
+                EquippableComponent oldEquippableComponent = newStack.get(DataComponentTypes.EQUIPPABLE);
+                EquippableComponent newEquippableComponent = new EquippableComponent(
+                        oldEquippableComponent.slot(),
+                        oldEquippableComponent.equipSound(),
+                        Optional.of(layers),
+                        oldEquippableComponent.cameraOverlay(),
+                        oldEquippableComponent.allowedEntities(),
+                        oldEquippableComponent.dispensable(),
+                        oldEquippableComponent.swappable(),
+                        oldEquippableComponent.damageOnHurt(),
+                        oldEquippableComponent.equipOnInteract(),
+                        oldEquippableComponent.canBeSheared(),
+                        oldEquippableComponent.shearingSound()
+                );
                 newStack.set(DataComponentTypes.EQUIPPABLE, newEquippableComponent);
 
             } else {
