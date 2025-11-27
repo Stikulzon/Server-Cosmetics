@@ -3,18 +3,19 @@ name: Release Mod
 on:
   push:
     tags:
-      - "v*" # Triggers when you push a tag starting with v (e.g. v1.0.2)
+      - "*" # Triggers when you push a tag (e.g. 1.0.2)
 
 jobs:
   build-and-release:
-    runs-on: ubuntu-22.04
     permissions:
       contents: write
     strategy:
       matrix:
         # Use these Java versions
         java: [ 21 ]
+        os: [ubuntu-latest]
 
+    runs-on: ${{ matrix.os }}
     steps:
       - name: checkout repository
         uses: actions/checkout@v4
@@ -26,7 +27,11 @@ jobs:
           distribution: 'microsoft'
 
       - name: grant execute permission for gradlew
+        if: ${{ runner.os != 'Windows' }}
         run: chmod +x gradlew
+
+      - name: compress png
+        run: chmod +x ./oxipng/oxipng && ./oxipng/oxipng -o max -s -a -r src
 
       - name: build
         run: ./gradlew build
@@ -37,7 +42,7 @@ jobs:
           # Uploads all jars generated in build/libs (Release, Sources, Dev)
           # You can specify a single file if you prefer: build/libs/${{ env.ARCHIVES_NAME }}-${{ env.VERSION }}.jar
           files: build/libs/*.jar
-          name: Release ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -66,5 +71,7 @@ jobs:
       - name: Publish to GitHub Packages
         run: ./gradlew publish --init-script publish-config.gradle
         env:
+          CHANGELOG: ${{ github.event.release.body }}
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}

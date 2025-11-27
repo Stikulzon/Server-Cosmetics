@@ -1,37 +1,38 @@
 {
-	"schemaVersion": 1,
-	"id": "servercosmetics",
-	"version": "${version}",
-	"name": "ServerCosmetics",
-	"description": "Server-side cosmetics mod!",
-	"authors": [
-		"Stikulzon"
-	],
-	"contact": {
-		"modrinth": "https://modrinth.com/mod/server-cosmetics",
-		"sources": "https://github.com/Stikulzon/Server-Cosmetics"
-	},
-	"license": "Apache License, Version 2.0",
-	"icon": "assets/servercosmetics/icon.png",
-	"environment": "*",
-	"entrypoints": {
-		"main": [
-			"com.zefir.servercosmetics.ServerCosmetics"
-		],
-		"fabric-datagen": [
-			"com.zefir.servercosmetics.ServerCosmeticsDataGenerator"
-		]
-	},
-	"mixins": [
-		"servercosmetics.mixins.json"
-	],
-	"depends": {
-		"fabricloader": ">=0.15.11",
-		"minecraft": "~1.21.1",
-		"java": ">=21",
-		"fabric-api": "*"
-	},
-	"suggests": {
-		"luckperms": ">=5.4.102"
-	}
+  "schemaVersion": 1,
+  "id": "servercosmetics",
+  "version": "${version}",
+  "name": "ServerCosmetics",
+  "description": "Server-side cosmetics mod!",
+  "authors": [
+    "Stikulzon"
+  ],
+  "contact": {
+    "modrinth": "https://modrinth.com/mod/server-cosmetics",
+    "sources": "https://github.com/Stikulzon/Server-Cosmetics"
+  },
+  "license": "Apache License, Version 2.0",
+  "icon": "assets/servercosmetics/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "ua.zefir.servercosmetics.ModInit"
+    ],
+    "fabric-datagen": [
+      "ua.zefir.servercosmetics.ModDataGenerator"
+    ]
+  },
+  "mixins": [
+    "servercosmetics.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.15.11",
+    "minecraft": "~1.21.9",
+    "java": ">=21",
+    "fabric-api": "*",
+    "polymer-core": "*"
+  },
+  "suggests": {
+    "luckperms": ">=5.4.102"
+  }
 }

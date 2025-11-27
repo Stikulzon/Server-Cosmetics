@@ -1,11 +1,10 @@
 {
   "required": true,
-  "package": "com.zefir.servercosmetics.mixin",
+  "package": "ua.zefir.servercosmetics.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "EntityPassengersSetS2CPacketMixin",
     "EntityTrackerEntryMixin",
-    "ItemStackMixin",
     "PlayerInventoryMixin",
     "PlayerManagerMixin",
     "PolymerItemStackMixinMixin",

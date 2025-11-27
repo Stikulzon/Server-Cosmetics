@@ -17,7 +17,8 @@ jobs:
       matrix:
         # Script will use these Java versions
         java: [ 21 ]
-    runs-on: ubuntu-22.04
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: checkout repository
         uses: actions/checkout@v4
@@ -27,11 +28,19 @@ jobs:
         with:
           java-version: ${{ matrix.java }}
           distribution: 'microsoft'
+
       - name: grant execute permission for gradlew
+        if: ${{ runner.os != 'Windows' }}
         run: chmod +x ./gradlew
+
+      - name: compress png
+        run: chmod +x ./oxipng/oxipng && ./oxipng/oxipng -o max -s -a -r src
+
       - name: build
         run: ./gradlew build
+
       - name: capture build artifacts
+        if: ${{ runner.os == 'Linux' }}
         uses: actions/upload-artifact@v4
         with:
           name: Artifacts
