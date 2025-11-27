@@ -113,6 +113,5 @@ if (System.getenv("MODRINTH_TOKEN")) {
     }
     remapJar {
         finalizedBy project.tasks.modrinth
-        syncBodyFrom = rootProject.file("README.md").text
     }
 }
