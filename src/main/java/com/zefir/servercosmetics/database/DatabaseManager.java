@@ -99,10 +99,6 @@ public class DatabaseManager {
                 return ItemStack.EMPTY;
             }
 
-//            ItemStack cosmeticStack = cosmeticDefinition.itemStack().copy();
-//            if (cosmeticData.getDyedColor() != null) {
-//                cosmeticStack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(cosmeticData.getDyedColor(), true));
-//            }
             return cosmeticDefinition.itemStack().copy();
         } catch (SQLException e) {
             ServerCosmetics.LOGGER.error("Error loading cosmetic data for player {} and type {}", player.getUuidAsString(), type, e);

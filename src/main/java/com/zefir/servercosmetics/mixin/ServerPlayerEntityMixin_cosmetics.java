@@ -5,6 +5,7 @@ import com.zefir.servercosmetics.ext.ICosmetic;
 import com.zefir.servercosmetics.ext.ICosmetics;
 import com.zefir.servercosmetics.util.ArmorCosmetic;
 import com.zefir.servercosmetics.util.BodyCosmetic;
+import com.zefir.servercosmetics.util.Utils;
 import lombok.extern.slf4j.Slf4j;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -62,20 +63,13 @@ public abstract class ServerPlayerEntityMixin_cosmetics implements ICosmetics {
     }
 
     @Override
-    public ICosmetic getCosmeticFor(ItemType type) {
-        ItemType primaryType = switch (type) {
-            case HELMET, HAT_BODY_COSMETIC -> ItemType.HAT;
-            case CHESTPLATE_BODY_COSMETIC -> ItemType.CHESTPLATE;
-            case LEGGINGS_BODY_COSMETIC -> ItemType.LEGGINGS;
-            case BOOTS_BODY_COSMETIC -> ItemType.BOOTS;
-            default -> type;
-        };
+    public ICosmetic getCosmeticFor(ItemType itemType) {
 
         for (ICosmetic cosmetic : cosmeticsList) {
-            if (cosmetic.getItemType() == primaryType) {
+            if (cosmetic.getItemType() == Utils.getRealEquipedItemType(itemType)) {
                 return cosmetic;
             }
         }
-        throw new IllegalArgumentException("No cosmetic found for type: " + type);
+        throw new IllegalArgumentException("No cosmetic found for the type: " + itemType);
     }
 }

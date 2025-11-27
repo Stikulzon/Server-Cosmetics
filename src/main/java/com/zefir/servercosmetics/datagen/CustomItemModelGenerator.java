@@ -11,7 +11,6 @@ import net.minecraft.item.Items;
 import net.minecraft.item.equipment.ArmorMaterials;
 import net.minecraft.item.equipment.EquipmentAsset;
 import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.tag.ItemTags;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -43,21 +42,20 @@ public class CustomItemModelGenerator {
         Item dummyArmorItem = getDummyArmorItem(slot);
         EquippableComponent equippable = dummyArmorItem.getComponents().get(DataComponentTypes.EQUIPPABLE);
 
-        boolean isDyeable = dummyArmorItem.getDefaultStack().isIn(ItemTags.DYEABLE);
 
         String slotName = slot.getName().toLowerCase();
         String modelName = cosmeticId + "_" + slotName;
 
         if (slot == EquipmentSlot.CHEST) {
-            JsonObject equipmentJson = generateEquipmentDefinition(cosmeticId, isDyeable);
+            JsonObject equipmentJson = generateEquipmentDefinition(cosmeticId);
             generatedModels.put("assets/servercosmetics/equipment/" + cosmeticId + ".json",
                     equipmentJson.toString().getBytes(StandardCharsets.UTF_8));
         }
 
-        String baseTexturePath = ServerCosmetics.MOD_ID + ":item/armor/" + modelName;
+        String baseTexturePath = ServerCosmetics.MOD_ID + ":item/" + modelName;
 
         JsonObject baseModelJson = createBaseModelJson("minecraft:item/generated", baseTexturePath);
-        generatedModels.put("assets/servercosmetics/models/item/armor/" + modelName + ".json",
+        generatedModels.put("assets/servercosmetics/models/item/" + modelName + ".json",
                 baseModelJson.toString().getBytes(StandardCharsets.UTF_8));
 
         for (TrimMaterial trim : ALL_TRIM_MATERIALS) {
@@ -68,12 +66,12 @@ public class CustomItemModelGenerator {
             String trimTexturePath = "minecraft:trims/items/" + slotName + "_trim_" + appliedTrimName;
 
             JsonObject trimModelJson = createTrimmedModelJson(baseTexturePath, trimTexturePath);
-            generatedModels.put("assets/servercosmetics/models/item/armor/" + trimModelName + ".json",
+            generatedModels.put("assets/servercosmetics/models/item/" + trimModelName + ".json",
                     trimModelJson.toString().getBytes(StandardCharsets.UTF_8));
         }
 
         JsonObject itemDefinition = createArmorItemDefinition(equippable, modelName);
-        generatedModels.put("assets/servercosmetics/items/armor/" + modelName + ".json",
+        generatedModels.put("assets/servercosmetics/items/" + modelName + ".json",
                 itemDefinition.toString().getBytes(StandardCharsets.UTF_8));
 
         return generatedModels;
@@ -81,31 +79,25 @@ public class CustomItemModelGenerator {
 
     // --- JSON Construction Helpers ---
 
-    private static JsonObject generateEquipmentDefinition(String cosmeticId, boolean dyeable) {
+    private static JsonObject generateEquipmentDefinition(String cosmeticId) {
         JsonObject root = new JsonObject();
         JsonObject layers = new JsonObject();
 
         String textureId = ServerCosmetics.MOD_ID + ":" + cosmeticId;
 
-        layers.add("humanoid", createLayerList(textureId, dyeable));
+        layers.add("humanoid", createLayerList(textureId));
 
-        layers.add("humanoid_leggings", createLayerList(textureId, dyeable));
+        layers.add("humanoid_leggings", createLayerList(textureId));
 
         root.add("layers", layers);
         return root;
     }
 
-    private static JsonArray createLayerList(String textureId, boolean dyeable) {
+    private static JsonArray createLayerList(String textureId) {
         JsonArray list = new JsonArray();
         JsonObject layerEntry = new JsonObject();
 
         layerEntry.addProperty("texture", textureId);
-
-        if (dyeable) {
-            JsonObject dyeableObj = new JsonObject();
-            dyeableObj.addProperty("color_when_undyed", -6265536);
-            layerEntry.add("dyeable", dyeableObj);
-        }
 
         list.add(layerEntry);
         return list;
@@ -129,7 +121,7 @@ public class CustomItemModelGenerator {
 
         JsonObject fallback = new JsonObject();
         fallback.addProperty("type", "minecraft:model");
-        fallback.addProperty("model", ServerCosmetics.MOD_ID + ":item/armor/" + baseModelName);
+        fallback.addProperty("model", ServerCosmetics.MOD_ID + ":item/" + baseModelName);
         selector.add("fallback", fallback);
 
         JsonArray cases = new JsonArray();
@@ -140,7 +132,7 @@ public class CustomItemModelGenerator {
             caseObj.addProperty("when", "minecraft:" + trim.name());
 
             String appliedTrimName = trim.getAppliedName(equippable.assetId().get());
-            String trimModelId = ServerCosmetics.MOD_ID + ":item/armor/" + baseModelName + "_" + appliedTrimName + "_trim";
+            String trimModelId = ServerCosmetics.MOD_ID + ":item/" + baseModelName + "_" + appliedTrimName + "_trim";
 
             JsonObject modelObj = new JsonObject();
             modelObj.addProperty("type", "minecraft:model");

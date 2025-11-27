@@ -31,6 +31,7 @@ public class ConfigManager {
 
     private static final String TARGET_TEXTURE_PATH = "assets/servercosmetics/textures/";
     private static final String TARGET_MODEL_PATH = "assets/servercosmetics/models/item/";
+    private static final String TARGET_ARMOR_TEXTURE_PATH = "assets/servercosmetics/textures/entity/equipment/";
 
     public record NavigationButton(Text name, Item baseItem, Identifier modelPath, int slotIndex,
                                    List<String> lore) {
@@ -122,10 +123,20 @@ public class ConfigManager {
      */
     private static void processPngFile(ResourcePackBuilder builder, String fileName, String fileNameLower, byte[] data) {
         String targetBaseDir;
-        if (fileNameLower.endsWith("_helmet.png") || fileNameLower.endsWith("_chestplate.png") || fileNameLower.endsWith("_leggings.png") || fileNameLower.endsWith("_boots.png")) {
+
+        if (fileNameLower.endsWith("_helmet.png") || fileNameLower.endsWith("_chestplate.png") || fileNameLower.endsWith("_leggings.png") || fileNameLower.endsWith("_boots.png")
+        || fileNameLower.endsWith("_head.png") || fileNameLower.endsWith("_chest.png") || fileNameLower.endsWith("_legs.png") || fileNameLower.endsWith("_feet.png")) {
             targetBaseDir = TARGET_TEXTURE_PATH + "item/";
-        } else if (fileNameLower.endsWith("_layer_1.png") || fileNameLower.endsWith("_layer_2.png")) {
-            targetBaseDir = TARGET_TEXTURE_PATH + "models/";
+            // backwards compatibility with an old naming scheme
+            fileName = fileName.replace("_helmet.png", "_head.png").replace("_chestplate.png", "_chest.png").replace("_leggings.png", "_legs.png").replace("_boots.png", "_feet.png");
+
+        } else if (fileNameLower.endsWith("_layer_1.png") || fileNameLower.endsWith("_humanoid.png")) {
+            targetBaseDir = TARGET_ARMOR_TEXTURE_PATH + "humanoid/";
+            fileName = fileName.replace("_layer_1", "").replace("_humanoid", "");
+
+        } else if (fileNameLower.endsWith("_layer_2.png") || fileNameLower.endsWith("_humanoid_leggings.png")) {
+            targetBaseDir = TARGET_ARMOR_TEXTURE_PATH + "humanoid_leggings/";
+            fileName = fileName.replace("_layer_2", "").replace("_humanoid_leggings", "");
         } else {
             targetBaseDir = TARGET_TEXTURE_PATH + "item/";
         }

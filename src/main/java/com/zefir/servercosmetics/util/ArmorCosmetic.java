@@ -35,7 +35,7 @@ public class ArmorCosmetic implements ICosmetic {
             this.bodyCosmeticDelegate.unequip();
         }
 
-        this.itemType = newType;
+        this.itemType = Utils.getRealEquipedItemType(newType);
         this.cosmeticItemStack = newCosmeticStack.copy();
 
         if (itemType == ItemType.HAT_BODY_COSMETIC || itemType == ItemType.CHESTPLATE_BODY_COSMETIC || itemType == ItemType.LEGGINGS_BODY_COSMETIC || itemType == ItemType.BOOTS_BODY_COSMETIC) {

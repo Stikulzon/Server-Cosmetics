@@ -26,7 +26,6 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import static com.zefir.servercosmetics.ServerCosmetics.id;
 import static com.zefir.servercosmetics.datafixer.NbtDatafixer.NEW_NBT_KEY_CUSTOM_ITEM_ID;
 
 public class CustomItemRegistry {
@@ -89,6 +88,10 @@ public class CustomItemRegistry {
 
             String fileName = filePath.getFileName().toString();
             String itemId = fileName.substring(0, fileName.lastIndexOf('.'));
+
+            // backwards compatibility with an old naming scheme
+            itemId = itemId.replace("_helmet", "_head").replace("_chestplate", "_chest").replace("_leggings", "_legs").replace("_boots", "_feet");
+
             YamlFile yamlFile = new YamlFile(filePath.toAbsolutePath().toString());
 
             try {
@@ -231,9 +234,9 @@ public class CustomItemRegistry {
         try {
             if (baseItemComponents.get(DataComponentTypes.EQUIPPABLE) instanceof EquippableComponent equippableComponent && equippableComponent.slot() != EquipmentSlot.BODY) {
                 // --- Armor Logic ---
-                int pos = cosmeticOrSkinId.indexOf('_');
-                String armorId = pos == -1 ? cosmeticOrSkinId : cosmeticOrSkinId.substring(0, pos);
-//                String armorId = cosmeticOrSkinId.replace("_" + equippableComponent.slot().getName().toLowerCase(), "");
+//                int pos = cosmeticOrSkinId.indexOf('_');
+//                String armorId = pos == -1 ? cosmeticOrSkinId : cosmeticOrSkinId.substring(0, pos);
+                String armorId = cosmeticOrSkinId.replace("_" + equippableComponent.slot().getName().toLowerCase(), "");
 
                 RuntimeModelManager.requestArmorModel(armorId, equippableComponent.slot());
 
@@ -282,6 +285,11 @@ public class CustomItemRegistry {
         }
 
         newStack.set(DataComponentTypes.CUSTOM_NAME, displayName);
+
+
+        newStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp ->
+                comp.apply(nbt -> nbt.putString(NEW_NBT_KEY_CUSTOM_ITEM_ID, cosmeticOrSkinId))
+        );
 
         return newStack;
     }

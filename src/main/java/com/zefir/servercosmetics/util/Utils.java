@@ -114,6 +114,16 @@ public class Utils {
         }
         return 0;
     }
+
+    public static ItemType getRealEquipedItemType(ItemType type) {
+        return switch (type) {
+            case HELMET, HAT_BODY_COSMETIC -> ItemType.HAT;
+            case CHESTPLATE_BODY_COSMETIC -> ItemType.CHESTPLATE;
+            case LEGGINGS_BODY_COSMETIC -> ItemType.LEGGINGS;
+            case BOOTS_BODY_COSMETIC -> ItemType.BOOTS;
+            default -> type;
+        };
+    }
     
     public static int getSlotForType(ItemType type) {
         return switch (type) {
