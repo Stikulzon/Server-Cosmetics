@@ -11,15 +11,15 @@
 		"modrinth": "https://modrinth.com/mod/server-cosmetics",
 		"sources": "https://github.com/Stikulzon/Server-Cosmetics"
 	},
-	"license": "Apache License, Version 2.0",
+	"license": "LGPL-3.0",
 	"icon": "assets/servercosmetics/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"com.zefir.servercosmetics.ServerCosmetics"
+          "ua.zefir.servercosmetics.ServerCosmetics"
 		],
 		"fabric-datagen": [
-			"com.zefir.servercosmetics.ServerCosmeticsDataGenerator"
+          "ua.zefir.servercosmetics.ServerCosmeticsDataGenerator"
 		]
 	},
 	"mixins": [
