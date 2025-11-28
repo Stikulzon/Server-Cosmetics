@@ -1,6 +1,7 @@
 package ua.zefir.servercosmetics.config;
 
 import ua.zefir.servercosmetics.ModInit;
+import ua.zefir.servercosmetics.datagen.RuntimeModelManager;
 import ua.zefir.servercosmetics.datagen.ui.GuiTextures;
 import ua.zefir.servercosmetics.util.Utils;
 import lombok.Getter;
@@ -9,11 +10,12 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.text.Text;
 import net.minecraft.util.DyeColor;
-import net.minecraft.util.Identifier;
 import org.simpleyaml.configuration.ConfigurationSection;
 import org.simpleyaml.configuration.file.YamlFile;
 
 import java.util.*;
+
+import static ua.zefir.servercosmetics.ModInit.id;
 
 public class CosmeticsGUIConfig extends AbstractGuiConfig {
     @Getter
@@ -94,8 +96,8 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
         if (paintItemModelPath != null && !paintItemModelPath.isEmpty()) {
             try {
                 paintItemStack = Items.LEATHER_HORSE_ARMOR.getDefaultStack();
-                paintItemStack.set(DataComponentTypes.ITEM_MODEL, Identifier.of(ModInit.MOD_ID, "item/" + paintItemModelPath));
-                        //PolymerResourcePackUtils.requestModel(Items.LEATHER_HORSE_ARMOR, Identifier.of(ServerCosmetics.MOD_ID, "item/" + paintItemModelPath));
+                paintItemStack.set(DataComponentTypes.ITEM_MODEL, id(paintItemModelPath));
+                RuntimeModelManager.requestItemModel(paintItemModelPath, true);
             } catch (Exception e) {
                 ModInit.LOGGER.error("Failed to load paintItemModelData for path '{}': {}", paintItemModelPath, e.getMessage());
                 paintItemStack = null;

@@ -18,6 +18,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 
+import static ua.zefir.servercosmetics.ModInit.id;
+
 public abstract class AbstractGuiConfig {
 
     protected final Path configFilePath;
@@ -154,8 +156,8 @@ public abstract class AbstractGuiConfig {
             String textureName = yamlFile.getString(basePath + ".textureName");
             if (textureName != null && !textureName.isEmpty()) {
                 try {
-                    RuntimeModelManager.requestItemModel(textureName);
-                    modelPath = Identifier.of(ModInit.MOD_ID, textureName);
+                    RuntimeModelManager.requestItemModel(textureName, false);
+                    modelPath = id(textureName);
                 } catch (Exception e) {
                     ModInit.LOGGER.error("Failed to request model for button '{}' (item: {}, texture: {}): {}", buttonKey, complitedItemString, textureName, e.getMessage());
                 }

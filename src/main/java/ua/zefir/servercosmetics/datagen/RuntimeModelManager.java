@@ -11,13 +11,18 @@ import java.util.function.BiConsumer;
 public class RuntimeModelManager {
     private static final Map<String, Set<EquipmentSlot>> requestedArmorModels = new ConcurrentHashMap<>();
     private static final Set<String> requestedItemModels = ConcurrentHashMap.newKeySet();
+    private static final Set<String> requestedDyebleItemModels = ConcurrentHashMap.newKeySet();
 
     public static void requestArmorModel(String cosmeticId, EquipmentSlot slot) {
         requestedArmorModels.computeIfAbsent(cosmeticId, k -> ConcurrentHashMap.newKeySet()).add(slot);
     }
 
-    public static void requestItemModel(String cosmeticId) {
-        requestedItemModels.add(cosmeticId);
+    public static void requestItemModel(String modelId, boolean dyable) {
+        if (dyable){
+            requestedDyebleItemModels.add(modelId);
+        } else {
+            requestedItemModels.add(modelId);
+        }
     }
 
     public static void clearRequestedModels() {
@@ -33,14 +38,19 @@ public class RuntimeModelManager {
         ModInit.LOGGER.info("Generating runtime models: {} armor sets, {} simple items.",
                 requestedArmorModels.size(), requestedItemModels.size());
 
-        for (String itemId : requestedItemModels) {
-            Map<String, byte[]> models = CustomItemModelGenerator.generateSimpleItemModel(itemId);
+        for (String modelId : requestedItemModels) {
+            Map<String, byte[]> models = CustomItemModelGenerator.generateSimpleItemModel(modelId);
             provideModels(models, provider);
         }
 
-        requestedArmorModels.forEach((cosmeticId, equipmentSlots) -> {
+        for (String modelId : requestedDyebleItemModels) {
+            Map<String, byte[]> models = CustomItemModelGenerator.generateDyebleItemModel(modelId);
+            provideModels(models, provider);
+        }
+
+        requestedArmorModels.forEach((modelId, equipmentSlots) -> {
             for (EquipmentSlot slot : equipmentSlots) {
-                Map<String, byte[]> models = CustomItemModelGenerator.generateArmorModels(cosmeticId, slot);
+                Map<String, byte[]> models = CustomItemModelGenerator.generateArmorModels(modelId, slot);
                 provideModels(models, provider);
             }
         });

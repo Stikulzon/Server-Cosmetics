@@ -47,6 +47,7 @@ jobs:
         run: ./gradlew build
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          CHANGELOG: ${{ github.event.release.body }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

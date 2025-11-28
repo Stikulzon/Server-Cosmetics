@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import static ua.zefir.servercosmetics.ModInit.id;
 import static ua.zefir.servercosmetics.datafixer.NbtDatafixer.NEW_NBT_KEY_CUSTOM_ITEM_ID;
 
 public class CustomItemRegistry {
@@ -105,11 +106,12 @@ public class CustomItemRegistry {
 
                 Text displayName;
                 List<Text> lore;
+                boolean dyable = yamlFile.getBoolean("dyable");
 
                 String type = yamlFile.getString("type");
                 int sortingPriority = yamlFile.getInt("sortingPriority", 0);
 
-                if (type != null) {
+                if (type != null && ItemType.valueOf(type.toUpperCase()) != ItemType.ITEM_SKIN) {
                     String namePath = "display-name";
                     String legacyNamePath = itemPropertiesRootNode + ".display-name";
                     String lorePath = "lore";
@@ -127,7 +129,6 @@ public class CustomItemRegistry {
                     if (lore.isEmpty() && yamlFile.isList(legacyLorePath)) {
                         lore = yamlFile.getStringList(legacyLorePath).stream().map(Utils::formatDisplayName).toList();
                     }
-
 
                 } else { // ITEM_SKIN
                     String tempName = yamlFile.getString("display-name");
@@ -166,31 +167,31 @@ public class CustomItemRegistry {
                     }
 
 
-                    ItemStack itemStack = createItemStack(baseItemMaterial, displayName, itemId, lore);
+                    ItemStack itemStack = createItemStack(baseItemMaterial, displayName, itemId, lore, dyable);
                     CustomItemEntry entry;
                     if (ItemType.valueOf(type.toUpperCase()) == ItemType.BODY_COSMETIC) {
-                        Identifier modelPath = Identifier.of(ModInit.MOD_ID, "item/" + itemId + "_sneaking");
+                        Identifier modelPath = id("item/" + itemId + "_sneaking");
                         boolean isMirrored = yamlFile.getBoolean("isMirrored", false);
                         boolean autoAlignment = yamlFile.getBoolean("autoAlignment", false);
                         boolean offsetWhenSneaking = yamlFile.getBoolean("offsetWhenSneaking", false);
                         boolean autoscale = yamlFile.getBoolean("autoscale", false);
 
-                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, sortingPriority, List.of(Tags.ENTITY, Tags.BODY_COSMETIC), new BodyCosmeticsData(modelPath, isMirrored, autoAlignment, offsetWhenSneaking, autoscale));
+                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, sortingPriority, dyable, List.of(Tags.ENTITY, Tags.BODY_COSMETIC), new BodyCosmeticsData(modelPath, isMirrored, autoAlignment, offsetWhenSneaking, autoscale));
                     } else if (ItemType.valueOf(type.toUpperCase()) == ItemType.CHESTPLATE_BODY_COSMETIC || ItemType.valueOf(type.toUpperCase()) == ItemType.HAT_BODY_COSMETIC || ItemType.valueOf(type.toUpperCase()) == ItemType.BOOTS_BODY_COSMETIC) {
-                        Identifier modelPath = Identifier.of(ModInit.MOD_ID, "item/" + itemId + "_sneaking");
+                        Identifier modelPath = id("item/" + itemId + "_sneaking");
                         boolean isMirrored = yamlFile.getBoolean("isMirrored", false);
                         boolean autoAlignment = yamlFile.getBoolean("autoAlignment", false);
                         boolean offsetWhenSneaking = yamlFile.getBoolean("offsetWhenSneaking", false);
                         boolean autoscale = yamlFile.getBoolean("autoscale", false);
 
-                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, sortingPriority, List.of(Tags.ENTITY, Tags.ARMOR, Tags.BODY_COSMETIC), new BodyCosmeticsData(modelPath, isMirrored, autoAlignment, offsetWhenSneaking, autoscale));
+                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, sortingPriority, dyable, List.of(Tags.ENTITY, Tags.ARMOR, Tags.BODY_COSMETIC), new BodyCosmeticsData(modelPath, isMirrored, autoAlignment, offsetWhenSneaking, autoscale));
                     } else if (ItemType.valueOf(type.toUpperCase()) == ItemType.HELMET || ItemType.valueOf(type.toUpperCase()) == ItemType.CHESTPLATE || ItemType.valueOf(type.toUpperCase()) == ItemType.LEGGINGS || ItemType.valueOf(type.toUpperCase()) == ItemType.BOOTS) {
                         entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack,
-                                ItemType.valueOf(type.toUpperCase()), baseItemMaterial, sortingPriority, List.of(Tags.ARMOR, Tags.ITEM), new ArmorCosmeticsData());
+                                ItemType.valueOf(type.toUpperCase()), baseItemMaterial, sortingPriority, dyable, List.of(Tags.ARMOR, Tags.ITEM), new ArmorCosmeticsData());
 
                     } else {
                         // HAT
-                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, sortingPriority, List.of(Tags.ITEM), null);
+                        entry = new CustomItemEntry(itemId, permission, displayName, lore, itemStack, ItemType.valueOf(type.toUpperCase()), baseItemMaterial, sortingPriority, dyable, List.of(Tags.ITEM), null);
                     }
                     cosmeticsList.add(entry);
 
@@ -210,9 +211,9 @@ public class CustomItemRegistry {
                         if (!materialKey.contains(":")) {
                             materialKey = "minecraft:" + materialKey.toLowerCase();
                         }
-                            ItemStack itemStack = createItemStack(materialKey, displayName, itemId, lore);
+                            ItemStack itemStack = createItemStack(materialKey, displayName, itemId, lore, dyable);
 
-                            CustomItemEntry entry = new CustomItemEntry(itemId + "_" + materialKey, permission, displayName, lore, itemStack, ItemType.ITEM_SKIN, materialKey, sortingPriority, new ArrayList<>(), null);
+                            CustomItemEntry entry = new CustomItemEntry(itemId + "_" + materialKey, permission, displayName, lore, itemStack, ItemType.ITEM_SKIN, materialKey, sortingPriority, dyable, new ArrayList<>(), null);
                             cosmeticsList.add(entry);
                     }
                 }
@@ -222,7 +223,7 @@ public class CustomItemRegistry {
         }
     }
 
-    public static ItemStack createItemStack(String baseMaterialId, Text displayName, String cosmeticOrSkinId, List<Text> loreTexts) {
+    public static ItemStack createItemStack(String baseMaterialId, Text displayName, String cosmeticOrSkinId, List<Text> loreTexts, boolean dyable) {
         Item baseItem = Registries.ITEM.get(Identifier.of(baseMaterialId));
         if (baseItem == Registries.ITEM.get(Registries.ITEM.getDefaultId()) && !baseMaterialId.equals(Registries.ITEM.getDefaultId().toString())) {
             ModInit.LOGGER.warn("Invalid baseMaterialId '{}' for item '{}'. Defaulting to minecraft:paper.", baseMaterialId, cosmeticOrSkinId);
@@ -234,18 +235,16 @@ public class CustomItemRegistry {
         try {
             if (baseItemComponents.get(DataComponentTypes.EQUIPPABLE) instanceof EquippableComponent equippableComponent && equippableComponent.slot() != EquipmentSlot.BODY) {
                 // --- Armor Logic ---
-//                int pos = cosmeticOrSkinId.indexOf('_');
-//                String armorId = pos == -1 ? cosmeticOrSkinId : cosmeticOrSkinId.substring(0, pos);
                 String armorId = cosmeticOrSkinId.replace("_" + equippableComponent.slot().getName().toLowerCase(), "");
 
                 RuntimeModelManager.requestArmorModel(armorId, equippableComponent.slot());
 
                 newStack = getItemFor(equippableComponent.slot()).getDefaultStack();
 
-                Identifier itemModelId = Identifier.of(ModInit.MOD_ID, cosmeticOrSkinId);
+                Identifier itemModelId = id(cosmeticOrSkinId);
                 newStack.set(DataComponentTypes.ITEM_MODEL, itemModelId);
 
-                Identifier armorModelId = Identifier.of(ModInit.MOD_ID, armorId);
+                Identifier armorModelId = id(armorId);
                 RegistryKey<EquipmentAsset> layers = RegistryKey.of(EquipmentAssetKeys.REGISTRY_KEY, armorModelId);
 
                 EquippableComponent oldEquippableComponent = newStack.get(DataComponentTypes.EQUIPPABLE);
@@ -266,9 +265,12 @@ public class CustomItemRegistry {
 
             } else {
                 // --- Standard Item Logic ---
-                RuntimeModelManager.requestItemModel(cosmeticOrSkinId);
+                RuntimeModelManager.requestItemModel(cosmeticOrSkinId, dyable);
+                if(dyable){
+                    newStack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(16777215));
+                }
 
-                Identifier modelId = Identifier.of(ModInit.MOD_ID, cosmeticOrSkinId);
+                Identifier modelId = id(cosmeticOrSkinId);
                 newStack.set(DataComponentTypes.ITEM_MODEL, modelId);
             }
         } catch (Exception e) {

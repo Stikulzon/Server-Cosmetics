@@ -2,5 +2,6 @@ type: leggings
 display-name: "<color:#FF5555>Flame Bringer"
 lore:
   - "<white>Author: <blue>Myllyd_Ogoy"
+sortingPriority: 3
 
 permission: "cosmetics.armor.flamebringer"
