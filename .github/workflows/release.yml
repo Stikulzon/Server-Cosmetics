@@ -9,6 +9,7 @@ jobs:
   build-and-release:
     permissions:
       contents: write
+      packages: write
     strategy:
       matrix:
         # Use these Java versions
