@@ -61,7 +61,7 @@ dependencies {
 	include(modImplementation "net.kyori:adventure-api:${project.adventure_version}")
 	include(modImplementation "net.kyori:adventure-text-serializer-legacy:${project.adventure_version}")
 	include(modImplementation "net.kyori:adventure-text-minimessage:${project.adventure_version}")
-	include(modImplementation "net.kyori:adventure-platform-mod-shared-fabric-repack:${project.adventure_platform_version}")
+	include(modImplementation "net.kyori:adventure-platform-fabric:${project.adventure_platform_version}")
 }
 
 processResources {
