@@ -1,5 +1,9 @@
 package ua.zefir.servercosmetics.mixin;
 
+import com.llamalad7.mixinextras.sugar.Local;
+import net.minecraft.network.packet.Packet;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.world.World;
 import ua.zefir.servercosmetics.ext.ICosmetics;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.server.PlayerManager;
@@ -25,5 +29,13 @@ public class PlayerManagerMixin {
     )
     void remove(ServerPlayerEntity player, CallbackInfo ci) {
         ((ICosmetics) player).removeCosmetics();
+    }
+
+    @Inject(
+            method = "sendToDimension",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerPlayNetworkHandler;sendPacket(Lnet/minecraft/network/packet/Packet;)V", shift = At.Shift.AFTER)
+    )
+    private void onDimensionChange(Packet<?> packet, RegistryKey<World> dimension, CallbackInfo ci, @Local ServerPlayerEntity serverPlayerEntity) {
+        ((ICosmetics) serverPlayerEntity).initCosmetics();
     }
 }

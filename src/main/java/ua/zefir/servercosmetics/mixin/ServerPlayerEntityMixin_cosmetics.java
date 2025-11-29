@@ -42,6 +42,11 @@ public abstract class ServerPlayerEntityMixin_cosmetics implements ICosmetics {
         tickArmor();
     }
 
+    @Inject(method = "copyFrom", at = @At("TAIL"))
+    private void onRespawn(ServerPlayerEntity oldPlayer, boolean alive, CallbackInfo ci) {
+        this.initCosmetics();
+    }
+
     @Override
     public void tickArmor(){
         cosmeticsList.forEach(ICosmetic::tick);
@@ -56,6 +61,7 @@ public abstract class ServerPlayerEntityMixin_cosmetics implements ICosmetics {
     public void removeCosmetics() {
         cosmeticsList.forEach(ICosmetic::onUnload);
     }
+
 
     @Override
     public List<ICosmetic> getCosmeticsList() {

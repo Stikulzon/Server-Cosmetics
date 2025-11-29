@@ -1,5 +1,6 @@
 package ua.zefir.servercosmetics.util;
 
+import net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket;
 import ua.zefir.servercosmetics.data.ItemType;
 import ua.zefir.servercosmetics.database.DatabaseManager;
 import ua.zefir.servercosmetics.ext.ICosmetic;
@@ -9,8 +10,6 @@ import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.jetbrains.annotations.Nullable;
-
-import static ua.zefir.servercosmetics.util.PacketUtil.sendInventorySlotPacket;
 
 public class ArmorCosmetic implements ICosmetic {
 
@@ -142,5 +141,14 @@ public class ArmorCosmetic implements ICosmetic {
             case BOOTS -> ItemType.BOOTS_BODY_COSMETIC;
             default -> type;
         };
+    }
+
+    public static void sendInventorySlotPacket(ServerPlayerEntity player, int slot, ItemStack targetItemStack){
+        player.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(
+                player.playerScreenHandler.syncId,
+                player.playerScreenHandler.nextRevision(),
+                slot,
+                targetItemStack
+        ));
     }
 }
