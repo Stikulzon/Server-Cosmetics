@@ -2,22 +2,14 @@ package ua.zefir.servercosmetics.data;
 
 import ua.zefir.servercosmetics.ModInit;
 import ua.zefir.servercosmetics.config.ConfigManager;
-import ua.zefir.servercosmetics.datagen.RuntimeModelManager;
+import ua.zefir.servercosmetics.util.ItemBuilder;
 import ua.zefir.servercosmetics.util.Utils;
 import lombok.Setter;
-import net.minecraft.component.ComponentMap;
-import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.*;
-import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.item.equipment.EquipmentAsset;
-import net.minecraft.item.equipment.EquipmentAssetKeys;
 import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKey;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import org.simpleyaml.configuration.file.YamlFile;
 
 import java.io.IOException;
@@ -66,12 +58,6 @@ public class CustomItemRegistry {
         loadItemsFromDirectory(itemSkinsDir, null);
     }
 
-    /**
-     * Loads all .yml item definition files from a given directory.
-     *
-     * @param directory              The directory to scan for .yml files.
-     * @param itemPropertiesRootNode The root YAML node for legacy cosmetic properties. Can be null.
-     */
     private static void loadItemsFromDirectory(Path directory, String itemPropertiesRootNode) {
         if (!setupDirectory(directory)) return;
 
@@ -87,12 +73,6 @@ public class CustomItemRegistry {
         }
     }
 
-    /**
-     * Sets up the directory, creating it if it doesn't exist.
-     *
-     * @param directory The path to the directory.
-     * @return True if the directory exists and is valid, false otherwise.
-     */
     private static boolean setupDirectory(Path directory) {
         try {
             if (Files.notExists(directory)) {
@@ -111,13 +91,6 @@ public class CustomItemRegistry {
         }
     }
 
-    /**
-     * Processes a single YAML item definition file.
-     *
-     * @param filePath               The path to the .yml file.
-     * @param itemPropertiesRootNode The legacy root node for cosmetic properties.
-     * @throws IOException If the file cannot be loaded.
-     */
     private static void processItemFile(Path filePath, String itemPropertiesRootNode) throws IOException {
         YamlFile yamlFile = new YamlFile(filePath.toAbsolutePath().toString());
         yamlFile.load();
@@ -142,9 +115,6 @@ public class CustomItemRegistry {
         }
     }
 
-    /**
-     * Loads and registers an Item Skin from its parsed YAML configuration.
-     */
     private static void loadItemSkin(YamlFile yaml, String itemId, String permission, String fileName) {
         Text displayName = parseDisplayName(yaml, ItemType.ITEM_SKIN, fileName, null);
         List<Text> lore = parseLore(yaml, ItemType.ITEM_SKIN, null);
@@ -163,15 +133,20 @@ public class CustomItemRegistry {
 
         for (String materialKey : targetMaterials) {
             String formattedMaterial = formatMaterialId(materialKey);
-            ItemStack itemStack = createItemStack(formattedMaterial, displayName, itemId, lore, dyable);
+
+            // --- REFACTORED BUILDER USAGE ---
+            ItemStack itemStack = ItemBuilder.fromId(formattedMaterial)
+                    .name(displayName)
+                    .lore(lore)
+                    .applyCosmeticLogic(itemId, dyable) // Handles model registration and dying
+                    .customData(NEW_NBT_KEY_CUSTOM_ITEM_ID, itemId + "_" + formattedMaterial)
+                    .build();
+
             CustomItemEntry entry = new CustomItemEntry(itemId + "_" + formattedMaterial, permission, displayName, lore, itemStack, ItemType.ITEM_SKIN, formattedMaterial, sortingPriority, dyable, new ArrayList<>(), null);
             cosmeticsList.add(entry);
         }
     }
 
-    /**
-     * Loads and registers a Cosmetic Item from its parsed YAML configuration.
-     */
     private static void loadCosmetic(YamlFile yaml, String itemId, String permission, String fileName, String itemPropertiesRootNode, String typeStr) {
         ItemType type = ItemType.valueOf(typeStr.toUpperCase());
         Text displayName = parseDisplayName(yaml, type, fileName, itemPropertiesRootNode);
@@ -186,16 +161,18 @@ public class CustomItemRegistry {
         }
 
         String formattedMaterial = formatMaterialId(baseItemMaterial);
-        ItemStack itemStack = createItemStack(formattedMaterial, displayName, itemId, lore, dyable);
+
+        ItemStack itemStack = ItemBuilder.fromId(formattedMaterial)
+                .name(displayName)
+                .lore(lore)
+                .applyCosmeticLogic(itemId, dyable)
+                .customData(NEW_NBT_KEY_CUSTOM_ITEM_ID, itemId)
+                .build();
+
         CustomItemEntry entry = createCosmeticEntry(yaml, itemId, permission, displayName, lore, itemStack, type, formattedMaterial, sortingPriority, dyable);
         cosmeticsList.add(entry);
     }
 
-    /**
-     * Factory method to create a CustomItemEntry for a cosmetic item.
-     *
-     * @return The constructed CustomItemEntry.
-     */
     private static CustomItemEntry createCosmeticEntry(YamlFile yaml, String itemId, String permission, Text displayName, List<Text> lore, ItemStack itemStack, ItemType type, String baseItemMaterial, int sortingPriority, boolean dyable) {
         BodyCosmeticsData bodyData;
         return switch (type) {
@@ -227,9 +204,6 @@ public class CustomItemRegistry {
         );
     }
 
-    /**
-     * Parses the display name from YAML, checking primary and legacy paths.
-     */
     private static Text parseDisplayName(YamlFile yaml, ItemType type, String fileName, String itemPropertiesRootNode) {
         String name;
         if (type == ItemType.ITEM_SKIN) {
@@ -249,9 +223,6 @@ public class CustomItemRegistry {
         return Utils.formatDisplayName(name);
     }
 
-    /**
-     * Parses the lore from YAML, checking primary and legacy paths.
-     */
     private static List<Text> parseLore(YamlFile yaml, ItemType type, String itemPropertiesRootNode) {
         List<String> loreStrings;
         if (type == ItemType.ITEM_SKIN) {
@@ -268,9 +239,6 @@ public class CustomItemRegistry {
         return loreStrings.stream().map(Utils::formatDisplayName).toList();
     }
 
-    /**
-     * Parses the base material from YAML, handling special cases for armor types.
-     */
     private static String parseBaseMaterial(YamlFile yaml, ItemType type, String itemPropertiesRootNode) {
         return switch (type) {
             case HELMET, CHESTPLATE, LEGGINGS, BOOTS -> "leather_" + type.name().toLowerCase();
@@ -279,9 +247,6 @@ public class CustomItemRegistry {
         };
     }
 
-    /**
-     * Formats a material string to ensure it has a namespace.
-     */
     private static String formatMaterialId(String materialId) {
         if (materialId != null && !materialId.contains(":")) {
             return "minecraft:" + materialId.toLowerCase();
@@ -289,99 +254,13 @@ public class CustomItemRegistry {
         return materialId;
     }
 
-    public static ItemStack createItemStack(String baseMaterialId, Text displayName, String cosmeticOrSkinId, List<Text> loreTexts, boolean dyable) {
-        Item baseItem = Registries.ITEM.get(Identifier.of(baseMaterialId));
-        if (baseItem == Registries.ITEM.get(Registries.ITEM.getDefaultId()) && !baseMaterialId.equals(Registries.ITEM.getDefaultId().toString())) {
-            ModInit.LOGGER.warn("Invalid baseMaterialId '{}' for item '{}'. Defaulting to minecraft:paper.", baseMaterialId, cosmeticOrSkinId);
-            baseItem = Registries.ITEM.get(Identifier.of("minecraft:paper")); // Fallback
-        }
-
-        ItemStack newStack = new ItemStack(baseItem);
-        ComponentMap baseItemComponents = baseItem.getComponents();
-        try {
-            if (baseItemComponents.get(DataComponentTypes.EQUIPPABLE) instanceof EquippableComponent equippableComponent && equippableComponent.slot() != EquipmentSlot.BODY) {
-                // --- Armor Logic ---
-                String armorId = cosmeticOrSkinId.replace("_" + equippableComponent.slot().getName().toLowerCase(), "");
-
-                RuntimeModelManager.requestArmorModel(armorId, equippableComponent.slot());
-
-                newStack = getItemFor(equippableComponent.slot()).getDefaultStack();
-
-                Identifier itemModelId = id(cosmeticOrSkinId);
-                newStack.set(DataComponentTypes.ITEM_MODEL, itemModelId);
-
-                Identifier armorModelId = id(armorId);
-                RegistryKey<EquipmentAsset> layers = RegistryKey.of(EquipmentAssetKeys.REGISTRY_KEY, armorModelId);
-
-                EquippableComponent oldEquippableComponent = newStack.get(DataComponentTypes.EQUIPPABLE);
-                EquippableComponent newEquippableComponent = new EquippableComponent(
-                        oldEquippableComponent.slot(),
-                        oldEquippableComponent.equipSound(),
-                        Optional.of(layers),
-                        oldEquippableComponent.cameraOverlay(),
-                        oldEquippableComponent.allowedEntities(),
-                        oldEquippableComponent.dispensable(),
-                        oldEquippableComponent.swappable(),
-                        oldEquippableComponent.damageOnHurt(),
-                        oldEquippableComponent.equipOnInteract(),
-                        oldEquippableComponent.canBeSheared(),
-                        oldEquippableComponent.shearingSound()
-                );
-                newStack.set(DataComponentTypes.EQUIPPABLE, newEquippableComponent);
-
-            } else {
-                // --- Standard Item Logic ---
-                RuntimeModelManager.requestItemModel(cosmeticOrSkinId, dyable);
-                if (dyable) {
-                    newStack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(16777215));
-                }
-
-                Identifier modelId = id(cosmeticOrSkinId);
-                newStack.set(DataComponentTypes.ITEM_MODEL, modelId);
-            }
-        } catch (Exception e) {
-            ModInit.LOGGER.error("Failed to request model for item id '{}' with base item '{}': {}", cosmeticOrSkinId, baseMaterialId, e.getMessage());
-            ItemStack errorStack = new ItemStack(baseItem);
-            errorStack.set(DataComponentTypes.CUSTOM_NAME, Text.literal("Error: " + cosmeticOrSkinId));
-            return errorStack;
-        }
-
-        if (loreTexts != null && !loreTexts.isEmpty()) {
-            newStack.set(DataComponentTypes.LORE, new LoreComponent(loreTexts));
-        } else {
-            newStack.set(DataComponentTypes.LORE, new LoreComponent(Collections.emptyList()));
-        }
-
-        newStack.set(DataComponentTypes.CUSTOM_NAME, displayName);
-
-
-        newStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp ->
-                comp.apply(nbt -> nbt.putString(NEW_NBT_KEY_CUSTOM_ITEM_ID, cosmeticOrSkinId))
-        );
-
-        return newStack;
-    }
-
-    private static Item getItemFor(EquipmentSlot type) {
-        return switch (type) {
-            case EquipmentSlot.HEAD -> Items.LEATHER_HELMET;
-            case EquipmentSlot.CHEST -> Items.LEATHER_CHESTPLATE;
-            case EquipmentSlot.LEGS -> Items.LEATHER_LEGGINGS;
-            case EquipmentSlot.FEET -> Items.LEATHER_BOOTS;
-            default -> Items.STONE;
-        };
-    }
-
     // --- Accessor methods ---
 
     public static CustomItemEntry getCosmetic(String id) {
-        CustomItemEntry cosmetic = null;
         for (CustomItemEntry entry : cosmeticsList) {
-            if (entry.id().equals(id)) {
-                cosmetic = entry;
-            }
+            if (entry.id().equals(id)) return entry;
         }
-        return cosmetic;
+        return null;
     }
 
     public static List<CustomItemEntry> getCosmeticsList() {
@@ -399,9 +278,7 @@ public class CustomItemRegistry {
     }
 
     public static List<ItemStack> getAllCosmeticItemStacks() {
-        List<ItemStack> filteredList = new ArrayList<>();
-        cosmeticsList.forEach(entry -> filteredList.add(entry.itemStack()));
-        return filteredList;
+        return cosmeticsList.stream().map(CustomItemEntry::itemStack).toList();
     }
 
     public static List<CustomItemEntry> getAllCosmeticsForMaterial(ItemType type, Item item) {
