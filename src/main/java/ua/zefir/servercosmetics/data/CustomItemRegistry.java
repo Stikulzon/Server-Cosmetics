@@ -134,11 +134,10 @@ public class CustomItemRegistry {
         for (String materialKey : targetMaterials) {
             String formattedMaterial = formatMaterialId(materialKey);
 
-            // --- REFACTORED BUILDER USAGE ---
             ItemStack itemStack = ItemBuilder.fromId(formattedMaterial)
                     .name(displayName)
                     .lore(lore)
-                    .applyCosmeticLogic(itemId, dyable) // Handles model registration and dying
+                    .applyCosmeticLogic(itemId, dyable)
                     .customData(NEW_NBT_KEY_CUSTOM_ITEM_ID, itemId + "_" + formattedMaterial)
                     .build();
 

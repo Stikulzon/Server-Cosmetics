@@ -137,8 +137,6 @@ public class Utils {
 
     public static ItemStack getTiltedItemStack(ItemStack original, Identifier modelPath){
         ItemStack itemStack = original.copy();
-//        ((IItemStack) (Object) itemStack).server_Cosmetics$setItem(modelPath.item());
-//        itemStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(modelPath.value()));
         itemStack.set(DataComponentTypes.ITEM_MODEL, modelPath);
         return itemStack;
     }
@@ -213,7 +211,6 @@ public class Utils {
 
                 Identifier expectedItemModel = skinEntry.itemStack().get(DataComponentTypes.ITEM_MODEL);
                 stack.set(DataComponentTypes.ITEM_MODEL, expectedItemModel);
-
 
                 EquippableComponent equippableComponent = skinEntry.itemStack().get(DataComponentTypes.EQUIPPABLE);
                 stack.set(DataComponentTypes.EQUIPPABLE, equippableComponent);
