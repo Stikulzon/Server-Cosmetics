@@ -1,5 +1,6 @@
 package ua.zefir.servercosmetics.util;
 
+import net.minecraft.entity.EquipmentSlot;
 import ua.zefir.servercosmetics.data.ItemType;
 import ua.zefir.servercosmetics.database.DatabaseManager;
 import ua.zefir.servercosmetics.ext.ICosmetic;
@@ -108,6 +109,16 @@ public class ArmorCosmetic implements ICosmetic {
             itemStackToSend = player.getInventory().getArmorStack(8 - getSlotFor(this.slotType));
         }
         sendInventorySlotPacket(player, getSlotFor(this.slotType), itemStackToSend);
+    }
+
+    public static ItemType getItemTypeForSlot(EquipmentSlot slot) {
+        return switch (slot) {
+            case HEAD -> ItemType.HAT;
+            case CHEST -> ItemType.CHESTPLATE;
+            case LEGS -> ItemType.LEGGINGS;
+            case FEET -> ItemType.BOOTS;
+            default -> throw new IllegalArgumentException("Invalid EquipmentSlot for ArmorCosmetic: " + slot);
+        };
     }
 
     public static int getSlotFor(ItemType type) {

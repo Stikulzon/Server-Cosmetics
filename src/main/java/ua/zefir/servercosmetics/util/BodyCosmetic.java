@@ -1,6 +1,7 @@
 package ua.zefir.servercosmetics.util;
 
 import com.google.common.collect.ImmutableList;
+import ua.zefir.servercosmetics.ServerCosmetics;
 import ua.zefir.servercosmetics.data.ItemType;
 import ua.zefir.servercosmetics.data.BodyCosmeticsData;
 import ua.zefir.servercosmetics.database.DatabaseManager;
@@ -10,7 +11,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.decoration.ArmorStandEntity;
-import net.minecraft.entity.decoration.DisplayEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -35,16 +35,12 @@ public class BodyCosmetic implements ICosmetic {
     ItemStack cosmeticItemStack = ItemStack.EMPTY;
     ItemStack cosmeticItemStackWhenSneaking = ItemStack.EMPTY;
     private BodyCosmeticsData cosmeticData;
-    private final boolean useArmorStand = true;
     private boolean isHidden = false;
     private boolean isTilted = false;
 
     public BodyCosmetic(ServerPlayerEntity player, ItemType itemType) {
-        if (useArmorStand) {
-            this.bodyCosmeticsModel = new ArmorStandEntity(EntityType.ARMOR_STAND, player.getServerWorld());
-        } else {
-            this.bodyCosmeticsModel = new DisplayEntity.ItemDisplayEntity(EntityType.ITEM_DISPLAY, player.getServerWorld());
-        }
+        this.bodyCosmeticsModel = new ArmorStandEntity(EntityType.ARMOR_STAND, player.getServerWorld());
+
         this.player = player;
         this.itemType = itemType;
     }
@@ -68,8 +64,9 @@ public class BodyCosmetic implements ICosmetic {
 
             if (DatabaseManager.getCosmeticEntry(player, itemType) != null) {
                 cosmeticData = (BodyCosmeticsData) Objects.requireNonNull(DatabaseManager.getCosmeticEntry(player, itemType)).cosmeticData();
-                cosmeticItemStackWhenSneaking = getTiltedItemStack(cosmeticItemStack, cosmeticData.polymerModelWhenSneaking());
+                cosmeticItemStackWhenSneaking = getTiltedItemStack(cosmeticData.polymerModelWhenSneaking());
             } else {
+                ServerCosmetics.LOGGER.error("No cosmetic entry found for {}", itemType);
                 cosmeticItemStackWhenSneaking = cosmeticItemStack;
             }
 
@@ -77,12 +74,9 @@ public class BodyCosmetic implements ICosmetic {
             bodyCosmeticsModel.setInvulnerable(true);
             bodyCosmeticsModel.setNoGravity(true);
 
-            if (useArmorStand) {
-                bodyCosmeticsModel.setInvisible(true);
-                ((ArmorStandEntity) bodyCosmeticsModel).setHeadRotation(new EulerAngle(0.0F, 0f, 0f));
-            } else {
-                ((DisplayEntity.ItemDisplayEntity) bodyCosmeticsModel).setBillboardMode(DisplayEntity.BillboardMode.FIXED);
-            }
+            bodyCosmeticsModel.setInvisible(true);
+            ((ArmorStandEntity) bodyCosmeticsModel).setHeadRotation(new EulerAngle(0.0F, 0f, 0f));
+
 
             player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
                     new EntitySpawnS2CPacket(bodyCosmeticsModel, 1, bodyCosmeticsModel.getBlockPos()));
@@ -137,25 +131,23 @@ public class BodyCosmetic implements ICosmetic {
             }
         }
 
-        if (player.isSwimming() || player.isCrawling() && !isHidden) {
+        boolean shouldBeHidden = player.isSwimming() || player.isCrawling() || player.isSpectator() || player.isInvisible() || player.isSleeping();
+
+        if (shouldBeHidden && !isHidden) {
             setItem(ItemStack.EMPTY);
             isHidden = true;
-        } else if (!player.isSwimming() && !player.isCrawling() && isHidden) {
-            setItem(cosmeticItemStack);
+        } else if (!shouldBeHidden && isHidden) {
+            setItem(isTilted ? cosmeticItemStackWhenSneaking : cosmeticItemStack);
             isHidden = false;
         }
     }
 
     private void setItem(ItemStack itemStack) {
-        if (useArmorStand) {
-            List<Pair<EquipmentSlot, ItemStack>> equipmentList = ImmutableList.of(
-                    new Pair<>(EquipmentSlot.HEAD, itemStack)
-            );
-            player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
-                    new EntityEquipmentUpdateS2CPacket(bodyCosmeticsModel.getId(), equipmentList));
-        } else {
-            ((DisplayEntity.ItemDisplayEntity) bodyCosmeticsModel).setItemStack(itemStack);
-        }
+        List<Pair<EquipmentSlot, ItemStack>> equipmentList = ImmutableList.of(
+                new Pair<>(EquipmentSlot.HEAD, itemStack)
+        );
+        player.getServerWorld().getChunkManager().sendToNearbyPlayers(player,
+                new EntityEquipmentUpdateS2CPacket(bodyCosmeticsModel.getId(), equipmentList));
     }
 
     public void unequip() {

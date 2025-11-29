@@ -5,6 +5,7 @@ import net.minecraft.item.ItemStack;
 
 public interface ICosmetic {
     ItemType getItemType();
+    ItemStack getCosmeticItemStack();
     void tick();
     void init();
     void onUnload();

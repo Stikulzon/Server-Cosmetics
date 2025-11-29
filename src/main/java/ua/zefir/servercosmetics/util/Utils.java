@@ -8,7 +8,6 @@ import ua.zefir.servercosmetics.data.CustomItemEntry;
 import ua.zefir.servercosmetics.data.CustomItemRegistry;
 import ua.zefir.servercosmetics.data.ItemType;
 import ua.zefir.servercosmetics.datafixer.NbtDatafixer;
-import ua.zefir.servercosmetics.ext.IItemStack;
 import ua.zefir.servercosmetics.gui.ColorPickerComponent;
 import ua.zefir.servercosmetics.gui.actions.EquipCosmeticAction;
 import eu.pb4.polymer.resourcepack.api.PolymerModelData;
@@ -127,9 +126,8 @@ public class Utils {
         };
     }
 
-    public static ItemStack getTiltedItemStack(ItemStack original, PolymerModelData polymerModel){
-        ItemStack itemStack = original.copy();
-        ((IItemStack) (Object) itemStack).server_Cosmetics$setItem(polymerModel.item());
+    public static ItemStack getTiltedItemStack(PolymerModelData polymerModel){
+        ItemStack itemStack = new ItemStack(polymerModel.item());
         itemStack.set(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(polymerModel.value()));
         return itemStack;
     }
