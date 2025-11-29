@@ -55,33 +55,34 @@ public class BodyCosmetic implements ICosmetic {
     @Override
     public void init() {
         cosmeticItemStack = DatabaseManager.getCosmeticItemStack(player, itemType);
-        if (!cosmeticItemStack.isEmpty()) {
-            onUnload();
 
-            if (DatabaseManager.getCosmeticEntry(player, itemType) != null) {
-                cosmeticData = (BodyCosmeticsData) Objects.requireNonNull(DatabaseManager.getCosmeticEntry(player, itemType)).cosmeticData();
-                cosmeticItemStackWhenSneaking = getTiltedItemStack(cosmeticItemStack, cosmeticData.modelWhenSneaking());
-            } else {
-                cosmeticItemStackWhenSneaking = cosmeticItemStack;
-            }
-
-            bodyCosmeticsModel.setPosition(player.getX(), player.getY(), player.getZ());
-            bodyCosmeticsModel.setInvulnerable(true);
-            bodyCosmeticsModel.setNoGravity(true);
-            bodyCosmeticsModel.setInvisible(true);
-            ((ArmorStandEntity) bodyCosmeticsModel).setHeadRotation(new EulerAngle(0.0F, 0f, 0f));
-
-            player.getWorld().getChunkManager().sendToNearbyPlayers(player, new EntitySpawnS2CPacket(bodyCosmeticsModel, 1, bodyCosmeticsModel.getBlockPos()));
-
-            setItem(cosmeticItemStack);
-
-            player.getWorld().getChunkManager().sendToNearbyPlayers(player, new EntityTrackerUpdateS2CPacket(bodyCosmeticsModel.getId(), bodyCosmeticsModel.getDataTracker().getChangedEntries()));
-
-            bodyCosmeticsModel.startRiding(player, true);
-            player.getWorld().getChunkManager().sendToNearbyPlayers(player, new EntityPassengersSetS2CPacket(player));
-        } else {
+        if (cosmeticItemStack.isEmpty()) {
             unequip();
+            return;
         }
+
+        if (DatabaseManager.getCosmeticEntry(player, itemType) != null) {
+            cosmeticData = (BodyCosmeticsData) Objects.requireNonNull(DatabaseManager.getCosmeticEntry(player, itemType)).cosmeticData();
+            cosmeticItemStackWhenSneaking = getTiltedItemStack(cosmeticItemStack, cosmeticData.modelWhenSneaking());
+        } else {
+            cosmeticItemStackWhenSneaking = cosmeticItemStack;
+        }
+
+        // Configure the ArmorStand
+        bodyCosmeticsModel.setPosition(player.getX(), player.getY(), player.getZ());
+        bodyCosmeticsModel.setInvulnerable(true);
+        bodyCosmeticsModel.setNoGravity(true);
+        bodyCosmeticsModel.setInvisible(true);
+        ((ArmorStandEntity) bodyCosmeticsModel).setHeadRotation(new EulerAngle(0.0F, 0f, 0f));
+
+        // Send packets to spawn the new entity for all nearby players
+        player.getWorld().getChunkManager().sendToNearbyPlayers(player, new EntitySpawnS2CPacket(bodyCosmeticsModel, 1, bodyCosmeticsModel.getBlockPos()));
+        setItem(cosmeticItemStack);
+        player.getWorld().getChunkManager().sendToNearbyPlayers(player, new EntityTrackerUpdateS2CPacket(bodyCosmeticsModel.getId(), bodyCosmeticsModel.getDataTracker().getChangedEntries()));
+
+        // Set the cosmetic to ride the player
+        bodyCosmeticsModel.startRiding(player, true);
+        player.getWorld().getChunkManager().sendToNearbyPlayers(player, new EntityPassengersSetS2CPacket(player));
     }
 
     @Override
@@ -115,7 +116,8 @@ public class BodyCosmetic implements ICosmetic {
             }
         }
 
-        boolean shouldBeHidden = player.isSwimming() || player.isCrawling();
+        boolean shouldBeHidden = player.isSwimming() || player.isCrawling() || player.isSpectator() || player.isInvisible() || player.isSleeping();
+
         if (shouldBeHidden && !isHidden) {
             setItem(ItemStack.EMPTY);
             isHidden = true;

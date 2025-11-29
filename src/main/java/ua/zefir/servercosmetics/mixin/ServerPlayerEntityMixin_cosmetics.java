@@ -1,5 +1,6 @@
 package ua.zefir.servercosmetics.mixin;
 
+import net.minecraft.server.world.ServerWorld;
 import ua.zefir.servercosmetics.data.ItemType;
 import ua.zefir.servercosmetics.ext.ICosmetic;
 import ua.zefir.servercosmetics.ext.ICosmetics;
@@ -44,6 +45,13 @@ public abstract class ServerPlayerEntityMixin_cosmetics implements ICosmetics {
 
     @Inject(method = "copyFrom", at = @At("TAIL"))
     private void onRespawn(ServerPlayerEntity oldPlayer, boolean alive, CallbackInfo ci) {
+        ((ICosmetics) oldPlayer).removeCosmetics();
+
+        this.initCosmetics();
+    }
+
+    @Inject(method = "worldChanged", at = @At("TAIL"))
+    private void onDimensionChange(ServerWorld origin, CallbackInfo ci) {
         this.initCosmetics();
     }
 
@@ -54,14 +62,18 @@ public abstract class ServerPlayerEntityMixin_cosmetics implements ICosmetics {
 
     @Override
     public void initCosmetics() {
-        cosmeticsList.forEach(ICosmetic::init);
+        ServerPlayerEntity player = (ServerPlayerEntity)(Object)this;
+        if (player.getServer() != null) {
+            player.getServer().execute(() -> cosmeticsList.forEach(ICosmetic::init));
+        } else {
+            cosmeticsList.forEach(ICosmetic::init);
+        }
     }
 
     @Override
     public void removeCosmetics() {
         cosmeticsList.forEach(ICosmetic::onUnload);
     }
-
 
     @Override
     public List<ICosmetic> getCosmeticsList() {

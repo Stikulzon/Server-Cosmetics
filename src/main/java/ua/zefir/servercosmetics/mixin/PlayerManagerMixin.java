@@ -31,11 +31,4 @@ public class PlayerManagerMixin {
         ((ICosmetics) player).removeCosmetics();
     }
 
-    @Inject(
-            method = "sendToDimension",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerPlayNetworkHandler;sendPacket(Lnet/minecraft/network/packet/Packet;)V", shift = At.Shift.AFTER)
-    )
-    private void onDimensionChange(Packet<?> packet, RegistryKey<World> dimension, CallbackInfo ci, @Local ServerPlayerEntity serverPlayerEntity) {
-        ((ICosmetics) serverPlayerEntity).initCosmetics();
-    }
 }
