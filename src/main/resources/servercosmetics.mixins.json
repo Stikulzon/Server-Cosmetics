@@ -5,6 +5,7 @@
   "mixins": [
     "EntityPassengersSetS2CPacketMixin",
     "EntityTrackerEntryMixin",
+    "PlayerEntityMixin",
     "PlayerInventoryMixin",
     "PlayerManagerMixin",
     "PolymerItemStackMixinMixin",

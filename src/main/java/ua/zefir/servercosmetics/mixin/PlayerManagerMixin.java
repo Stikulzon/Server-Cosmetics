@@ -1,5 +1,9 @@
 package ua.zefir.servercosmetics.mixin;
 
+import com.llamalad7.mixinextras.sugar.Local;
+import net.minecraft.network.packet.Packet;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.world.World;
 import ua.zefir.servercosmetics.ext.ICosmetics;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.server.PlayerManager;
@@ -21,9 +25,10 @@ public class PlayerManagerMixin {
     }
     @Inject(
             method = "remove",
-            at = @At( value = "TAIL" )
+            at = @At( value = "HEAD" )
     )
     void remove(ServerPlayerEntity player, CallbackInfo ci) {
         ((ICosmetics) player).removeCosmetics();
     }
+
 }

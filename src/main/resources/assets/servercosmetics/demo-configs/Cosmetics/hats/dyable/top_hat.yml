@@ -1,5 +1,6 @@
 type: HAT
-material: leather_horse_armor
+material: minecraft:paper
 display-name: "&bFancy Paintable Hat"
+dyable: true
 
 permission: "cosmetics.hat.top_hat_white"

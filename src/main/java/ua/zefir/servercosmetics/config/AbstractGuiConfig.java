@@ -2,6 +2,7 @@ package ua.zefir.servercosmetics.config;
 
 import ua.zefir.servercosmetics.ModInit;
 import ua.zefir.servercosmetics.datagen.RuntimeModelManager;
+import ua.zefir.servercosmetics.util.ItemBuilder;
 import ua.zefir.servercosmetics.util.Utils;
 import lombok.Getter;
 import net.minecraft.item.Item;
@@ -18,29 +19,22 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 
+import static ua.zefir.servercosmetics.ModInit.id;
+
 public abstract class AbstractGuiConfig {
 
     protected final Path configFilePath;
     protected YamlFile yamlFile;
 
-    @Getter
-    protected String guiNameString;
-    @Getter
-    protected int[] displaySlots;
-    @Getter
-    protected String permissionOpenGui;
-    @Getter
-    protected String messageUnlockedString;
-    @Getter
-    protected String messageLockedString;
-    @Getter
-    protected boolean pageIndicatorEnabled;
-    @Getter
-    protected boolean replaceInventory;
-    @Getter
-    private List<String> disabledFilters;
-    @Getter
-    ScreenHandlerType<GenericContainerScreenHandler> screenHandlerType;
+    @Getter protected String guiNameString;
+    @Getter protected int[] displaySlots;
+    @Getter protected String permissionOpenGui;
+    @Getter protected String messageUnlockedString;
+    @Getter protected String messageLockedString;
+    @Getter protected boolean pageIndicatorEnabled;
+    @Getter protected boolean replaceInventory;
+    @Getter private List<String> disabledFilters;
+    @Getter ScreenHandlerType<GenericContainerScreenHandler> screenHandlerType;
     static final Map<String, Map<String, Object>> buttonDefaults = new HashMap<>();
 
     @Getter
@@ -135,39 +129,32 @@ public abstract class AbstractGuiConfig {
             ModInit.LOGGER.warn("Button configuration for '{}' not found in {}.", buttonKey, this.configFilePath.getFileName());
             return;
         }
+
         String baseItemString = yamlFile.getString(basePath + ".item");
         if (baseItemString == null || baseItemString.isEmpty()) {
             ModInit.LOGGER.error("Button '{}' in {} is missing 'item' field.", buttonKey, this.configFilePath.getFileName());
             return;
         }
-        String complitedItemString = baseItemString.contains(":") ? baseItemString : "minecraft:" + baseItemString.toLowerCase();
 
-        Item item = Registries.ITEM.get(Identifier.of(complitedItemString));
-        if (item == Registries.ITEM.get(Registries.ITEM.getDefaultId()) && !complitedItemString.equals(Registries.ITEM.getDefaultId().toString())) {
-            ModInit.LOGGER.error("Button '{}' in {} has invalid item id: {}. Defaulting to paper.", buttonKey, this.configFilePath.getFileName(), complitedItemString);
-            item = Registries.ITEM.get(Identifier.of("minecraft:paper"));
-            complitedItemString = "minecraft:paper";
-        }
+        String formattedItemString = baseItemString.contains(":") ? baseItemString : "minecraft:" + baseItemString.toLowerCase();
+
+        Item item = ItemBuilder.fromId(formattedItemString).build().getItem();
 
         Identifier modelPath = null;
         if (yamlFile.isSet(basePath + ".textureName")) {
             String textureName = yamlFile.getString(basePath + ".textureName");
             if (textureName != null && !textureName.isEmpty()) {
                 try {
-                    RuntimeModelManager.requestItemModel(textureName);
-                    modelPath = Identifier.of(ModInit.MOD_ID, textureName);
+                    RuntimeModelManager.requestItemModel(textureName, false);
+                    modelPath = id(textureName);
                 } catch (Exception e) {
-                    ModInit.LOGGER.error("Failed to request model for button '{}' (item: {}, texture: {}): {}", buttonKey, complitedItemString, textureName, e.getMessage());
+                    ModInit.LOGGER.error("Failed to request model for button '{}' (item: {}, texture: {}): {}", buttonKey, formattedItemString, textureName, e.getMessage());
                 }
             }
         }
 
         List<String> loreStrings = yamlFile.getStringList(basePath + ".lore");
-
-        int slotIndex = yamlFile.getInt(basePath + ".slotIndex");
-        if (yamlFile.getString(basePath + ".slotIndex") == null || yamlFile.getString(basePath + ".slotIndex").isEmpty()) {
-            slotIndex = -1;
-        }
+        int slotIndex = yamlFile.getInt(basePath + ".slotIndex", -1);
 
         navigationButtons.put(buttonKey, new ConfigManager.NavigationButton(
                 Utils.formatDisplayName(yamlFile.getString(basePath + ".name", "Button " + buttonKey)),

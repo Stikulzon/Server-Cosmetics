@@ -2,7 +2,6 @@ package ua.zefir.servercosmetics.datagen.ui;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import net.minecraft.text.StyleSpriteSource;
 import ua.zefir.servercosmetics.ModInit;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import it.unimi.dsi.fastutil.chars.Char2IntMap;
@@ -22,7 +21,7 @@ import static ua.zefir.servercosmetics.ModInit.id;
 
 
 public class UiResourceCreator {
-    public static final Style STYLE = Style.EMPTY.withColor(0xFFFFFF).withFont(new StyleSpriteSource.Font(id("gui")));
+    public static final Style STYLE = Style.EMPTY.withColor(0xFFFFFF).withFont(id("gui"));
     private static char character = 'a';
     private static final Char2IntMap SPACES = new Char2IntOpenHashMap();
     private static final List<FontTexture> FONT_TEXTURES = new ArrayList<>();

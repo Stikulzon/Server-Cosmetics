@@ -36,21 +36,16 @@ public class ConfigManager {
     private static final String TARGET_MODEL_PATH = "assets/servercosmetics/models/item/";
     private static final String TARGET_ARMOR_TEXTURE_PATH = "assets/servercosmetics/textures/entity/equipment/";
 
-    public record NavigationButton(Text name, Item baseItem, Identifier modelPath, int slotIndex,
-                                   List<String> lore) {
+    public record NavigationButton(Text name, Item baseItem, Identifier modelPath, int slotIndex, List<String> lore) {
     }
 
-    @Getter
-    private static String configReloadPermission;
-    @Getter
-    private static String itemSkinsReloadPermission;
-    @Getter
-    private static String cosmeticsReloadPermission;
+    @Getter private static String configReloadPermission;
+    @Getter private static String itemSkinsReloadPermission;
+    @Getter private static String cosmeticsReloadPermission;
     private static Text successConfigReloadMessage;
     private static Text errorConfigReloadMessage;
     private static boolean legacyMode;
-    @Getter
-    private static boolean enableExperimentalFeatures;
+    @Getter private static boolean enableExperimentalFeatures;
 
     public static final AbstractGuiConfig ITEM_SKINS_GUI_CONFIG = new ItemSkinsGUIConfig();
     public static final AbstractGuiConfig COSMETICS_GUI_CONFIG = new CosmeticsGUIConfig();
@@ -69,41 +64,40 @@ public class ConfigManager {
 
     public static void registerResourcePackListener() {
         PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register((builder) -> {
-            // Generate and add runtime armor models
             RuntimeModelManager.generateAndProvideModels(builder::addData);
 
             Path resourcePackSourceDir = SERVER_COSMETICS_DIR.resolve("Assets");
-            if (!Files.isDirectory(resourcePackSourceDir)) {
-                ModInit.LOGGER.info("Custom resource source directory not found: {}. Creating it.", resourcePackSourceDir.toAbsolutePath());
-                try {
-                    Files.createDirectories(resourcePackSourceDir);
-                } catch (IOException e) {
-                    ModInit.LOGGER.error("Failed to create assets directory: {}", resourcePackSourceDir.toAbsolutePath(), e);
-                }
-                return;
-            }
+            if (!setupDirectory(resourcePackSourceDir)) return;
 
-            ModInit.LOGGER.info("Scanning for .png and .json files in: {}", resourcePackSourceDir.toAbsolutePath());
+            ModInit.LOGGER.info("Scanning for resources in: {}", resourcePackSourceDir.toAbsolutePath());
             try (Stream<Path> pathStream = Files.walk(resourcePackSourceDir)) {
-                pathStream
-                        .filter(Files::isRegularFile)
-                        .forEach(filePath -> processResourcePackFile(filePath, builder));
+                pathStream.filter(Files::isRegularFile).forEach(filePath -> processResourcePackFile(filePath, builder));
             } catch (IOException e) {
                 ModInit.LOGGER.error("Error walking directory {} for resource pack generation", resourcePackSourceDir.toAbsolutePath(), e);
             }
         });
     }
 
-    /**
-     * Processes a single file for the resource pack, dispatching to the correct handler based on file type.
-     */
-    private static void processResourcePackFile(Path filePath, ResourcePackBuilder builder) {
-        Path fileNamePath = filePath.getFileName();
-        if (fileNamePath == null) {
-            return;
+    private static boolean setupDirectory(Path path) {
+        if (!Files.isDirectory(path)) {
+            if (Files.notExists(path)) {
+                try {
+                    Files.createDirectories(path);
+                    ModInit.LOGGER.info("Created directory: {}", path.toAbsolutePath());
+                } catch (IOException e) {
+                    ModInit.LOGGER.error("Failed to create assets directory: {}", path.toAbsolutePath(), e);
+                    return false;
+                }
+            } else {
+                ModInit.LOGGER.warn("Path exists but is not a directory: {}", path);
+                return false;
+            }
         }
+        return true;
+    }
 
-        String fileName = fileNamePath.toString();
+    private static void processResourcePackFile(Path filePath, ResourcePackBuilder builder) {
+        String fileName = filePath.getFileName().toString();
         String fileNameLower = fileName.toLowerCase(Locale.ROOT);
 
         try {
@@ -114,264 +108,207 @@ public class ConfigManager {
             } else if (fileNameLower.endsWith(".json")) {
                 processJsonFile(builder, fileName, fileNameLower, data);
             } else if (fileNameLower.endsWith(".mcmeta")) {
-                processMcmetaFile(builder, fileName, data);
+                addData(builder, TARGET_TEXTURE_PATH + "item/" + fileName, fileName, data);
             }
         } catch (IOException e) {
             ModInit.LOGGER.error("Failed to read file {} for resource pack", filePath, e);
         }
     }
 
-    /**
-     * Determines the correct path for a .png file and adds it to the resource pack.
-     */
     private static void processPngFile(ResourcePackBuilder builder, String fileName, String fileNameLower, byte[] data) {
+        PathResolveResult result = resolveTexturePath(fileName, fileNameLower);
+        addData(builder, result.fullPath, result.correctedFileName, data);
+    }
+
+    private record PathResolveResult(String fullPath, String correctedFileName) {}
+
+    private static PathResolveResult resolveTexturePath(String fileName, String fileNameLower) {
         String targetBaseDir;
+        String finalName = fileName;
 
-        if (fileNameLower.endsWith("_helmet.png") || fileNameLower.endsWith("_chestplate.png") || fileNameLower.endsWith("_leggings.png") || fileNameLower.endsWith("_boots.png")
-        || fileNameLower.endsWith("_head.png") || fileNameLower.endsWith("_chest.png") || fileNameLower.endsWith("_legs.png") || fileNameLower.endsWith("_feet.png")) {
+        if (fileNameLower.endsWith("_helmet.png") || fileNameLower.endsWith("_chestplate.png") ||
+                fileNameLower.endsWith("_leggings.png") || fileNameLower.endsWith("_boots.png")) {
+
             targetBaseDir = TARGET_TEXTURE_PATH + "item/";
-            // backwards compatibility with an old naming scheme
-            fileName = fileName.replace("_helmet.png", "_head.png").replace("_chestplate.png", "_chest.png").replace("_leggings.png", "_legs.png").replace("_boots.png", "_feet.png");
+            // Backwards compatibility naming
+            finalName = fileName.replace("_helmet.png", "_head.png")
+                    .replace("_chestplate.png", "_chest.png")
+                    .replace("_leggings.png", "_legs.png")
+                    .replace("_boots.png", "_feet.png");
 
+        } else if (fileNameLower.endsWith("_head.png") || fileNameLower.endsWith("_chest.png") ||
+                fileNameLower.endsWith("_legs.png") || fileNameLower.endsWith("_feet.png")) {
+            targetBaseDir = TARGET_TEXTURE_PATH + "item/";
         } else if (fileNameLower.endsWith("_layer_1.png") || fileNameLower.endsWith("_humanoid.png")) {
             targetBaseDir = TARGET_ARMOR_TEXTURE_PATH + "humanoid/";
-            fileName = fileName.replace("_layer_1", "").replace("_humanoid", "");
-
+            finalName = fileName.replace("_layer_1", "").replace("_humanoid", "");
         } else if (fileNameLower.endsWith("_layer_2.png") || fileNameLower.endsWith("_humanoid_leggings.png")) {
             targetBaseDir = TARGET_ARMOR_TEXTURE_PATH + "humanoid_leggings/";
-            fileName = fileName.replace("_layer_2", "").replace("_humanoid_leggings", "");
+            finalName = fileName.replace("_layer_2", "").replace("_humanoid_leggings", "");
         } else {
             targetBaseDir = TARGET_TEXTURE_PATH + "item/";
         }
-        addData(builder, targetBaseDir + fileName, fileName, data);
+
+        return new PathResolveResult(targetBaseDir + finalName, finalName);
     }
 
-    /**
-     * Adds a .mcmeta file to the resource pack.
-     */
-    private static void processMcmetaFile(ResourcePackBuilder builder, String fileName, byte[] data) {
-        ModInit.LOGGER.debug("MCMETA file {} found, targeting TEXTURE_PATH.", fileName);
-        String targetBaseDir = TARGET_TEXTURE_PATH + "item/";
-        addData(builder, targetBaseDir + fileName, fileName, data);
-    }
-
-    /**
-     * Processes a .json model file, handling special body cosmetics that require multiple model variants.
-     */
     private static void processJsonFile(ResourcePackBuilder builder, String fileName, String fileNameLower, byte[] data) {
         String cosmeticId = fileNameLower.substring(0, fileNameLower.lastIndexOf('.'));
         CustomItemEntry cosmeticEntry = CustomItemRegistry.getCosmetic(cosmeticId);
 
         if (cosmeticEntry != null) {
             ItemType type = cosmeticEntry.type();
-            if (type == ItemType.BODY_COSMETIC || type == ItemType.CHESTPLATE_BODY_COSMETIC ||
-                    type == ItemType.LEGGINGS_BODY_COSMETIC || type == ItemType.BOOTS_BODY_COSMETIC) {
+            if (EnumSet.of(ItemType.BODY_COSMETIC, ItemType.CHESTPLATE_BODY_COSMETIC,
+                    ItemType.LEGGINGS_BODY_COSMETIC, ItemType.BOOTS_BODY_COSMETIC).contains(type)) {
 
                 String content = new String(data, StandardCharsets.UTF_8);
-                JSONObject jsonObject = new JSONObject(content);
-                handleBodyCosmeticJson(builder, jsonObject, fileName, cosmeticEntry);
+                handleBodyCosmeticJson(builder, new JSONObject(content), fileName, cosmeticEntry);
                 return;
             }
         }
 
-        String targetPath = TARGET_MODEL_PATH + fileName;
-        addData(builder, targetPath, fileName, data);
+        addData(builder, TARGET_MODEL_PATH + fileName, fileName, data);
     }
 
-    /**
-     * Generates and adds normal and sneaking variants of a body cosmetic model.
-     */
     private static void handleBodyCosmeticJson(ResourcePackBuilder builder, JSONObject originalJson, String fileName, CustomItemEntry entry) {
-        ItemType type = entry.type();
-        List<Number> normalTranslation, sneakingTranslation, normalRotation, sneakingRotation, scale;
+        BodyCosmeticsData data = (BodyCosmeticsData) entry.cosmeticData();
 
-        final String targetBaseDir = TARGET_MODEL_PATH;
+        List<Number> normalRotation = data.mirrored() ? Arrays.asList(0, -180, 0) : null;
+        List<Number> sneakingRotation = data.mirrored() ? Arrays.asList(-28, -180, 0) : Arrays.asList(-28, 0, 0);
+        List<Number> scale = data.autoscale() ? Arrays.asList(1.45, 1.45, 1.45) : null;
 
-        if (((BodyCosmeticsData) entry.cosmeticData()).mirrored()) {
-            normalRotation = Arrays.asList(0, -180, 0);
-            sneakingRotation = Arrays.asList(-28, -180, 0);
-        } else {
-            normalRotation = null;
-            sneakingRotation = Arrays.asList(-28, 0, 0);
-        }
+        List<Number> normalTranslation = null;
+        List<Number> sneakingTranslation = null;
 
-
-        if (((BodyCosmeticsData) entry.cosmeticData()).autoscale()) {
-            scale = Arrays.asList(1.45, 1.45, 1.45);
-        } else {
-            scale = null;
-        }
-
-        // Determine type-specific transformations
-        if (((BodyCosmeticsData) entry.cosmeticData()).autoAlignment()) {
-            switch (type) {
-                case BODY_COSMETIC:
-                case CHESTPLATE_BODY_COSMETIC:
+        if (data.autoAlignment()) {
+            switch (entry.type()) {
+                case BODY_COSMETIC, CHESTPLATE_BODY_COSMETIC -> {
                     normalTranslation = Arrays.asList(0, -56.5, 2.15);
                     sneakingTranslation = Arrays.asList(0, -56.5, 4.15);
-                    break;
-                case LEGGINGS_BODY_COSMETIC:
+                }
+                case LEGGINGS_BODY_COSMETIC -> {
                     normalTranslation = Arrays.asList(0, -69.25, 2.15);
                     sneakingTranslation = Arrays.asList(0, -65, 8.15);
-                    break;
-                case BOOTS_BODY_COSMETIC:
+                }
+                case BOOTS_BODY_COSMETIC -> {
                     normalTranslation = Arrays.asList(0, -79.25, 2.15);
                     sneakingTranslation = Arrays.asList(0, -75, 8.15);
-                    break;
-                default:
-                    ModInit.LOGGER.warn("Unhandled cosmetic type {} in handleBodyCosmeticJson.", type);
-                    return;
+                }
             }
-        } else {
-            normalTranslation = null;
-            sneakingTranslation = null;
         }
 
-        // Create a deep copy for the sneaking variant before modifying the original
-        JSONObject jsonSneaking = new JSONObject(originalJson.toString());
-
-        // --- REGULAR VARIANT ---
-        // Modify the original JSON object for the normal variant
+        // Apply normal
         addHeadDisplay(originalJson, normalRotation, normalTranslation, scale);
-        byte[] normalData = originalJson.toString().getBytes(StandardCharsets.UTF_8);
-        addData(builder, targetBaseDir + fileName, fileName, normalData);
+        addData(builder, TARGET_MODEL_PATH + fileName, fileName, originalJson.toString().getBytes(StandardCharsets.UTF_8));
 
-        // --- SNEAKING VARIANT ---
-        // Modify the copied JSON object for the sneaking variant
-        String sneakingFileName = fileName.replace(".json", "_sneaking.json");
+        // Apply sneaking (on a copy)
+        JSONObject jsonSneaking = new JSONObject(originalJson.toString());
         addHeadDisplay(jsonSneaking, sneakingRotation, sneakingTranslation, scale);
-        byte[] sneakingData = jsonSneaking.toString().getBytes(StandardCharsets.UTF_8);
-        addData(builder, targetBaseDir + sneakingFileName, sneakingFileName, sneakingData);
+
+        String sneakingFileName = fileName.replace(".json", "_sneaking.json");
+        addData(builder, TARGET_MODEL_PATH + sneakingFileName, sneakingFileName, jsonSneaking.toString().getBytes(StandardCharsets.UTF_8));
     }
 
-    /**
-     * Creates a "head" display object and adds it to the parent JSON object.
-     */
     private static void addHeadDisplay(JSONObject parentJson, List<Number> rotation, List<Number> translation, List<Number> scale) {
-        JSONObject displayObject = parentJson.optJSONObject("display");
-        if (displayObject == null) {
-            displayObject = new JSONObject();
-            parentJson.put("display", displayObject);
-        }
-
-        JSONObject headObject = displayObject.optJSONObject("head");
+        JSONObject headObject = parentJson.optJSONObject("display");
         if (headObject == null) {
             headObject = new JSONObject();
-            displayObject.put("head", headObject);
+            parentJson.put("display", headObject);
         }
 
-        if (rotation != null) {
-            headObject.put("rotation", new JSONArray(rotation));
+        JSONObject finalHead = headObject.optJSONObject("head");
+        if (finalHead == null) {
+            finalHead = new JSONObject();
+            headObject.put("head", finalHead);
         }
-        if (translation != null) {
-            headObject.put("translation", new JSONArray(translation));
-        }
-        if (scale != null) {
-            headObject.put("scale", new JSONArray(scale));
-        }
-        if (!headObject.isEmpty()) {
-            displayObject.put("head", headObject);
-        }
+
+        if (rotation != null) finalHead.put("rotation", new JSONArray(rotation));
+        if (translation != null) finalHead.put("translation", new JSONArray(translation));
+        if (scale != null) finalHead.put("scale", new JSONArray(scale));
     }
 
     private static void addData(ResourcePackBuilder builder, String path, String fileName, byte[] data) {
         if (builder.addData(path, data)) {
             ModInit.LOGGER.debug("Added {} -> {}", fileName, path);
         } else {
-            ModInit.LOGGER.warn("Could not add {} as {} to resource pack (maybe already exists?)", fileName, path);
+            ModInit.LOGGER.warn("Could not add {} as {} (maybe duplicate?)", fileName, path);
         }
     }
 
     public static void loadDemoConfigs() {
-        if (SERVER_COSMETICS_DIR.toFile().exists() && SERVER_COSMETICS_DIR.resolve("config.yml").toFile().exists()) {
-            return;
-        }
+        if (SERVER_COSMETICS_DIR.resolve("config.yml").toFile().exists()) return;
+
         try {
             Files.createDirectories(SERVER_COSMETICS_DIR);
-        } catch (IOException e) {
-            ModInit.LOGGER.error("Failed to create base ServerCosmetics directory.", e);
-        }
 
+            Path demoConfigsPathSource = FabricLoader.getInstance().getModContainer("servercosmetics")
+                    .flatMap(mod -> mod.findPath("assets/servercosmetics/demo-configs/"))
+                    .orElse(null);
 
-        Path demoConfigsPathSource = FabricLoader.getInstance().getModContainer("servercosmetics")
-                .flatMap(modContainer -> modContainer.findPath("assets/servercosmetics/demo-configs/"))
-                .orElse(null);
+            if (demoConfigsPathSource == null) {
+                ModInit.LOGGER.warn("Could not find demo-configs path in mod assets.");
+                return;
+            }
 
-        if (demoConfigsPathSource == null) {
-            ModInit.LOGGER.warn("Could not find demo-configs path in mod assets.");
-            return;
-        }
-
-        ModInit.LOGGER.info("Loading demo configurations from {} to {}", demoConfigsPathSource, SERVER_COSMETICS_DIR);
-
-        try (Stream<Path> stream = Files.walk(demoConfigsPathSource)) {
-            stream.forEach(sourcePath -> {
-                Path destPath = SERVER_COSMETICS_DIR.resolve(demoConfigsPathSource.relativize(sourcePath).toString());
-                try {
-                    if (Files.isDirectory(sourcePath)) {
-                        if (Files.notExists(destPath)) {
+            ModInit.LOGGER.info("Loading demo configurations...");
+            try (Stream<Path> stream = Files.walk(demoConfigsPathSource)) {
+                stream.forEach(sourcePath -> {
+                    Path destPath = SERVER_COSMETICS_DIR.resolve(demoConfigsPathSource.relativize(sourcePath).toString());
+                    try {
+                        if (Files.isDirectory(sourcePath)) {
                             Files.createDirectories(destPath);
+                        } else {
+                            Files.copy(sourcePath, destPath, StandardCopyOption.REPLACE_EXISTING);
                         }
-                    } else {
-                        Files.copy(sourcePath, destPath, StandardCopyOption.REPLACE_EXISTING);
+                    } catch (IOException e) {
+                        throw new RuntimeException("Failed to copy demo file " + sourcePath, e);
                     }
-                } catch (IOException e) {
-                    throw new RuntimeException("Failed to copy demo file " + sourcePath + " to " + destPath, e);
-                }
-            });
-        } catch (IOException | RuntimeException e) {
-            ModInit.LOGGER.error("Failed to load demo configs fully.", e);
+                });
+            }
+        } catch (Exception e) {
+            ModInit.LOGGER.error("Failed to load demo configs.", e);
         }
     }
 
-    public static int reloadAllConfigsCommand(CommandContext<ServerCommandSource> context) {
+    private static int reload(CommandContext<ServerCommandSource> context, Runnable reloadAction) {
         try {
             RuntimeModelManager.clearRequestedModels();
             createAndLoadMainConfig();
             CustomItemRegistry.setLegacyMode(legacyMode);
 
+            if (reloadAction != null) {
+                reloadAction.run();
+            }
+
+            context.getSource().sendFeedback(() -> successConfigReloadMessage, false);
+            return 1;
+        } catch (Exception e) {
+            context.getSource().sendFeedback(() -> errorConfigReloadMessage, false);
+            ModInit.LOGGER.error("An error occurred during config reload!", e);
+            return 0;
+        }
+    }
+
+    public static int reloadAllConfigsCommand(CommandContext<ServerCommandSource> context) {
+        return reload(context, () -> {
             ITEM_SKINS_GUI_CONFIG.init();
             COSMETICS_GUI_CONFIG.init();
             CustomItemRegistry.reloadAll();
-
-            context.getSource().sendFeedback(() -> successConfigReloadMessage, false);
-        } catch (Exception e) {
-            context.getSource().sendFeedback(() -> errorConfigReloadMessage, false);
-            ModInit.LOGGER.error("An error occurred during ALL configs reload!", e);
-        }
-        return 1;
+        });
     }
 
     public static int reloadItemSkinsConfigsCommand(CommandContext<ServerCommandSource> context) {
-        try {
-            createAndLoadMainConfig();
-            CustomItemRegistry.setLegacyMode(legacyMode);
-
+        return reload(context, () -> {
             ITEM_SKINS_GUI_CONFIG.init();
             CustomItemRegistry.reloadItemSkins();
-
-            context.getSource().sendFeedback(() -> successConfigReloadMessage, false);
-        } catch (Exception e) {
-            context.getSource().sendFeedback(() -> errorConfigReloadMessage, false);
-            ModInit.LOGGER.error("An error occurred during ItemSkins configs reload!", e);
-        }
-        return 1;
+        });
     }
 
     public static int reloadCosmeticsConfigsCommand(CommandContext<ServerCommandSource> context) {
-        try {
-            createAndLoadMainConfig();
-            CustomItemRegistry.setLegacyMode(legacyMode);
-
+        return reload(context, () -> {
             COSMETICS_GUI_CONFIG.init();
             CustomItemRegistry.reloadCosmetics();
-
-            context.getSource().sendFeedback(() -> successConfigReloadMessage, false);
-        } catch (Exception e) {
-            context.getSource().sendFeedback(() -> errorConfigReloadMessage, false);
-            ModInit.LOGGER.error("An error occurred during Cosmetics configs reload!", e);
-        }
-        return 1;
+        });
     }
 
     private static void createAndLoadMainConfig() {
@@ -394,19 +331,17 @@ public class ConfigManager {
             legacyMode = yamlFile.getBoolean("legacyMode");
 
         } catch (IOException e) {
-            throw new RuntimeException("Failed to create or load main configuration file (config.yml)", e);
+            throw new RuntimeException("Failed to load main configuration file (config.yml)", e);
         }
     }
 
     private static void initializeMainConfigDefaults(YamlFile yamlFile) {
         yamlFile.setCommentFormat(YamlCommentFormat.PRETTY);
-
         yamlFile.options().headerFormatter()
                 .prefixFirst("######################")
                 .commentPrefix("## ")
                 .commentSuffix(" ##")
                 .suffixLast("######################");
-
         yamlFile.setHeader("Main Config File");
 
         yamlFile.addDefault("configVersion", 1);
@@ -414,11 +349,10 @@ public class ConfigManager {
         yamlFile.addDefault("permissions.reloadAllConfigs", "servercosmetics.reload");
         yamlFile.addDefault("permissions.reloadItemSkins", "servercosmetics.reload.itemskins");
         yamlFile.addDefault("permissions.reloadCosmetics", "servercosmetics.reload.cosmetics");
-        yamlFile.path("permissions").comment("If the mod cannot get permissions from config, the default one will be used");
         yamlFile.addDefault("configReload.message.success", "&aConfig successfully reload!");
         yamlFile.addDefault("configReload.message.error", "&cAn error occurred during configs reload!");
         yamlFile.addDefault("enableExperimentalFeatures", false);
-        yamlFile.path("legacyMode").addDefault(false).commentSide("If true, plugin will try to read some fields from older config structures for cosmetic/skin definitions. Recommended: false for new setups.");
+        yamlFile.path("legacyMode").addDefault(false).commentSide("Recommended: false for new setups.");
 
         try {
             yamlFile.save();

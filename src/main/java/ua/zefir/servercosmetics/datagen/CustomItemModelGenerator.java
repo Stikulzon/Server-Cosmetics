@@ -21,17 +21,34 @@ public class CustomItemModelGenerator {
 
     // --- Simple Item Logic ---
 
-    public static Map<String, byte[]> generateSimpleItemModel(String cosmeticId) {
+    public static Map<String, byte[]> generateSimpleItemModel(String itemId) {
         Map<String, byte[]> models = new HashMap<>();
-        String texturePath = ModInit.MOD_ID + ":item/" + cosmeticId;
-        String modelLocation = ModInit.MOD_ID + ":item/" + cosmeticId;
+        String texturePath = ModInit.MOD_ID + ":item/" + itemId;
+        String modelLocation = ModInit.MOD_ID + ":item/" + itemId;
 
         JsonObject textureModel = createBaseModelJson("minecraft:item/generated", texturePath);
-        models.put("assets/servercosmetics/models/item/" + cosmeticId + ".json",
+        models.put("assets/servercosmetics/models/item/" + itemId + ".json",
                 textureModel.toString().getBytes(StandardCharsets.UTF_8));
 
         JsonObject itemDefinition = createSimpleModelDefinition(modelLocation);
-        models.put("assets/servercosmetics/items/" + cosmeticId + ".json",
+        models.put("assets/servercosmetics/items/" + itemId + ".json",
+                itemDefinition.toString().getBytes(StandardCharsets.UTF_8));
+
+        return models;
+    }
+
+
+    public static Map<String,byte[]> generateDyebleItemModel(String itemId) {
+        Map<String, byte[]> models = new HashMap<>();
+        String texturePath = ModInit.MOD_ID + ":item/" + itemId;
+        String modelLocation = ModInit.MOD_ID + ":item/" + itemId;
+
+        JsonObject textureModel = createBaseModelJson("minecraft:item/generated", texturePath);
+        models.put("assets/servercosmetics/models/item/" + itemId + ".json",
+                textureModel.toString().getBytes(StandardCharsets.UTF_8));
+
+        JsonObject itemDefinition = createDyableModelDefinition(modelLocation);
+        models.put("assets/servercosmetics/items/" + itemId + ".json",
                 itemDefinition.toString().getBytes(StandardCharsets.UTF_8));
 
         return models;
@@ -108,6 +125,23 @@ public class CustomItemModelGenerator {
         JsonObject model = new JsonObject();
         model.addProperty("type", "minecraft:model");
         model.addProperty("model", modelId);
+        root.add("model", model);
+        return root;
+    }
+
+    private static JsonObject createDyableModelDefinition(String modelId) {
+        JsonObject root = new JsonObject();
+        JsonObject model = new JsonObject();
+        model.addProperty("type", "minecraft:model");
+        model.addProperty("model", modelId);
+
+        JsonArray tintsArray = new JsonArray();
+        JsonObject tintObject = new JsonObject();
+        tintObject.addProperty("type", "minecraft:dye");
+        tintObject.addProperty("default", 16777215);
+        tintsArray.add(tintObject);
+
+        model.add("tints", tintsArray);
         root.add("model", model);
         return root;
     }

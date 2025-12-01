@@ -113,8 +113,7 @@ public class PagedItemDisplayGui extends SimpleGui {
     }
 
     private IItemAction determineAction(CustomItemEntry entry) {
-        Item baseItem = Registries.ITEM.get(Identifier.tryParse(entry.baseItemForModel()));
-        if (Items.LEATHER_HORSE_ARMOR.equals(baseItem)) {
+        if (entry.dyable()) {
             return new OpenColorPickerAction();
         }
         return defaultClickAction;
