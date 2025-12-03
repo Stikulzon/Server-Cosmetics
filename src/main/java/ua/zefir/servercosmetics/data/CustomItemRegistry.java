@@ -99,14 +99,18 @@ public class CustomItemRegistry {
         String itemId = fileName.substring(0, fileName.lastIndexOf('.'));
         itemId = itemId.replace("_helmet", "_head").replace("_chestplate", "_chest").replace("_leggings", "_legs").replace("_boots", "_feet");
 
-        String permission = yamlFile.getString("permission");
-        if (permission == null) {
-            ModInit.LOGGER.error("Error loading {}: 'permission' not defined.", fileName);
-            return;
-        }
-
         String typeStr = yamlFile.getString("type");
         boolean isItemSkin = typeStr == null || ItemType.valueOf(typeStr.toUpperCase()) == ItemType.ITEM_SKIN;
+
+        String permission = yamlFile.getString("permission");
+        if (permission == null || permission.isEmpty()) {
+//            ModInit.LOGGER.error("Error loading {}: 'permission' not defined.", fileName);
+            if(isItemSkin){
+                permission = ModInit.MOD_ID + ".item_skin." + itemId;
+            } else {
+                permission = ModInit.MOD_ID + "." + typeStr.toLowerCase() + "." + itemId;
+            }
+        }
 
         if (isItemSkin) {
             loadItemSkin(yamlFile, itemId, permission, fileName);

@@ -5,6 +5,7 @@ import com.mojang.brigadier.context.CommandContext;
 import ua.zefir.servercosmetics.config.ConfigManager;
 import ua.zefir.servercosmetics.gui.CosmeticsGUI;
 import ua.zefir.servercosmetics.gui.ItemSkinsGUI;
+import ua.zefir.servercosmetics.util.ConfigGenerator;
 import ua.zefir.servercosmetics.util.Utils;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -56,6 +57,9 @@ public class CosmeticCommands {
                             .then(literal("reload")
                                     .requires(Permissions.require(Objects.requireNonNullElse(ConfigManager.getItemSkinsReloadPermission(), "servercosmetics.reload.itemskins"), 4))
                                     .executes(ConfigManager::reloadItemSkinsConfigsCommand))
+                            .then(literal("generate-configs-based-on-models")
+                                    .requires(Permissions.require(Objects.requireNonNullElse(ConfigManager.getItemSkinsReloadPermission(), "servercosmetics.generate-cosmetics"), 4))
+                                    .executes(ConfigGenerator::generateConfigsBasedOnModels))
             );
             dispatcher.register(
                     literal("itemskins").executes(ItemSkinsGUI::openItemSkinsGui)

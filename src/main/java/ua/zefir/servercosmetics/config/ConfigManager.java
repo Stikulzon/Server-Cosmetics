@@ -78,7 +78,7 @@ public class ConfigManager {
         });
     }
 
-    private static boolean setupDirectory(Path path) {
+    public static boolean setupDirectory(Path path) {
         if (!Files.isDirectory(path)) {
             if (Files.notExists(path)) {
                 try {
