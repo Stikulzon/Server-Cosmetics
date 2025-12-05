@@ -141,10 +141,10 @@ public class ConfigManager {
             targetBaseDir = TARGET_TEXTURE_PATH + "item/";
         } else if (fileNameLower.endsWith("_layer_1.png") || fileNameLower.endsWith("_humanoid.png")) {
             targetBaseDir = TARGET_ARMOR_TEXTURE_PATH + "humanoid/";
-            finalName = fileName.replace("_layer_1", "").replace("_humanoid", "");
+            finalName = fileName.replace("_armor_layer_1", "").replace("_layer_1", "").replace("_humanoid", "");
         } else if (fileNameLower.endsWith("_layer_2.png") || fileNameLower.endsWith("_humanoid_leggings.png")) {
             targetBaseDir = TARGET_ARMOR_TEXTURE_PATH + "humanoid_leggings/";
-            finalName = fileName.replace("_layer_2", "").replace("_humanoid_leggings", "");
+            finalName = fileName.replace("_armor_layer_2", "").replace("_layer_2", "").replace("_humanoid_leggings", "");
         } else {
             targetBaseDir = TARGET_TEXTURE_PATH + "item/";
         }
