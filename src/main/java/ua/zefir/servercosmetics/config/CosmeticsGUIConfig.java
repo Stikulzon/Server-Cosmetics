@@ -147,25 +147,11 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
                 "name", "<blue>Body Cosmetics", "item", "minecraft:diamond_chestplate", "slotIndex", 13,
                 "lore", List.of()));
 
-        buttonDefaults.put("filter.chestplate-cosmetics-disabled", Map.of(
+        buttonDefaults.put("filter.armor-cosmetics-disabled", Map.of(
                 "name", "<blue>Chestplate Cosmetics", "item", "minecraft:leather_chestplate", "slotIndex", 14,
                 "lore", List.of()));
-        buttonDefaults.put("filter.chestplate-cosmetics-enabled", Map.of(
+        buttonDefaults.put("filter.armor-cosmetics-enabled", Map.of(
                 "name", "<blue>Chestplate Cosmetics", "item", "minecraft:diamond_chestplate", "slotIndex", 14,
-                "lore", List.of()));
-
-        buttonDefaults.put("filter.leggings-cosmetics-disabled", Map.of(
-                "name", "<blue>Leggings Cosmetics", "item", "minecraft:leather_leggings", "slotIndex", 15,
-                "lore", List.of()));
-        buttonDefaults.put("filter.leggings-cosmetics-enabled", Map.of(
-                "name", "<blue>Leggings Cosmetics", "item", "minecraft:diamond_leggings", "slotIndex", 15,
-                "lore", List.of()));
-
-        buttonDefaults.put("filter.boots-cosmetics-disabled", Map.of(
-                "name", "<blue>Boots Cosmetics", "item", "minecraft:leather_boots", "slotIndex", 16,
-                "lore", List.of()));
-        buttonDefaults.put("filter.boots-cosmetics-enabled", Map.of(
-                "name", "<blue>Boots Cosmetics", "item", "minecraft:diamond_boots", "slotIndex", 16,
                 "lore", List.of()));
 
         buttonDefaults.forEach((buttonName, properties) -> addDefaultButtonToSection(buttonsSection, buttonName, properties));
@@ -186,14 +172,9 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
         loadNavigationButton(file, "filter.body-cosmetics-disabled");
         loadNavigationButton(file, "filter.body-cosmetics-enabled");
 
-        loadNavigationButton(file, "filter.chestplate-cosmetics-disabled");
-        loadNavigationButton(file, "filter.chestplate-cosmetics-enabled");
+        loadNavigationButton(file, "filter.armor-cosmetics-disabled");
+        loadNavigationButton(file, "filter.armor-cosmetics-enabled");
 
-        loadNavigationButton(file, "filter.leggings-cosmetics-disabled");
-        loadNavigationButton(file, "filter.leggings-cosmetics-enabled");
-
-        loadNavigationButton(file, "filter.boots-cosmetics-disabled");
-        loadNavigationButton(file, "filter.boots-cosmetics-enabled");
     }
 
     public static List<String> getTextLines() { // For sign

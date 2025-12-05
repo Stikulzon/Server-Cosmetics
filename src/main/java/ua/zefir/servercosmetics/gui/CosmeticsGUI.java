@@ -58,10 +58,10 @@ public class CosmeticsGUI {
                     false
             );
             gui.getFilterManager().addFilter(
-                    "chestplate",
+                    "armor",
                     new ItemTypeFilter(List.of(ItemType.HELMET, ItemType.CHESTPLATE, ItemType.LEGGINGS, ItemType.BOOTS, ItemType.HAT_BODY_COSMETIC, ItemType.CHESTPLATE_BODY_COSMETIC, ItemType.LEGGINGS_BODY_COSMETIC, ItemType.BOOTS_BODY_COSMETIC)),
-                    config.getButtonConfig("filter.chestplate-cosmetics-disabled"),
-                    config.getButtonConfig("filter.chestplate-cosmetics-enabled"),
+                    config.getButtonConfig("filter.armor-cosmetics-disabled"),
+                    config.getButtonConfig("filter.armor-cosmetics-enabled"),
                     false
             );
 

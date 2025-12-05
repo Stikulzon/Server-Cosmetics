@@ -35,10 +35,8 @@ public abstract class AbstractGuiConfig {
     @Getter protected boolean replaceInventory;
     @Getter private List<String> disabledFilters;
     @Getter ScreenHandlerType<GenericContainerScreenHandler> screenHandlerType;
+    @Getter protected final Map<String, ConfigManager.NavigationButton> navigationButtons = new HashMap<>();
     static final Map<String, Map<String, Object>> buttonDefaults = new HashMap<>();
-
-    @Getter
-    protected final Map<String, ConfigManager.NavigationButton> navigationButtons = new HashMap<>();
 
     public AbstractGuiConfig(String configFileName) {
         this.configFilePath = ConfigManager.SERVER_COSMETICS_DIR.resolve(configFileName);
@@ -94,6 +92,8 @@ public abstract class AbstractGuiConfig {
         this.pageIndicatorEnabled = file.getBoolean("pageIndicatorEnabled", false);
         this.replaceInventory = file.getBoolean("replaceInventory");
         this.disabledFilters = file.getStringList("disabledFilters");
+
+        loadGuiSize(file.getInt("guiRows", 6));
     }
 
     protected void addCommonDefaults(YamlFile file) {
@@ -104,7 +104,7 @@ public abstract class AbstractGuiConfig {
         file.addDefault("messages.locked", "&c(Locked)");
         file.addDefault("pageIndicatorEnabled", false);
         file.addDefault("replaceInventory", false);
-        loadGuiSize(file.getInt("guiRows", 6));
+        file.addDefault("guiRows", 6);
         file.addDefault("disabledFilters", List.of());
     }
 
@@ -172,7 +172,11 @@ public abstract class AbstractGuiConfig {
         }
         final ConfigurationSection finalButtonSection = buttonSection;
         properties.forEach((key, value) -> {
-            if (!finalButtonSection.contains(key) && value != null && !value.equals("")) {
+            if (!finalButtonSection.contains(key)
+                    && value != null
+                    && !value.equals("")
+                    && ( value instanceof List<?> list && list.isEmpty() )
+            ) {
                 finalButtonSection.set(key, value);
             }
         });
@@ -205,6 +209,20 @@ public abstract class AbstractGuiConfig {
     protected abstract void loadSpecificConfig(YamlFile file);
 
     protected void addDefaultButtons(ConfigurationSection buttonsSection) {
+        buttonDefaults.put("search", Map.of(
+                "name", "&eSearch",
+                "item", "minecraft:oak_sign",
+                "slotIndex", 48,
+                "lore", List.of("&7Click to search for items", "&7by name.")
+        ));
+
+        buttonDefaults.put("clearSearch", Map.of(
+                "name", "&cClear Search",
+                "item", "minecraft:barrier",
+                "slotIndex", 48,
+                "lore", List.of("&7Current filter: &e%search%", "", "&7Click to clear.")
+        ));
+
         buttonDefaults.put("next", Map.of(
                 "name", "Next", "item", "minecraft:paper", "textureName", "next", "slotIndex", 51));
 
@@ -222,8 +240,10 @@ public abstract class AbstractGuiConfig {
                 "lore", List.of("&7Show owned cosmetics only <blue>(Disabled)", "", "&aClick to change the mode!", "")));
 
         buttonDefaults.put("noCosmeticsAvailable", Map.of(
-                "name", "No cosmetics available", "item", "minecraft:barrier", "slotIndex", "",
-                "lore", List.of()));
+                "name", "No cosmetics available",
+                "item", "minecraft:barrier",
+                "slotIndex", ""
+        ));
 
         buttonDefaults.put("pageIndicator", Map.of(
                 "name", "Page", "item", "minecraft:paper", "slotIndex", 53));
@@ -235,6 +255,8 @@ public abstract class AbstractGuiConfig {
         loadNavigationButton(file, "removeSkin");
         loadNavigationButton(file, "pageIndicator");
         loadNavigationButton(file, "noCosmeticsAvailable");
+        loadNavigationButton(file, "search");
+        loadNavigationButton(file, "clearSearch");
 
         loadNavigationButton(file, "filter.show-owned-skins-enabled");
         loadNavigationButton(file, "filter.show-owned-skins-disabled");

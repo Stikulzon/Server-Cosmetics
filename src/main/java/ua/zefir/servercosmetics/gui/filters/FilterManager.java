@@ -58,7 +58,6 @@ public class FilterManager {
         for (var entry : registeredFilters.entrySet()) {
             String key = entry.getKey();
             FilterRegistration reg = entry.getValue();
-//            System.out.println("activeStates: " + activeStates);
             boolean isActive = activeStates.getOrDefault(key, false);
 
             ConfigManager.NavigationButton button = isActive ? reg.inactiveButton : reg.activeButton;
