@@ -1,6 +1,9 @@
 package ua.zefir.servercosmetics.gui;
 
+import eu.pb4.sgui.api.gui.AnvilInputGui;
+import net.minecraft.text.Text;
 import ua.zefir.servercosmetics.config.AbstractGuiConfig;
+import ua.zefir.servercosmetics.config.ConfigManager;
 import ua.zefir.servercosmetics.data.CustomItemEntry;
 import ua.zefir.servercosmetics.gui.actions.OpenColorPickerAction;
 import ua.zefir.servercosmetics.gui.core.ICosmeticProvider;
@@ -71,8 +74,8 @@ public class PagedItemDisplayGui extends SimpleGui {
                 .collect(Collectors.toList());
 
         drawItems(filteredItems);
-
         setupNavigation(filteredItems.size());
+        setupSearchButton();
         filterManager.drawFilterButtons();
     }
 
@@ -146,5 +149,58 @@ public class PagedItemDisplayGui extends SimpleGui {
     public void onFilterStateChanged() {
         this.currentPage = 0;
         this.populateGui();
+    }
+
+    private void setupSearchButton() {
+        ConfigManager.NavigationButton btnConfig = guiConfig.getButtonConfig("search");
+        if (btnConfig == null) return;
+
+        String currentTerm = filterManager.getSearchTerm();
+        String displayTerm = (currentTerm == null || currentTerm.isEmpty()) ? "None" : currentTerm;
+
+        List<String> dynamicLore = btnConfig.lore().stream()
+                .map(line -> line.replace("%search_term%", displayTerm))
+                .toList();
+
+        ConfigManager.NavigationButton dynamicBtn = new ConfigManager.NavigationButton(
+                btnConfig.name(),
+                btnConfig.baseItem(),
+                btnConfig.modelPath(),
+                btnConfig.slotIndex(),
+                dynamicLore
+        );
+
+        GUIUtils.setUpButton(this, dynamicBtn, this::openSearchGui);
+    }
+
+    public void openSearchGui() {
+        AnvilInputGui anvilGui = new AnvilInputGui(this.player, false) {
+            @Override
+            public void onClose() {
+                confirmSearch(this.getInput());
+            }
+        };
+
+        ConfigManager.NavigationButton btnConfig = guiConfig.getButtonConfig("search");
+        anvilGui.setTitle(btnConfig.name());
+
+        anvilGui.setDefaultInputValue(filterManager.getSearchTerm());
+
+        anvilGui.setSlot(2, ItemStack.EMPTY, (index, type, action, gui) -> {
+            if (type.isRight) {
+                confirmSearch("");
+            } else {
+                String input = anvilGui.getInput();
+                confirmSearch(input);
+            }
+        });
+
+        anvilGui.open();
+    }
+
+    private void confirmSearch(String term) {
+        this.filterManager.setSearchTerm(term);
+        this.open();
+        this.onFilterStateChanged();
     }
 }

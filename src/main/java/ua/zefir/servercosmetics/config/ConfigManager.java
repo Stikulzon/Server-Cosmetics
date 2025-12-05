@@ -270,45 +270,73 @@ public class ConfigManager {
         }
     }
 
-    private static int reload(CommandContext<ServerCommandSource> context, Runnable reloadAction) {
+//    private static int reload(CommandContext<ServerCommandSource> context, Runnable reloadAction) {
+//        try {
+//            RuntimeModelManager.clearRequestedModels();
+//            createAndLoadMainConfig();
+//            CustomItemRegistry.setLegacyMode(legacyMode);
+//
+//            if (reloadAction != null) {
+//                reloadAction.run();
+//            }
+//
+//            context.getSource().sendFeedback(() -> successConfigReloadMessage, false);
+//            return 1;
+//        } catch (Exception e) {
+//            context.getSource().sendFeedback(() -> errorConfigReloadMessage, false);
+//            ModInit.LOGGER.error("An error occurred during config reload!", e);
+//            return 0;
+//        }
+//    }
+
+    public static int reloadAllConfigsCommand(CommandContext<ServerCommandSource> context) {
         try {
             RuntimeModelManager.clearRequestedModels();
             createAndLoadMainConfig();
             CustomItemRegistry.setLegacyMode(legacyMode);
 
-            if (reloadAction != null) {
-                reloadAction.run();
-            }
-
-            context.getSource().sendFeedback(() -> successConfigReloadMessage, false);
-            return 1;
-        } catch (Exception e) {
-            context.getSource().sendFeedback(() -> errorConfigReloadMessage, false);
-            ModInit.LOGGER.error("An error occurred during config reload!", e);
-            return 0;
-        }
-    }
-
-    public static int reloadAllConfigsCommand(CommandContext<ServerCommandSource> context) {
-        return reload(context, () -> {
             ITEM_SKINS_GUI_CONFIG.init();
             COSMETICS_GUI_CONFIG.init();
             CustomItemRegistry.reloadAll();
-        });
+
+            context.getSource().sendFeedback(() -> successConfigReloadMessage, false);
+        } catch (Exception e) {
+            context.getSource().sendFeedback(() -> errorConfigReloadMessage, false);
+            ModInit.LOGGER.error("An error occurred during ALL configs reload!", e);
+        }
+        return 1;
     }
 
     public static int reloadItemSkinsConfigsCommand(CommandContext<ServerCommandSource> context) {
-        return reload(context, () -> {
+        try {
+            createAndLoadMainConfig();
+            CustomItemRegistry.setLegacyMode(legacyMode);
+
             ITEM_SKINS_GUI_CONFIG.init();
             CustomItemRegistry.reloadItemSkins();
-        });
+
+            context.getSource().sendFeedback(() -> successConfigReloadMessage, false);
+        } catch (Exception e) {
+            context.getSource().sendFeedback(() -> errorConfigReloadMessage, false);
+            ModInit.LOGGER.error("An error occurred during ItemSkins configs reload!", e);
+        }
+        return 1;
     }
 
     public static int reloadCosmeticsConfigsCommand(CommandContext<ServerCommandSource> context) {
-        return reload(context, () -> {
+        try {
+            createAndLoadMainConfig();
+            CustomItemRegistry.setLegacyMode(legacyMode);
+
             COSMETICS_GUI_CONFIG.init();
             CustomItemRegistry.reloadCosmetics();
-        });
+
+            context.getSource().sendFeedback(() -> successConfigReloadMessage, false);
+        } catch (Exception e) {
+            context.getSource().sendFeedback(() -> errorConfigReloadMessage, false);
+            ModInit.LOGGER.error("An error occurred during Cosmetics configs reload!", e);
+        }
+        return 1;
     }
 
     private static void createAndLoadMainConfig() {

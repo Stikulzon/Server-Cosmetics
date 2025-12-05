@@ -1,5 +1,6 @@
 package ua.zefir.servercosmetics.gui.filters;
 
+import lombok.Setter;
 import ua.zefir.servercosmetics.config.ConfigManager;
 import ua.zefir.servercosmetics.data.CustomItemEntry;
 import ua.zefir.servercosmetics.data.ItemType;
@@ -18,6 +19,7 @@ public class FilterManager {
     private final Map<String, Boolean> activeStates = new HashMap<>();
     @Getter
     private List<ItemType> targetTypes;
+    @Getter @Setter private String searchTerm = "";
 
     public record FilterRegistration(Predicate<CustomItemEntry> filter, ConfigManager.NavigationButton activeButton, ConfigManager.NavigationButton inactiveButton, boolean isHidden) {}
 
@@ -49,9 +51,16 @@ public class FilterManager {
     }
 
     public Predicate<CustomItemEntry> getCombinedPredicate() {
-        return entry -> registeredFilters.entrySet().stream()
+        Predicate<CustomItemEntry> basePredicate = entry -> registeredFilters.entrySet().stream()
                 .filter(mapEntry -> activeStates.getOrDefault(mapEntry.getKey(), false))
                 .allMatch(mapEntry -> mapEntry.getValue().filter().test(entry));
+
+        if (searchTerm != null && !searchTerm.isEmpty()) {
+            String lowerTerm = searchTerm.toLowerCase();
+            basePredicate = basePredicate.and(entry -> entry.itemStack().getName().getString().toLowerCase().contains(lowerTerm));
+        }
+
+        return basePredicate;
     }
 
     public void drawFilterButtons() {

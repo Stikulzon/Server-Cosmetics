@@ -25,6 +25,9 @@ public class CosmeticCommands {
                     .then(literal("reload")
                             .requires(Permissions.require(Objects.requireNonNullElse(ConfigManager.getConfigReloadPermission(), "servercosmetics.reload"), 4))
                             .executes(ConfigManager::reloadAllConfigsCommand))
+                    .then(literal("generate")
+                            .requires(Permissions.require("servercosmetics.generate", 4))
+                            .executes(ConfigGenerator::generateCosmeticDefinitions))
             );
             dispatcher.register(
                     literal("cm").executes(CosmeticsGUI::openGui)
@@ -57,9 +60,6 @@ public class CosmeticCommands {
                             .then(literal("reload")
                                     .requires(Permissions.require(Objects.requireNonNullElse(ConfigManager.getItemSkinsReloadPermission(), "servercosmetics.reload.itemskins"), 4))
                                     .executes(ConfigManager::reloadItemSkinsConfigsCommand))
-                            .then(literal("generate-configs-based-on-models")
-                                    .requires(Permissions.require(Objects.requireNonNullElse(ConfigManager.getItemSkinsReloadPermission(), "servercosmetics.generate-cosmetics"), 4))
-                                    .executes(ConfigGenerator::generateConfigsBasedOnModels))
             );
             dispatcher.register(
                     literal("itemskins").executes(ItemSkinsGUI::openItemSkinsGui)

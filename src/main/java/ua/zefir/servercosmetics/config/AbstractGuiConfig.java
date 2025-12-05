@@ -175,7 +175,7 @@ public abstract class AbstractGuiConfig {
             if (!finalButtonSection.contains(key)
                     && value != null
                     && !value.equals("")
-                    && ( value instanceof List<?> list && list.isEmpty() )
+                    && (!(value instanceof List<?>) || (value instanceof List<?> list && !list.isEmpty()))
             ) {
                 finalButtonSection.set(key, value);
             }
@@ -256,7 +256,6 @@ public abstract class AbstractGuiConfig {
         loadNavigationButton(file, "pageIndicator");
         loadNavigationButton(file, "noCosmeticsAvailable");
         loadNavigationButton(file, "search");
-        loadNavigationButton(file, "clearSearch");
 
         loadNavigationButton(file, "filter.show-owned-skins-enabled");
         loadNavigationButton(file, "filter.show-owned-skins-disabled");
