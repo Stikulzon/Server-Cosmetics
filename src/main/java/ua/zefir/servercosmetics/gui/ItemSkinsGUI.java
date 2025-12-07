@@ -1,13 +1,9 @@
 package ua.zefir.servercosmetics.gui;
 
+import static ua.zefir.servercosmetics.config.ConfigManager.ITEM_SKINS_GUI_CONFIG;
+import static ua.zefir.servercosmetics.datafixer.NbtDatafixer.NEW_NBT_KEY_CUSTOM_ITEM_ID;
+
 import com.mojang.brigadier.context.CommandContext;
-import ua.zefir.servercosmetics.ModInit;
-import ua.zefir.servercosmetics.config.ItemSkinsGUIConfig;
-import ua.zefir.servercosmetics.gui.actions.ApplySkinAction;
-import ua.zefir.servercosmetics.gui.filters.PermissionFilter;
-import ua.zefir.servercosmetics.gui.filters.SelectedItemFilter;
-import ua.zefir.servercosmetics.gui.providers.ItemSkinProvider;
-import ua.zefir.servercosmetics.util.GUIUtils;
 import eu.pb4.sgui.api.ClickType;
 import eu.pb4.sgui.api.GuiHelpers;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
@@ -19,93 +15,104 @@ import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-
-import static ua.zefir.servercosmetics.config.ConfigManager.ITEM_SKINS_GUI_CONFIG;
-import static ua.zefir.servercosmetics.datafixer.NbtDatafixer.NEW_NBT_KEY_CUSTOM_ITEM_ID;
+import ua.zefir.servercosmetics.ModInit;
+import ua.zefir.servercosmetics.config.ItemSkinsGUIConfig;
+import ua.zefir.servercosmetics.gui.actions.ApplySkinAction;
+import ua.zefir.servercosmetics.gui.filters.PermissionFilter;
+import ua.zefir.servercosmetics.gui.filters.SelectedItemFilter;
+import ua.zefir.servercosmetics.gui.providers.ItemSkinProvider;
+import ua.zefir.servercosmetics.util.GUIUtils;
 
 public class ItemSkinsGUI {
-    public static int openItemSkinsGui(CommandContext<ServerCommandSource> ctx) {
-        ServerPlayerEntity player = ctx.getSource().getPlayer();
-        if (player == null) {
-            ctx.getSource().sendFeedback(() -> Text.literal("This command can only be run by a player."), false);
-            return 1;
-        }
+  public static int openItemSkinsGui(CommandContext<ServerCommandSource> ctx) {
+    ServerPlayerEntity player = ctx.getSource().getPlayer();
+    if (player == null) {
+      ctx.getSource()
+          .sendFeedback(() -> Text.literal("This command can only be run by a player."), false);
+      return 1;
+    }
 
-        try {
-            ItemStack handStack = player.getMainHandStack();
-            var config = ITEM_SKINS_GUI_CONFIG;
-            var provider = new ItemSkinProvider();
-            var action = new ApplySkinAction(handStack, ItemSkinsGUIConfig.getItemSlot());
-            PagedItemDisplayGui gui = new PagedItemDisplayGui(player, config, provider, action) {
-                @Override
-                public boolean onAnyClick(int idx, ClickType ct, SlotActionType sa) {
-                    if (idx >= this.getVirtualSize()) {
-                        ItemStack newClicked = this.player.currentScreenHandler.getSlot(idx).getStack();
-                        if (!newClicked.isEmpty()) {
-                            GuiHelpers.sendPlayerScreenHandler(this.player);
-                            var newProvider = new ItemSkinProvider();
-                            var newAction = new ApplySkinAction(newClicked, ItemSkinsGUIConfig.getItemSlot());
+    try {
+      ItemStack handStack = player.getMainHandStack();
+      var config = ITEM_SKINS_GUI_CONFIG;
+      var provider = new ItemSkinProvider();
+      var action = new ApplySkinAction(handStack, ItemSkinsGUIConfig.getItemSlot());
+      PagedItemDisplayGui gui =
+          new PagedItemDisplayGui(player, config, provider, action) {
+            @Override
+            public boolean onAnyClick(int idx, ClickType ct, SlotActionType sa) {
+              if (idx >= this.getVirtualSize()) {
+                ItemStack newClicked = this.player.currentScreenHandler.getSlot(idx).getStack();
+                if (!newClicked.isEmpty()) {
+                  GuiHelpers.sendPlayerScreenHandler(this.player);
+                  var newProvider = new ItemSkinProvider();
+                  var newAction = new ApplySkinAction(newClicked, ItemSkinsGUIConfig.getItemSlot());
 
-                            setupDynamicSlots(this, newClicked);
-                            this.reinitialize(newProvider, newAction);
-                        }
-                    }
-                    return super.onAnyClick(idx, ct, sa);
+                  setupDynamicSlots(this, newClicked);
+                  this.reinitialize(newProvider, newAction);
                 }
-            };
-            gui.getFilterManager().addFilter(
-                    "permission",
-                    new PermissionFilter(player),
-                    config.getButtonConfig("filter.show-owned-skins-disabled"),
-                    config.getButtonConfig("filter.show-owned-skins-enabled"),
-                    false
-            );
-            gui.getFilterManager().addFilter(
-                    "selected-item",
-                    new SelectedItemFilter(),
-                    null,
-                    null,
-                    true,
-                    true
-            );
+              }
+              return super.onAnyClick(idx, ct, sa);
+            }
+          };
+      gui.getFilterManager()
+          .addFilter(
+              "permission",
+              new PermissionFilter(player),
+              config.getButtonConfig("filter.show-owned-skins-disabled"),
+              config.getButtonConfig("filter.show-owned-skins-enabled"),
+              false);
+      gui.getFilterManager()
+          .addFilter("selected-item", new SelectedItemFilter(), null, null, true, true);
 
-            setupDynamicSlots(gui, handStack);
+      setupDynamicSlots(gui, handStack);
 
-            gui.reinitialize(provider, action);
+      gui.reinitialize(provider, action);
 
-            gui.setLockPlayerInventory(true);
-            gui.open();
-        } catch (Exception e) {
-            ctx.getSource().sendError(Text.literal("An error occurred opening the Item Skins GUI. See console for details."));
-            ModInit.LOGGER.error("Failed to open item skins GUI for player {}", player.getName().getString(), e);
-        }
-        return 0;
+      gui.setLockPlayerInventory(true);
+      gui.open();
+    } catch (Exception e) {
+      ctx.getSource()
+          .sendError(
+              Text.literal(
+                  "An error occurred opening the Item Skins GUI. See console for details."));
+      ModInit.LOGGER.error(
+          "Failed to open item skins GUI for player {}", player.getName().getString(), e);
+    }
+    return 0;
+  }
+
+  private static void setupDynamicSlots(PagedItemDisplayGui gui, ItemStack targetStack) {
+    if (targetStack.getItem() == Items.AIR
+        || targetStack.isEmpty()
+        || targetStack.getItem() == null) {
+      GUIUtils.setUpButton(gui, ITEM_SKINS_GUI_CONFIG.getButtonConfig("selectItem"), () -> {});
+
+      ((SelectedItemFilter) (gui.getFilterManager().getFilter("selected-item").filter()))
+          .setSelectedItem(null);
+      return;
     }
 
+    gui.setSlot(
+        ItemSkinsGUIConfig.getItemSlot(),
+        new GuiElementBuilder(targetStack.copy())
+            .setCallback(() -> setupDynamicSlots(gui, ItemStack.EMPTY)));
 
-    private static void setupDynamicSlots(PagedItemDisplayGui gui, ItemStack targetStack) {
-        if(targetStack.getItem() == Items.AIR || targetStack.isEmpty() || targetStack.getItem() == null) {
-            GUIUtils.setUpButton(gui, ITEM_SKINS_GUI_CONFIG.getButtonConfig("selectItem"), () -> {});
+    ((SelectedItemFilter) (gui.getFilterManager().getFilter("selected-item").filter()))
+        .setSelectedItem(targetStack.getItem());
 
-            ((SelectedItemFilter) (gui.getFilterManager().getFilter("selected-item").filter())).setSelectedItem(null);
-            return;
-        }
+    GUIUtils.setUpButton(
+        gui,
+        ITEM_SKINS_GUI_CONFIG.getButtonConfig("removeSkin"),
+        () -> {
+          targetStack.apply(
+              DataComponentTypes.CUSTOM_DATA,
+              NbtComponent.DEFAULT,
+              comp -> comp.apply(nbt -> nbt.remove(NEW_NBT_KEY_CUSTOM_ITEM_ID)));
+          //                targetStack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
+          targetStack.remove(DataComponentTypes.ITEM_MODEL);
 
-        gui.setSlot(ItemSkinsGUIConfig.getItemSlot(),
-                new GuiElementBuilder(targetStack.copy())
-                .setCallback(
-                        () -> setupDynamicSlots(gui, ItemStack.EMPTY)
-                )
-        );
-
-        ((SelectedItemFilter) (gui.getFilterManager().getFilter("selected-item").filter())).setSelectedItem(targetStack.getItem());
-
-        GUIUtils.setUpButton(gui, ITEM_SKINS_GUI_CONFIG.getButtonConfig("removeSkin"), () -> {
-                targetStack.apply(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT, comp -> comp.apply(nbt -> nbt.remove(NEW_NBT_KEY_CUSTOM_ITEM_ID)));
-//                targetStack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
-                targetStack.remove(DataComponentTypes.ITEM_MODEL);
-
-                gui.setSlot(ItemSkinsGUIConfig.getItemSlot(), targetStack.copy());
+          gui.setSlot(ItemSkinsGUIConfig.getItemSlot(), targetStack.copy());
         });
-    }
+  }
 }

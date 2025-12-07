@@ -3,11 +3,20 @@
 # certain platforms or Java versions, and provides a first line of defence
 # against bad commits.
 
-name: build
+name: Build and Format Check
 on:
   pull_request:
+    paths-ignore:
+      - '.github/**'
+      - 'README.md'
+      - 'LICENSE'
+    branches:
+      - "**"
   push:
-    paths-ignore: [ '.github/', 'README.md', "LICENSE" ]
+    paths-ignore:
+      - '.github/**'
+      - 'README.md'
+      - 'LICENSE'
     branches:
       - "**"
 
@@ -45,6 +54,9 @@ jobs:
 
       - name: compress png
         run: chmod +x ./oxipng/oxipng && ./oxipng/oxipng -o max -s -a -r src
+
+      - name: Check Formatting
+        run: ./gradlew spotlessCheck
 
       - name: build
         run: ./gradlew build

@@ -2,6 +2,7 @@ plugins {
 	id 'fabric-loom' version "${loom_version}"
     id "com.modrinth.minotaur" version "2.+"
 	id 'maven-publish'
+    id 'com.diffplug.spotless' version '8.+'
 }
 
 version = project.mod_version
@@ -9,6 +10,19 @@ group = project.maven_group
 
 base {
 	archivesName = project.archives_base_name
+}
+
+spotless {
+    java {
+        target 'src/*/java/**/*.java'
+
+        googleJavaFormat("${google_java_format}")
+
+        toggleOffOn()
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
 }
 
 repositories {

@@ -1,10 +1,9 @@
 package ua.zefir.servercosmetics.gui.core;
 
-import ua.zefir.servercosmetics.data.CustomItemEntry;
-
 import java.util.List;
+import ua.zefir.servercosmetics.data.CustomItemEntry;
 
 @FunctionalInterface
 public interface ICosmeticProvider {
-    List<CustomItemEntry> getItems();
+  List<CustomItemEntry> getItems();
 }
