@@ -259,17 +259,17 @@ public abstract class AbstractGuiConfig {
             "lore",
             List.of("&7Click to search for items", "&7by name.")));
 
-//    buttonDefaults.put(
-//        "clearSearch",
-//        Map.of(
-//            "name",
-//            "&cClear Search",
-//            "item",
-//            "minecraft:barrier",
-//            "slotIndex",
-//            48,
-//            "lore",
-//            List.of("&7Current filter: &e%search%", "", "&7Click to clear.")));
+    //    buttonDefaults.put(
+    //        "clearSearch",
+    //        Map.of(
+    //            "name",
+    //            "&cClear Search",
+    //            "item",
+    //            "minecraft:barrier",
+    //            "slotIndex",
+    //            48,
+    //            "lore",
+    //            List.of("&7Current filter: &e%search%", "", "&7Click to clear.")));
 
     buttonDefaults.put(
         "next",

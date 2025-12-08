@@ -175,7 +175,7 @@ public class PagedItemDisplayGui extends SimpleGui {
             btnConfig.slotIndex(),
             dynamicLore);
 
-//    GUIUtils.setUpButton(this, dynamicBtn, this::openSearchGui);
+    //    GUIUtils.setUpButton(this, dynamicBtn, this::openSearchGui);
   }
 
   public void openSearchGui() {
