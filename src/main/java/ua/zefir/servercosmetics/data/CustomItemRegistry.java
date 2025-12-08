@@ -147,9 +147,9 @@ public class CustomItemRegistry {
 
       ItemStack itemStack =
           ItemBuilder.fromId(formattedMaterial)
+              .applyCosmeticLogic(itemId, dyable)
               .name(displayName)
               .lore(lore)
-              .applyCosmeticLogic(itemId, dyable)
               .customData(NEW_NBT_KEY_CUSTOM_ITEM_ID, itemId + "_" + formattedMaterial)
               .build();
 
@@ -194,9 +194,9 @@ public class CustomItemRegistry {
 
     ItemStack itemStack =
         ItemBuilder.fromId(formattedMaterial)
+            .applyCosmeticLogic(itemId, dyable)
             .name(displayName)
             .lore(lore)
-            .applyCosmeticLogic(itemId, dyable)
             .customData(NEW_NBT_KEY_CUSTOM_ITEM_ID, itemId)
             .build();
 
