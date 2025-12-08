@@ -10,9 +10,11 @@ import lombok.Getter;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 import ua.zefir.servercosmetics.config.AbstractGuiConfig;
 import ua.zefir.servercosmetics.config.ConfigManager;
 import ua.zefir.servercosmetics.data.CustomItemEntry;
+import ua.zefir.servercosmetics.datagen.ui.GuiTextures;
 import ua.zefir.servercosmetics.gui.actions.OpenColorPickerAction;
 import ua.zefir.servercosmetics.gui.core.ICosmeticProvider;
 import ua.zefir.servercosmetics.gui.core.IItemAction;
@@ -173,7 +175,7 @@ public class PagedItemDisplayGui extends SimpleGui {
             btnConfig.slotIndex(),
             dynamicLore);
 
-    GUIUtils.setUpButton(this, dynamicBtn, this::openSearchGui);
+//    GUIUtils.setUpButton(this, dynamicBtn, this::openSearchGui);
   }
 
   public void openSearchGui() {
@@ -186,7 +188,7 @@ public class PagedItemDisplayGui extends SimpleGui {
         };
 
     ConfigManager.NavigationButton btnConfig = guiConfig.getButtonConfig("search");
-    anvilGui.setTitle(btnConfig.name());
+    anvilGui.setTitle(GuiTextures.SEARCH_MENU.apply(Text.literal("")));
 
     anvilGui.setDefaultInputValue(filterManager.getSearchTerm());
 

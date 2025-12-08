@@ -44,7 +44,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Compress PNGs
-        run: oxipng -o max -s -a -r src
+        run: oxipng -o 2 -s -a -r src
 
       - name: Check Formatting
         run: ./gradlew spotlessCheck

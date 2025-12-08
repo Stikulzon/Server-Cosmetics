@@ -185,8 +185,8 @@ public class CustomItemRegistry {
 
     String baseItemMaterial = parseBaseMaterial(yaml, type, itemPropertiesRootNode);
     if (baseItemMaterial == null) {
-      ModInit.LOGGER.error(
-          "Error loading cosmetic {}: 'material' not defined, using paper as fallback", fileName);
+      ModInit.LOGGER.debug(
+          "'material' not defined in cosmetic {}, using paper as fallback", fileName);
       baseItemMaterial = "minecraft:paper";
     }
 
