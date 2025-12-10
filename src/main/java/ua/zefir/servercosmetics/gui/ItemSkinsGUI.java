@@ -7,6 +7,7 @@ import com.mojang.brigadier.context.CommandContext;
 import eu.pb4.sgui.api.ClickType;
 import eu.pb4.sgui.api.GuiHelpers;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
+import java.util.Objects;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.ItemStack;
@@ -22,8 +23,6 @@ import ua.zefir.servercosmetics.gui.filters.PermissionFilter;
 import ua.zefir.servercosmetics.gui.filters.SelectedItemFilter;
 import ua.zefir.servercosmetics.gui.providers.ItemSkinProvider;
 import ua.zefir.servercosmetics.util.GUIUtils;
-
-import java.util.Objects;
 
 public class ItemSkinsGUI {
   public static int openItemSkinsGui(CommandContext<ServerCommandSource> ctx) {
@@ -108,8 +107,7 @@ public class ItemSkinsGUI {
         ITEM_SKINS_GUI_CONFIG.getButtonConfig("removeSkin"),
         () -> {
           if (targetStack.get(DataComponentTypes.CUSTOM_DATA) != null
-              && Objects.requireNonNull(targetStack
-                          .get(DataComponentTypes.CUSTOM_DATA))
+              && Objects.requireNonNull(targetStack.get(DataComponentTypes.CUSTOM_DATA))
                   .contains(NEW_NBT_KEY_CUSTOM_ITEM_ID)) {
             targetStack.apply(
                 DataComponentTypes.CUSTOM_DATA,
