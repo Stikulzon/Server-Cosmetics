@@ -23,6 +23,8 @@ import ua.zefir.servercosmetics.gui.filters.SelectedItemFilter;
 import ua.zefir.servercosmetics.gui.providers.ItemSkinProvider;
 import ua.zefir.servercosmetics.util.GUIUtils;
 
+import java.util.Objects;
+
 public class ItemSkinsGUI {
   public static int openItemSkinsGui(CommandContext<ServerCommandSource> ctx) {
     ServerPlayerEntity player = ctx.getSource().getPlayer();
@@ -105,12 +107,16 @@ public class ItemSkinsGUI {
         gui,
         ITEM_SKINS_GUI_CONFIG.getButtonConfig("removeSkin"),
         () -> {
-          targetStack.apply(
-              DataComponentTypes.CUSTOM_DATA,
-              NbtComponent.DEFAULT,
-              comp -> comp.apply(nbt -> nbt.remove(NEW_NBT_KEY_CUSTOM_ITEM_ID)));
-          //                targetStack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
-          targetStack.remove(DataComponentTypes.ITEM_MODEL);
+          if (targetStack.get(DataComponentTypes.CUSTOM_DATA) != null
+              && Objects.requireNonNull(targetStack
+                          .get(DataComponentTypes.CUSTOM_DATA))
+                  .contains(NEW_NBT_KEY_CUSTOM_ITEM_ID)) {
+            targetStack.apply(
+                DataComponentTypes.CUSTOM_DATA,
+                NbtComponent.DEFAULT,
+                comp -> comp.apply(nbt -> nbt.remove(NEW_NBT_KEY_CUSTOM_ITEM_ID)));
+            targetStack.remove(DataComponentTypes.ITEM_MODEL);
+          }
 
           gui.setSlot(ItemSkinsGUIConfig.getItemSlot(), targetStack.copy());
         });

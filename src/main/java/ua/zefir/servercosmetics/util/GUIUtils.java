@@ -29,7 +29,6 @@ public class GUIUtils {
               .setLore(buttonConfig.lore().stream().map(Utils::formatDisplayName).toList())
               .setCallback((index, clickType, actionType) -> callback.run());
 
-      // А для чого це?..
       if (buttonConfig.modelPath() != null) {
         builder.model(buttonConfig.modelPath());
       }
