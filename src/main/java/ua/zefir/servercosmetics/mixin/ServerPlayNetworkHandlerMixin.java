@@ -1,7 +1,7 @@
 package ua.zefir.servercosmetics.mixin;
 
-import ua.zefir.servercosmetics.data.ItemType;
-import ua.zefir.servercosmetics.ext.ICosmetics;
+import static ua.zefir.servercosmetics.util.Utils.getItemTypeForSlot;
+
 import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket;
 import net.minecraft.network.packet.c2s.play.PickFromInventoryC2SPacket;
 import net.minecraft.screen.PlayerScreenHandler;
@@ -13,40 +13,40 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import static ua.zefir.servercosmetics.util.Utils.getItemTypeForSlot;
+import ua.zefir.servercosmetics.data.ItemType;
+import ua.zefir.servercosmetics.ext.ICosmetics;
 
 @Mixin(ServerPlayNetworkHandler.class)
 public class ServerPlayNetworkHandlerMixin {
-    @Shadow public ServerPlayerEntity player;
+  @Shadow public ServerPlayerEntity player;
 
-    @Inject(
-            method = "onPickFromInventory",
-            at = @At(
-                    value = "TAIL",
-                    target = "Lnet/minecraft/advancement/criterion/Criteria;INVENTORY_CHANGED:Lnet/minecraft/advancement/criterion/InventoryChangedCriterion;"
-            )
-    )
-    void modifyItemStack (PickFromInventoryC2SPacket packet, CallbackInfo ci) {
-        ICosmetics cosmetics = (ICosmetics) player;
-        cosmetics.tickArmor();
-    }
+  @Inject(
+      method = "onPickFromInventory",
+      at =
+          @At(
+              value = "TAIL",
+              target =
+                  "Lnet/minecraft/advancement/criterion/Criteria;INVENTORY_CHANGED:Lnet/minecraft/advancement/criterion/InventoryChangedCriterion;"))
+  void modifyItemStack(PickFromInventoryC2SPacket packet, CallbackInfo ci) {
+    ICosmetics cosmetics = (ICosmetics) player;
+    cosmetics.tickArmor();
+  }
 
-    @Inject(
-            method = "onClickSlot",
-            at = @At(
-                    value = "TAIL",
-                    target = "Lnet/minecraft/advancement/criterion/Criteria;INVENTORY_CHANGED:Lnet/minecraft/advancement/criterion/InventoryChangedCriterion;"
-            )
-    )
-    void modifyItemStack (ClickSlotC2SPacket packet, CallbackInfo ci) {
-        ScreenHandler handler = this.player.currentScreenHandler;
-        if(handler instanceof PlayerScreenHandler) {
-            ICosmetics cosmetics = (ICosmetics) player;
-            ItemType itemType = getItemTypeForSlot(packet.getSlot());
-            if(itemType != null) {
-                cosmetics.getCosmeticFor(itemType).tick();
-            }
-        }
+  @Inject(
+      method = "onClickSlot",
+      at =
+          @At(
+              value = "TAIL",
+              target =
+                  "Lnet/minecraft/advancement/criterion/Criteria;INVENTORY_CHANGED:Lnet/minecraft/advancement/criterion/InventoryChangedCriterion;"))
+  void modifyItemStack(ClickSlotC2SPacket packet, CallbackInfo ci) {
+    ScreenHandler handler = this.player.currentScreenHandler;
+    if (handler instanceof PlayerScreenHandler) {
+      ICosmetics cosmetics = (ICosmetics) player;
+      ItemType itemType = getItemTypeForSlot(packet.getSlot());
+      if (itemType != null) {
+        cosmetics.getCosmeticFor(itemType).tick();
+      }
     }
+  }
 }

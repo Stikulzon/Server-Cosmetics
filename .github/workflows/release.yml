@@ -3,88 +3,63 @@ name: Release Mod
 on:
   push:
     tags:
-      - "*" # Triggers when you push a tag (e.g. 1.0.2)
+      - "*"
 
 jobs:
   build-and-release:
     permissions:
       contents: write
       packages: write
-    strategy:
-      matrix:
-        # Use these Java versions
-        java: [ 21 ]
-        os: [ubuntu-latest]
+    runs-on: ubuntu-latest
 
-    runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/loom-cache
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            gradle-
-
-      - name: checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: setup jdk ${{ matrix.java }}
+      - name: Set up Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          cache: true
+
+      - name: Install Oxipng if not present
+        run: which oxipng || cargo install oxipng
+
+      - name: Setup JDK
         uses: actions/setup-java@v4
         with:
-          java-version: ${{ matrix.java }}
+          java-version: 21
           distribution: 'microsoft'
 
-      - name: grant execute permission for gradlew
-        if: ${{ runner.os != 'Windows' }}
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Compress PNGs
+        run: oxipng -o max -s -a -r src
+
+      - name: Generate Changelog
+        id: changelog
+        uses: mikepenz/release-changelog-builder-action@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: compress png
-        run: chmod +x ./oxipng/oxipng && ./oxipng/oxipng -o max -s -a -r src
-
-      - name: build
-        run: ./gradlew build
+      - name: Build and Publish
+        # Runs build, then modrinth upload, then maven publish
+        run: ./gradlew build publish
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
-          CHANGELOG: ${{ github.event.release.body }}
+          CHANGELOG: ${{ steps.changelog.outputs.changelog }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          # Uploads all jars generated in build/libs (Release, Sources, Dev)
-          # You can specify a single file if you prefer: build/libs/${{ env.ARCHIVES_NAME }}-${{ env.VERSION }}.jar
           files: build/libs/*.jar
           name: ${{ github.ref_name }}
-          generate_release_notes: true
+          body: ${{ steps.changelog.outputs.changelog }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Generate Publish Configuration
-        run: |
-          cat <<EOF > publish-config.gradle
-          allprojects {
-              plugins.withType(MavenPublishPlugin) {
-                  publishing {
-                      repositories {
-                          maven {
-                              name = "GitHubPackages"
-                              url = uri("https://maven.pkg.github.com/${{ github.repository }}")
-                              credentials {
-                                  username = System.getenv("GITHUB_ACTOR")
-                                  password = System.getenv("GITHUB_TOKEN")
-                              }
-                          }
-                      }
-                  }
-              }
-          }
-          EOF
-
-      - name: Publish to GitHub Packages
-        run: ./gradlew publish --init-script publish-config.gradle
-        env:
-          CHANGELOG: ${{ github.event.release.body }}
-          GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

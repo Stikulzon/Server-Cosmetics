@@ -1,7 +1,8 @@
 plugins {
 	id 'fabric-loom' version "${loom_version}"
-    id "com.modrinth.minotaur" version "2.+"
+	id "com.modrinth.minotaur" version "2.+"
 	id 'maven-publish'
+	id 'com.diffplug.spotless' version '8.+'
 }
 
 version = project.mod_version
@@ -9,6 +10,19 @@ group = project.maven_group
 
 base {
 	archivesName = project.archives_base_name
+}
+
+spotless {
+	java {
+		target 'src/*/java/**/*.java'
+
+		googleJavaFormat("1.33.0")
+
+		toggleOffOn()
+		removeUnusedImports()
+		trimTrailingWhitespace()
+		endWithNewline()
+	}
 }
 
 repositories {
@@ -26,7 +40,7 @@ fabricApi {
 }
 
 loom {
-    accessWidenerPath = file("src/main/resources/servercosmetics.accesswidener")
+	accessWidenerPath = file("src/main/resources/servercosmetics.accesswidener")
 }
 
 dependencies {
@@ -35,30 +49,28 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.5.0")))
+	include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.5.0")))
 	include(implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.3.7-beta.1")))
 
-	include (modImplementation ("eu.pb4:sgui:${project.sgui_version}"))
-	include (modImplementation ("me.lucko:fabric-permissions-api:${project.fabric_permissions_api_version}"))
+	include(modImplementation("eu.pb4:sgui:${project.sgui_version}"))
+	include(modImplementation("me.lucko:fabric-permissions-api:${project.fabric_permissions_api_version}"))
 
 	include(implementation 'com.github.Carleslc.Simple-YAML:Simple-Yaml:1.8.4')
 
-	include (implementation 'org.xerial:sqlite-jdbc:3.46.0.1')
-	include (implementation 'com.j256.ormlite:ormlite-jdbc:6.1')
-	include (implementation 'com.j256.ormlite:ormlite-core:6.1')
+	include(implementation 'org.xerial:sqlite-jdbc:3.46.0.1')
+	include(implementation 'com.j256.ormlite:ormlite-jdbc:6.1')
+	include(implementation 'com.j256.ormlite:ormlite-core:6.1')
 
 	compileOnly 'org.projectlombok:lombok:1.18.34'
 	annotationProcessor 'org.projectlombok:lombok:1.18.34'
 
-	include (implementation("org.json:json:20250107"))
+	include(implementation("org.json:json:20250107"))
 
-	modImplementation ("eu.pb4:polymer-core:[${polymer_version}]")
-	modImplementation ("eu.pb4:polymer-blocks:[${polymer_version}]")
-	modImplementation ("eu.pb4:polymer-resource-pack:[${polymer_version}]")
-	modImplementation ("eu.pb4:polymer-virtual-entity:[${polymer_version}]")
-	modImplementation ("eu.pb4:polymer-autohost:${polymer_version}")
-
-	modImplementation include ("eu.pb4:factorytools:[${factorytools_version}]")
+	modImplementation("eu.pb4:polymer-core:[${polymer_version}]")
+	modImplementation("eu.pb4:polymer-blocks:[${polymer_version}]")
+	modImplementation("eu.pb4:polymer-resource-pack:[${polymer_version}]")
+	modImplementation("eu.pb4:polymer-virtual-entity:[${polymer_version}]")
+	modImplementation("eu.pb4:polymer-autohost:${polymer_version}")
 
 	include(modImplementation "net.kyori:adventure-api:${project.adventure_version}")
 	include(modImplementation "net.kyori:adventure-text-serializer-legacy:${project.adventure_version}")
@@ -68,9 +80,8 @@ dependencies {
 
 processResources {
 	inputs.property "version", project.version
-
 	filesMatching("fabric.mod.json") {
-		expand "version": project.version
+		expand "version": inputs.properties.version
 	}
 }
 
@@ -80,58 +91,60 @@ tasks.withType(JavaCompile).configureEach {
 
 java {
 	withSourcesJar()
-
-	sourceCompatibility = JavaVersion.VERSION_17
-	targetCompatibility = JavaVersion.VERSION_17
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
 }
 
 jar {
-    inputs.property "archivesName", project.base.archivesName
-
-    from("LICENSE") {
-        rename { "${it}_${inputs.properties.archivesName}"}
-    }
-
-    processResources.exclude('.cache/**/*')
+	inputs.property "archivesName", project.base.archivesName
+	from("LICENSE") {
+		rename { "${it}_${inputs.properties.archivesName}" }
+	}
+	processResources.exclude('.cache/**/*')
 }
 
 publishing {
-    publications {
-        create("mavenJava", MavenPublication) {
-            artifactId = project.archives_base_name
-            from components.java
-        }
-    }
+	publications {
+		create("mavenJava", MavenPublication) {
+			artifactId = project.archives_base_name
+			from components.java
+		}
+	}
 
-    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
-    repositories {
-        // Add repositories to publish to here.
-        // Notice: This block does NOT have the same function as the block in the top level.
-        // The repositories here will be used for publishing your artifact, not for
-        // retrieving dependencies.
-    }
+	repositories {
+		// Automatically configured for GitHub Packages if env vars exist
+		if (System.getenv("GITHUB_TOKEN")) {
+			maven {
+				name = "GitHubPackages"
+				url = uri("https://maven.pkg.github.com/${System.getenv("GITHUB_REPOSITORY")}")
+				credentials {
+					username = System.getenv("GITHUB_ACTOR")
+					password = System.getenv("GITHUB_TOKEN")
+				}
+			}
+		}
+	}
 }
 
-
 if (System.getenv("MODRINTH_TOKEN")) {
-    modrinth {
-        token = System.getenv("MODRINTH")
-        projectId = 'rpTNWjZH'// This can be the project ID or the slug. Either will work!
-        versionNumber = "" + version
-        versionType = "release" // This is the default -- can also be `beta` or `alpha`
-        uploadFile = remapJar
-        gameVersions = [((String) project.minecraft_version)]
-        changelog = System.getenv("CHANGELOG")
-        loaders = ["fabric"]
+	modrinth {
+		token = System.getenv("MODRINTH_TOKEN")
+		projectId = 'rpTNWjZH'// This can be the project ID or the slug
+		versionNumber = "${project.version}"
+		versionType = "release" // This is the default -- can also be `beta` or `alpha`
+		uploadFile = remapJar
+		gameVersions = [((String) project.minecraft_version)]
+		changelog = System.getenv("CHANGELOG")
+		loaders = ["fabric"]
 
-        dependencies {
-            required.project "polymer"
-        }
+		dependencies {
+			required.project "polymer"
+		}
 
-        syncBodyFrom = rootProject.file("README.md").text
-        tasks.modrinth.dependsOn(tasks.modrinthSyncBody)
-    }
-    remapJar {
-        finalizedBy project.tasks.modrinth
-    }
+		syncBodyFrom = rootProject.file("README.md").text
+		tasks.modrinth.dependsOn(tasks.modrinthSyncBody)
+	}
+	remapJar {
+		finalizedBy project.tasks.modrinth
+	}
 }
