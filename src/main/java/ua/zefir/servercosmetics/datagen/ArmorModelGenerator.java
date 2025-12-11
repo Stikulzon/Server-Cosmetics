@@ -7,7 +7,7 @@ import java.util.*;
 import lombok.Getter;
 import net.minecraft.item.*;
 import net.minecraft.registry.entry.RegistryEntry;
-import ua.zefir.servercosmetics.ServerCosmetics;
+import ua.zefir.servercosmetics.ModInit;
 
 public class ArmorModelGenerator {
   @Getter
@@ -69,7 +69,7 @@ public class ArmorModelGenerator {
     ArmorItem dummyArmorItem = getDummyArmorItem(armorType);
     String modelName = cosmeticId + "_" + armorType.getName().toLowerCase();
     String baseModelPath = "assets/servercosmetics/models/item/armor/" + modelName + ".json";
-    String baseTexturePath = ServerCosmetics.MOD_ID + ":item/armor/" + modelName;
+    String baseTexturePath = ModInit.MOD_ID + ":item/armor/" + modelName;
 
     // 1. Generate the base model with overrides for each trim
     JsonObject baseModel = createArmorJsonWithOverrides(dummyArmorItem, cosmeticId);
@@ -108,7 +108,7 @@ public class ArmorModelGenerator {
 
     root.addProperty("parent", "minecraft:item/generated");
     JsonObject textures = new JsonObject();
-    textures.addProperty("layer0", ServerCosmetics.MOD_ID + ":item/armor/" + modelName);
+    textures.addProperty("layer0", ModInit.MOD_ID + ":item/armor/" + modelName);
     //        textures.addProperty("layer1", ServerCosmetics.MOD_ID + ":item/armor/" + modelName +
     // "_overlay");
     root.add("textures", textures);
@@ -122,7 +122,7 @@ public class ArmorModelGenerator {
 
       String appliedTrimName = trimMaterial.getAppliedName(armor.getMaterial());
       String trimModelId =
-          ServerCosmetics.MOD_ID + ":item/armor/" + modelName + "_" + appliedTrimName + "_trim";
+          ModInit.MOD_ID + ":item/armor/" + modelName + "_" + appliedTrimName + "_trim";
       override.addProperty("model", trimModelId);
       overrides.add(override);
     }

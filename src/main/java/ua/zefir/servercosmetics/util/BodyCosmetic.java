@@ -17,7 +17,7 @@ import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.EulerAngle;
 import net.minecraft.util.math.MathHelper;
-import ua.zefir.servercosmetics.ServerCosmetics;
+import ua.zefir.servercosmetics.ModInit;
 import ua.zefir.servercosmetics.data.BodyCosmeticsData;
 import ua.zefir.servercosmetics.data.ItemType;
 import ua.zefir.servercosmetics.database.DatabaseManager;
@@ -67,7 +67,7 @@ public class BodyCosmetic implements ICosmetic {
                     .cosmeticData();
         cosmeticItemStackWhenSneaking = getTiltedItemStack(cosmeticData.polymerModelWhenSneaking());
       } else {
-        ServerCosmetics.LOGGER.error("No cosmetic entry found for {}", itemType);
+        ModInit.LOGGER.error("No cosmetic entry found for {}", itemType);
         cosmeticItemStackWhenSneaking = cosmeticItemStack;
       }
 

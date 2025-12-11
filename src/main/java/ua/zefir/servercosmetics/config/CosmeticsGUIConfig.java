@@ -10,7 +10,7 @@ import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
 import org.simpleyaml.configuration.ConfigurationSection;
 import org.simpleyaml.configuration.file.YamlFile;
-import ua.zefir.servercosmetics.ServerCosmetics;
+import ua.zefir.servercosmetics.ModInit;
 import ua.zefir.servercosmetics.gui.resources.GuiTextures;
 import ua.zefir.servercosmetics.util.Utils;
 
@@ -89,9 +89,9 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
         paintItemPolymerModelData =
             PolymerResourcePackUtils.requestModel(
                 Items.LEATHER_HORSE_ARMOR,
-                Identifier.of(ServerCosmetics.MOD_ID, "item/" + paintItemModelPath));
+                Identifier.of(ModInit.MOD_ID, "item/" + paintItemModelPath));
       } catch (Exception e) {
-        ServerCosmetics.LOGGER.error(
+        ModInit.LOGGER.error(
             "Failed to load paintItemModelData for path '{}': {}",
             paintItemModelPath,
             e.getMessage());
@@ -105,7 +105,7 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
     try {
       signColor = DyeColor.valueOf(file.getString("colorInput.signColor", "WHITE").toUpperCase());
     } catch (IllegalArgumentException e) {
-      ServerCosmetics.LOGGER.warn(
+      ModInit.LOGGER.warn(
           "Invalid signColor '{}' in CosmeticsGUI.yml, defaulting to WHITE.",
           file.getString("colorInput.signColor"));
       signColor = DyeColor.WHITE;

@@ -9,7 +9,7 @@ import net.minecraft.data.DataOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.DataWriter;
 import net.minecraft.util.Util;
-import ua.zefir.servercosmetics.ServerCosmetics;
+import ua.zefir.servercosmetics.ModInit;
 import ua.zefir.servercosmetics.gui.resources.UiResourceCreator;
 
 public class CustomAssetsProvider implements DataProvider {
@@ -42,6 +42,6 @@ public class CustomAssetsProvider implements DataProvider {
 
   @Override
   public String getName() {
-    return ServerCosmetics.MOD_ID + ":assets";
+    return ModInit.MOD_ID + ":assets";
   }
 }

@@ -8,7 +8,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import ua.zefir.servercosmetics.ServerCosmetics;
+import ua.zefir.servercosmetics.ModInit;
 import ua.zefir.servercosmetics.data.ItemType;
 import ua.zefir.servercosmetics.gui.actions.EquipCosmeticAction;
 import ua.zefir.servercosmetics.gui.filters.ItemTypeFilter;
@@ -91,7 +91,7 @@ public class CosmeticsGUI {
           .sendError(
               Text.literal(
                   "An error occurred opening the Cosmetics GUI. See console for details."));
-      ServerCosmetics.LOGGER.error(
+      ModInit.LOGGER.error(
           "Failed to open cosmetics GUI for player {}", player.getName().getString(), e);
     }
     return 0;

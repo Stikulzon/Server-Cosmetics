@@ -5,7 +5,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import net.minecraft.item.ArmorItem;
-import ua.zefir.servercosmetics.ServerCosmetics;
+import ua.zefir.servercosmetics.ModInit;
 
 public class RuntimeModelManager {
   private static final Map<String, Set<ArmorItem.Type>> requestedModels = new ConcurrentHashMap<>();
@@ -19,7 +19,7 @@ public class RuntimeModelManager {
    */
   public static void requestArmorModel(String cosmeticId, ArmorItem.Type type) {
     requestedModels.computeIfAbsent(cosmeticId, k -> ConcurrentHashMap.newKeySet()).add(type);
-    ServerCosmetics.LOGGER.debug(
+    ModInit.LOGGER.debug(
         "Requested runtime model generation for cosmetic '{}' of type {}",
         cosmeticId,
         type.getName());
@@ -37,7 +37,7 @@ public class RuntimeModelManager {
       return;
     }
 
-    ServerCosmetics.LOGGER.info(
+    ModInit.LOGGER.info(
         "Starting runtime generation of {} cosmetic armor model set(s).", requestedModels.size());
 
     requestedModels.forEach(
@@ -48,7 +48,7 @@ public class RuntimeModelManager {
                 (path, data) -> {
                   if (provider != null) {
                     provider.accept(path, data);
-                    ServerCosmetics.LOGGER.debug("Provided runtime model: {}", path);
+                    ModInit.LOGGER.debug("Provided runtime model: {}", path);
                   }
                 });
           }

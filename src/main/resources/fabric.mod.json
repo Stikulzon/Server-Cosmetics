@@ -16,10 +16,10 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-          "ua.zefir.servercosmetics.ServerCosmetics"
+          "ua.zefir.servercosmetics.ModInit"
 		],
 		"fabric-datagen": [
-          "ua.zefir.servercosmetics.ServerCosmeticsDataGenerator"
+			"ua.zefir.servercosmetics.ModDataGenerator"
 		]
 	},
 	"mixins": [

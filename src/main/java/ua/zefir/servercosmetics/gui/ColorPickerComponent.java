@@ -23,7 +23,7 @@ import net.minecraft.util.Identifier;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.lang3.mutable.MutableFloat;
 import org.apache.commons.lang3.mutable.MutableInt;
-import ua.zefir.servercosmetics.ServerCosmetics;
+import ua.zefir.servercosmetics.ModInit;
 import ua.zefir.servercosmetics.config.CosmeticsGUIConfig;
 import ua.zefir.servercosmetics.gui.resources.GuiTextures;
 import ua.zefir.servercosmetics.util.GUIUtils;
@@ -47,7 +47,7 @@ public class ColorPickerComponent {
       new ColorPickerScreen(player, itemToColor, onColorSelectCallback).open();
     } catch (Exception e) {
       player.sendMessage(Text.literal("Error opening color picker."), false);
-      ServerCosmetics.LOGGER.error("Failed to open ColorPickerComponent", e);
+      ModInit.LOGGER.error("Failed to open ColorPickerComponent", e);
     }
   }
 
@@ -126,7 +126,7 @@ public class ColorPickerComponent {
                         drawGradientSlots();
                       }));
         } catch (NumberFormatException e) {
-          ServerCosmetics.LOGGER.warn("Invalid hex color in config: {}", colorHexValues[i]);
+          ModInit.LOGGER.warn("Invalid hex color in config: {}", colorHexValues[i]);
         }
       }
       if (!initialGradientDrawn && baseColorDisplaySlots.length > 0) {
@@ -148,7 +148,7 @@ public class ColorPickerComponent {
       try {
         baseColor = new Color(Integer.parseInt(baseHex, 16));
       } catch (NumberFormatException e) {
-        ServerCosmetics.LOGGER.warn("Invalid base hex for gradient: {}", baseHex);
+        ModInit.LOGGER.warn("Invalid base hex for gradient: {}", baseHex);
         return;
       }
 

@@ -14,7 +14,7 @@ import ua.zefir.servercosmetics.database.DatabaseManager;
 import ua.zefir.servercosmetics.gui.resources.GuiTextures;
 import ua.zefir.servercosmetics.gui.resources.UiResourceCreator;
 
-public class ServerCosmetics implements ModInitializer {
+public class ModInit implements ModInitializer {
   public static final String MOD_ID = "servercosmetics";
   public static final String VERSION =
       FabricLoader.getInstance()

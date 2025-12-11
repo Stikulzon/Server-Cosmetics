@@ -29,7 +29,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import ua.zefir.servercosmetics.ServerCosmetics;
+import ua.zefir.servercosmetics.ModInit;
 import ua.zefir.servercosmetics.data.CustomItemEntry;
 import ua.zefir.servercosmetics.data.CustomItemRegistry;
 import ua.zefir.servercosmetics.data.ItemType;
@@ -162,13 +162,13 @@ public class Utils {
 
   public static List<Path> listFiles(Path dir) {
     if (!Files.isDirectory(dir)) {
-      ServerCosmetics.LOGGER.warn("Attempted to list files in a non-directory: {}", dir);
+      ModInit.LOGGER.warn("Attempted to list files in a non-directory: {}", dir);
       return Collections.emptyList();
     }
     try (Stream<Path> walk = Files.walk(dir)) {
       return walk.filter(Files::isRegularFile).collect(Collectors.toList());
     } catch (IOException e) {
-      ServerCosmetics.LOGGER.error("Failed to list files in directory: {}", dir, e);
+      ModInit.LOGGER.error("Failed to list files in directory: {}", dir, e);
       return Collections.emptyList();
     }
   }

@@ -17,7 +17,7 @@ import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
-import ua.zefir.servercosmetics.ServerCosmetics;
+import ua.zefir.servercosmetics.ModInit;
 import ua.zefir.servercosmetics.data.CustomItemEntry;
 import ua.zefir.servercosmetics.data.CustomItemRegistry;
 import ua.zefir.servercosmetics.data.ItemType;
@@ -33,7 +33,7 @@ public class DatabaseManager {
       TableUtils.createTableIfNotExists(connectionSource, CosmeticTable.class);
       cosmeticDao = DaoManager.createDao(connectionSource, CosmeticTable.class);
     } catch (Exception e) {
-      ServerCosmetics.LOGGER.error("Failed to initialize database", e);
+      ModInit.LOGGER.error("Failed to initialize database", e);
       throw new RuntimeException("Error initializing database", e);
     }
   }
@@ -53,7 +53,7 @@ public class DatabaseManager {
 
       String cosmeticId = getCosmeticIdFromStack(itemStack);
       if (cosmeticId == null) {
-        ServerCosmetics.LOGGER.warn(
+        ModInit.LOGGER.warn(
             "Attempted to set a cosmetic with an ItemStack lacking a 'cosmeticItemId' for player {}",
             player.getUuidAsString());
         if (existingEntry != null) {
@@ -77,7 +77,7 @@ public class DatabaseManager {
         cosmeticDao.create(newEntry);
       }
     } catch (SQLException e) {
-      ServerCosmetics.LOGGER.error(
+      ModInit.LOGGER.error(
           "Error saving cosmetic data for player {} and type {}",
           player.getUuidAsString(),
           type,
@@ -97,7 +97,7 @@ public class DatabaseManager {
       CustomItemEntry cosmeticDefinition =
           CustomItemRegistry.getCosmetic(cosmeticData.getCosmeticId());
       if (cosmeticDefinition == null) {
-        ServerCosmetics.LOGGER.warn(
+        ModInit.LOGGER.warn(
             "Player {} has cosmetic '{}' equipped, but it's no longer registered.",
             player.getName().getString(),
             cosmeticData.getCosmeticId());
@@ -116,7 +116,7 @@ public class DatabaseManager {
       }
       return cosmeticStack;
     } catch (SQLException e) {
-      ServerCosmetics.LOGGER.error(
+      ModInit.LOGGER.error(
           "Error loading cosmetic data for player {} and type {}",
           player.getUuidAsString(),
           type,
@@ -135,7 +135,7 @@ public class DatabaseManager {
 
       return CustomItemRegistry.getCosmetic(cosmeticData.getCosmeticId());
     } catch (SQLException e) {
-      ServerCosmetics.LOGGER.error(
+      ModInit.LOGGER.error(
           "Error loading cosmetic data for player {} and type {}",
           player.getUuidAsString(),
           type,

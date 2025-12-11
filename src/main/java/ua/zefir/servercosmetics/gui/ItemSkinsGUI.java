@@ -15,7 +15,7 @@ import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import ua.zefir.servercosmetics.ServerCosmetics;
+import ua.zefir.servercosmetics.ModInit;
 import ua.zefir.servercosmetics.config.ItemSkinsGUIConfig;
 import ua.zefir.servercosmetics.gui.actions.ApplySkinAction;
 import ua.zefir.servercosmetics.gui.filters.PermissionFilter;
@@ -76,7 +76,7 @@ public class ItemSkinsGUI {
           .sendError(
               Text.literal(
                   "An error occurred opening the Item Skins GUI. See console for details."));
-      ServerCosmetics.LOGGER.error(
+      ModInit.LOGGER.error(
           "Failed to open item skins GUI for player {}", player.getName().getString(), e);
     }
     return 0;

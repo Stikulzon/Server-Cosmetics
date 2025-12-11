@@ -4,7 +4,6 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "EntityPassengersSetS2CPacketMixin",
-    "EntityTrackerEntryMixin",
     "PlayerEntityMixin",
     "PlayerInventoryMixin",
     "PlayerManagerMixin",

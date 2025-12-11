@@ -20,7 +20,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.simpleyaml.configuration.comments.format.YamlCommentFormat;
 import org.simpleyaml.configuration.file.YamlFile;
-import ua.zefir.servercosmetics.ServerCosmetics;
+import ua.zefir.servercosmetics.ModInit;
 import ua.zefir.servercosmetics.data.BodyCosmeticsData;
 import ua.zefir.servercosmetics.data.CustomItemEntry;
 import ua.zefir.servercosmetics.data.CustomItemRegistry;
@@ -72,13 +72,13 @@ public class ConfigManager {
 
           Path resourcePackSourceDir = SERVER_COSMETICS_DIR.resolve("Assets");
           if (!Files.isDirectory(resourcePackSourceDir)) {
-            ServerCosmetics.LOGGER.info(
+            ModInit.LOGGER.info(
                 "Custom resource source directory not found: {}. Creating it.",
                 resourcePackSourceDir.toAbsolutePath());
             try {
               Files.createDirectories(resourcePackSourceDir);
             } catch (IOException e) {
-              ServerCosmetics.LOGGER.error(
+              ModInit.LOGGER.error(
                   "Failed to create assets directory: {}",
                   resourcePackSourceDir.toAbsolutePath(),
                   e);
@@ -86,14 +86,14 @@ public class ConfigManager {
             return;
           }
 
-          ServerCosmetics.LOGGER.info(
+          ModInit.LOGGER.info(
               "Scanning for .png and .json files in: {}", resourcePackSourceDir.toAbsolutePath());
           try (Stream<Path> pathStream = Files.walk(resourcePackSourceDir)) {
             pathStream
                 .filter(Files::isRegularFile)
                 .forEach(filePath -> processResourcePackFile(filePath, builder));
           } catch (IOException e) {
-            ServerCosmetics.LOGGER.error(
+            ModInit.LOGGER.error(
                 "Error walking directory {} for resource pack generation",
                 resourcePackSourceDir.toAbsolutePath(),
                 e);
@@ -125,7 +125,7 @@ public class ConfigManager {
         processMcmetaFile(builder, fileName, data);
       }
     } catch (IOException e) {
-      ServerCosmetics.LOGGER.error("Failed to read file {} for resource pack", filePath, e);
+      ModInit.LOGGER.error("Failed to read file {} for resource pack", filePath, e);
     }
   }
 
@@ -148,7 +148,7 @@ public class ConfigManager {
 
   /** Adds a .mcmeta file to the resource pack. */
   private static void processMcmetaFile(ResourcePackBuilder builder, String fileName, byte[] data) {
-    ServerCosmetics.LOGGER.debug("MCMETA file {} found, targeting TEXTURE_PATH.", fileName);
+    ModInit.LOGGER.debug("MCMETA file {} found, targeting TEXTURE_PATH.", fileName);
     String targetBaseDir = TARGET_TEXTURE_PATH + "item/";
     addData(builder, targetBaseDir + fileName, fileName, data);
   }
@@ -222,7 +222,7 @@ public class ConfigManager {
           sneakingTranslation = Arrays.asList(0, -75, 8.15);
           break;
         default:
-          ServerCosmetics.LOGGER.warn(
+          ModInit.LOGGER.warn(
               "Unhandled cosmetic type {} in handleBodyCosmeticJson.", type);
           return;
       }
@@ -280,9 +280,9 @@ public class ConfigManager {
   private static void addData(
       ResourcePackBuilder builder, String path, String fileName, byte[] data) {
     if (builder.addData(path, data)) {
-      ServerCosmetics.LOGGER.debug("Added {} -> {}", fileName, path);
+      ModInit.LOGGER.debug("Added {} -> {}", fileName, path);
     } else {
-      ServerCosmetics.LOGGER.warn(
+      ModInit.LOGGER.warn(
           "Could not add {} as {} to resource pack (maybe already exists?)", fileName, path);
     }
   }
@@ -295,7 +295,7 @@ public class ConfigManager {
     try {
       Files.createDirectories(SERVER_COSMETICS_DIR);
     } catch (IOException e) {
-      ServerCosmetics.LOGGER.error("Failed to create base ServerCosmetics directory.", e);
+      ModInit.LOGGER.error("Failed to create base ServerCosmetics directory.", e);
     }
 
     Path demoConfigsPathSource =
@@ -305,11 +305,11 @@ public class ConfigManager {
             .orElse(null);
 
     if (demoConfigsPathSource == null) {
-      ServerCosmetics.LOGGER.warn("Could not find demo-configs path in mod assets.");
+      ModInit.LOGGER.warn("Could not find demo-configs path in mod assets.");
       return;
     }
 
-    ServerCosmetics.LOGGER.info(
+    ModInit.LOGGER.info(
         "Loading demo configurations from {} to {}", demoConfigsPathSource, SERVER_COSMETICS_DIR);
 
     try (Stream<Path> stream = Files.walk(demoConfigsPathSource)) {
@@ -332,7 +332,7 @@ public class ConfigManager {
             }
           });
     } catch (IOException | RuntimeException e) {
-      ServerCosmetics.LOGGER.error("Failed to load demo configs fully.", e);
+      ModInit.LOGGER.error("Failed to load demo configs fully.", e);
     }
   }
 
@@ -348,7 +348,7 @@ public class ConfigManager {
       context.getSource().sendFeedback(() -> successConfigReloadMessage, false);
     } catch (Exception e) {
       context.getSource().sendFeedback(() -> errorConfigReloadMessage, false);
-      ServerCosmetics.LOGGER.error("An error occurred during ALL configs reload!", e);
+      ModInit.LOGGER.error("An error occurred during ALL configs reload!", e);
     }
     return 1;
   }
@@ -364,7 +364,7 @@ public class ConfigManager {
       context.getSource().sendFeedback(() -> successConfigReloadMessage, false);
     } catch (Exception e) {
       context.getSource().sendFeedback(() -> errorConfigReloadMessage, false);
-      ServerCosmetics.LOGGER.error("An error occurred during ItemSkins configs reload!", e);
+      ModInit.LOGGER.error("An error occurred during ItemSkins configs reload!", e);
     }
     return 1;
   }
@@ -380,7 +380,7 @@ public class ConfigManager {
       context.getSource().sendFeedback(() -> successConfigReloadMessage, false);
     } catch (Exception e) {
       context.getSource().sendFeedback(() -> errorConfigReloadMessage, false);
-      ServerCosmetics.LOGGER.error("An error occurred during Cosmetics configs reload!", e);
+      ModInit.LOGGER.error("An error occurred during Cosmetics configs reload!", e);
     }
     return 1;
   }

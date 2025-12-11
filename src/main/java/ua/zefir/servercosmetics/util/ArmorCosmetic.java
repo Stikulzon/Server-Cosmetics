@@ -1,11 +1,14 @@
 package ua.zefir.servercosmetics.util;
 
-import static ua.zefir.servercosmetics.util.PacketUtil.sendInventorySlotPacket;
-
+import com.google.common.collect.Lists;
+import com.mojang.datafixers.util.Pair;
+import java.util.List;
 import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.packet.s2c.play.EntityEquipmentUpdateS2CPacket;
+import net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.jetbrains.annotations.Nullable;
 import ua.zefir.servercosmetics.data.ItemType;
@@ -37,9 +40,9 @@ public class ArmorCosmetic implements ICosmetic {
     this.cosmeticItemStack = newCosmeticStack.copy();
 
     if (itemType == ItemType.HAT_BODY_COSMETIC
-        || itemType == ItemType.CHESTPLATE_BODY_COSMETIC
-        || itemType == ItemType.LEGGINGS_BODY_COSMETIC
-        || itemType == ItemType.BOOTS_BODY_COSMETIC) {
+            || itemType == ItemType.CHESTPLATE_BODY_COSMETIC
+            || itemType == ItemType.LEGGINGS_BODY_COSMETIC
+            || itemType == ItemType.BOOTS_BODY_COSMETIC) {
       this.bodyCosmeticDelegate.equip(this.cosmeticItemStack, itemType);
       DatabaseManager.setCosmetic(player, slotType, ItemStack.EMPTY);
     } else {
@@ -47,7 +50,7 @@ public class ArmorCosmetic implements ICosmetic {
       DatabaseManager.setCosmetic(player, getBodyCosmeticType(itemType), ItemStack.EMPTY);
     }
 
-    updatePlayerArmorView();
+    updateArmorView();
   }
 
   @Override
@@ -63,15 +66,15 @@ public class ArmorCosmetic implements ICosmetic {
 
   @Override
   public void tick() {
-    if (cosmeticItemStack.isEmpty()) {
+    if (cosmeticItemStack.isEmpty() && bodyCosmeticDelegate.getCosmeticItemStack().isEmpty()) {
       return;
     }
 
     if (bodyCosmeticDelegate.getCosmeticItemStack() != ItemStack.EMPTY) {
       bodyCosmeticDelegate.tick();
+    } else {
+      updateArmorView();
     }
-
-    updatePlayerArmorView();
   }
 
   @Override
@@ -84,6 +87,7 @@ public class ArmorCosmetic implements ICosmetic {
     if (bodyCosmeticDelegate.getCosmeticItemStack() != ItemStack.EMPTY) {
       this.bodyCosmeticDelegate.unequip();
     }
+    updateArmorView();
   }
 
   @Nullable
@@ -95,32 +99,28 @@ public class ArmorCosmetic implements ICosmetic {
   }
 
   /**
-   * Sends the packet to make the player see the cosmetic in their armor slot. If the cosmetic is
-   * empty, it makes them see their real armor.
+   * Updates the armor appearance for both the wearer (inventory) and nearby players (entity model).
    */
-  private void updatePlayerArmorView() {
+  private void updateArmorView() {
     if (player.isRemoved()) {
       return;
     }
-    ItemStack itemStackToSend;
-    if (!cosmeticItemStack.isEmpty()) {
-      itemStackToSend = cosmeticItemStack;
-    } else {
-      // If no cosmetic, show the real armor piece
-      itemStackToSend = player.getInventory().getArmorStack(8 - getSlotFor(this.slotType));
-    }
-    sendInventorySlotPacket(player, getSlotFor(this.slotType), itemStackToSend);
-  }
 
-  public static ItemType getItemTypeForSlot(EquipmentSlot slot) {
-    return switch (slot) {
-      case HEAD -> ItemType.HAT;
-      case CHEST -> ItemType.CHESTPLATE;
-      case LEGS -> ItemType.LEGGINGS;
-      case FEET -> ItemType.BOOTS;
-      default ->
-          throw new IllegalArgumentException("Invalid EquipmentSlot for ArmorCosmetic: " + slot);
-    };
+    EquipmentSlot slot = getEquipmentSlotFor(this.slotType);
+    ItemStack cosmeticStack = this.cosmeticItemStack;
+
+    ItemStack stackForDisplay =
+            cosmeticStack.isEmpty() ? player.getEquippedStack(slot) : cosmeticStack;
+
+    sendInventorySlotPacket(player, getSlotFor(this.slotType), stackForDisplay);
+
+    List<Pair<EquipmentSlot, ItemStack>> equipmentList =
+            Lists.newArrayList(Pair.of(slot, stackForDisplay.copy()));
+    player
+            .getServerWorld()
+            .getChunkManager()
+            .sendToNearbyPlayers(
+                    player, new EntityEquipmentUpdateS2CPacket(player.getId(), equipmentList));
   }
 
   public static int getSlotFor(ItemType type) {
@@ -133,7 +133,27 @@ public class ArmorCosmetic implements ICosmetic {
     };
   }
 
-  /** Maps a base armor type to its corresponding body cosmetic type. */
+  public static ItemType getItemTypeForSlot(EquipmentSlot slot) {
+    return switch (slot) {
+      case HEAD -> ItemType.HAT;
+      case CHEST -> ItemType.CHESTPLATE;
+      case LEGS -> ItemType.LEGGINGS;
+      case FEET -> ItemType.BOOTS;
+      default ->
+              throw new IllegalArgumentException("Invalid EquipmentSlot for ArmorCosmetic: " + slot);
+    };
+  }
+
+  public static EquipmentSlot getEquipmentSlotFor(ItemType type) {
+    return switch (type) {
+      case HAT -> EquipmentSlot.HEAD;
+      case CHESTPLATE -> EquipmentSlot.CHEST;
+      case LEGGINGS -> EquipmentSlot.LEGS;
+      case BOOTS -> EquipmentSlot.FEET;
+      default -> throw new IllegalArgumentException("Invalid ItemType for ArmorCosmetic: " + type);
+    };
+  }
+
   private static ItemType getBodyCosmeticType(ItemType type) {
     return switch (type) {
       case HAT -> ItemType.HAT_BODY_COSMETIC;
@@ -142,5 +162,15 @@ public class ArmorCosmetic implements ICosmetic {
       case BOOTS -> ItemType.BOOTS_BODY_COSMETIC;
       default -> type;
     };
+  }
+
+  public static void sendInventorySlotPacket(
+          ServerPlayerEntity player, int slot, ItemStack targetItemStack) {
+    player.networkHandler.sendPacket(
+            new ScreenHandlerSlotUpdateS2CPacket(
+                    player.playerScreenHandler.syncId,
+                    player.playerScreenHandler.nextRevision(),
+                    slot,
+                    targetItemStack));
   }
 }

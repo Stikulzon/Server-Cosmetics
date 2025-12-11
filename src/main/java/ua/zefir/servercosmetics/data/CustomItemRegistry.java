@@ -1,6 +1,6 @@
 package ua.zefir.servercosmetics.data;
 
-import static ua.zefir.servercosmetics.ServerCosmetics.id;
+import static ua.zefir.servercosmetics.ModInit.id;
 import static ua.zefir.servercosmetics.datafixer.NbtDatafixer.NEW_NBT_KEY_CUSTOM_ITEM_ID;
 
 import eu.pb4.polymer.resourcepack.api.PolymerArmorModel;
@@ -25,7 +25,7 @@ import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.simpleyaml.configuration.file.YamlFile;
-import ua.zefir.servercosmetics.ServerCosmetics;
+import ua.zefir.servercosmetics.ModInit;
 import ua.zefir.servercosmetics.config.ConfigManager;
 import ua.zefir.servercosmetics.datagen.RuntimeModelManager;
 import ua.zefir.servercosmetics.util.Utils;
@@ -72,15 +72,15 @@ public class CustomItemRegistry {
     try {
       if (Files.notExists(directory)) {
         Files.createDirectories(directory);
-        ServerCosmetics.LOGGER.info("Created directory: {}", directory.toAbsolutePath());
+        ModInit.LOGGER.info("Created directory: {}", directory.toAbsolutePath());
         return;
       }
       if (!Files.isDirectory(directory)) {
-        ServerCosmetics.LOGGER.error("Path is not a directory: {}", directory.toAbsolutePath());
+        ModInit.LOGGER.error("Path is not a directory: {}", directory.toAbsolutePath());
         return;
       }
     } catch (IOException e) {
-      ServerCosmetics.LOGGER.error("Failed to create or access directory: {}", directory, e);
+      ModInit.LOGGER.error("Failed to create or access directory: {}", directory, e);
       return;
     }
 
@@ -97,7 +97,7 @@ public class CustomItemRegistry {
 
         String permission = yamlFile.getString("permission");
         if (permission == null) {
-          ServerCosmetics.LOGGER.error("Error loading {}: 'permission' not defined.", fileName);
+          ModInit.LOGGER.error("Error loading {}: 'permission' not defined.", fileName);
           continue;
         }
 
@@ -118,7 +118,7 @@ public class CustomItemRegistry {
                   ? yamlFile.getString(legacyNamePath)
                   : yamlFile.getString(namePath);
           if (tempName == null) {
-            ServerCosmetics.LOGGER.warn(
+            ModInit.LOGGER.warn(
                 "Cosmetic {}: '{}' not defined. Using empty display name.", fileName, namePath);
             displayName = Utils.formatDisplayName("");
           } else {
@@ -143,7 +143,7 @@ public class CustomItemRegistry {
           } else if (tempName != null) {
             displayName = Utils.formatDisplayName(tempName);
           } else {
-            ServerCosmetics.LOGGER.warn(
+            ModInit.LOGGER.warn(
                 "Item Skin {}: 'display-name' not defined. Using empty display name.", fileName);
             displayName = Utils.formatDisplayName("");
           }
@@ -173,7 +173,7 @@ public class CustomItemRegistry {
                     ? yamlFile.getString(legacyMaterialPath)
                     : yamlFile.getString(materialPath);
             if (baseItemMaterial == null) {
-              ServerCosmetics.LOGGER.error(
+              ModInit.LOGGER.error(
                   "Error loading cosmetic {}: '{}' not defined, using paper as fallback",
                   fileName,
                   materialPath);
@@ -190,7 +190,7 @@ public class CustomItemRegistry {
             PolymerModelData polymerModelData =
                 PolymerResourcePackUtils.requestModel(
                     Registries.ITEM.get(Identifier.of(baseItemMaterial)),
-                    Identifier.of(ServerCosmetics.MOD_ID, "item/" + itemId + "_sneaking"));
+                    Identifier.of(ModInit.MOD_ID, "item/" + itemId + "_sneaking"));
             boolean isMirrored = yamlFile.getBoolean("isMirrored", false);
             boolean autoAlignment = yamlFile.getBoolean("autoAlignment", false);
             boolean offsetWhenSneaking = yamlFile.getBoolean("offsetWhenSneaking", false);
@@ -219,7 +219,7 @@ public class CustomItemRegistry {
             PolymerModelData polymerModelData =
                 PolymerResourcePackUtils.requestModel(
                     Registries.ITEM.get(Identifier.of(baseItemMaterial)),
-                    Identifier.of(ServerCosmetics.MOD_ID, "item/" + itemId + "_sneaking"));
+                    Identifier.of(ModInit.MOD_ID, "item/" + itemId + "_sneaking"));
             boolean isMirrored = yamlFile.getBoolean("isMirrored", false);
             boolean autoAlignment = yamlFile.getBoolean("autoAlignment", false);
             boolean offsetWhenSneaking = yamlFile.getBoolean("offsetWhenSneaking", false);
@@ -283,7 +283,7 @@ public class CustomItemRegistry {
             if (singleMaterial != null) {
               targetMaterials.add(singleMaterial);
             } else {
-              ServerCosmetics.LOGGER.error(
+              ModInit.LOGGER.error(
                   "Error loading item skin {}: 'material' (list or string) not defined.", fileName);
               continue;
             }
@@ -311,7 +311,7 @@ public class CustomItemRegistry {
           }
         }
       } catch (Exception e) {
-        ServerCosmetics.LOGGER.error("Failed to load custom item from file: {}", filePath, e);
+        ModInit.LOGGER.error("Failed to load custom item from file: {}", filePath, e);
       }
     }
   }
@@ -321,7 +321,7 @@ public class CustomItemRegistry {
     Item baseItem = Registries.ITEM.get(Identifier.of(baseMaterialId));
     if (baseItem == Registries.ITEM.get(Registries.ITEM.getDefaultId())
         && !baseMaterialId.equals(Registries.ITEM.getDefaultId().toString())) {
-      ServerCosmetics.LOGGER.warn(
+      ModInit.LOGGER.warn(
           "Invalid baseMaterialId '{}' for item '{}'. Defaulting to minecraft:paper.",
           baseMaterialId,
           cosmeticOrSkinId);
@@ -344,10 +344,10 @@ public class CustomItemRegistry {
       } else {
         polymerModel =
             PolymerResourcePackUtils.requestModel(
-                baseItem, Identifier.of(ServerCosmetics.MOD_ID, "item/" + cosmeticOrSkinId));
+                baseItem, Identifier.of(ModInit.MOD_ID, "item/" + cosmeticOrSkinId));
       }
     } catch (Exception e) {
-      ServerCosmetics.LOGGER.error(
+      ModInit.LOGGER.error(
           "Failed to request model for item id '{}' with base item '{}': {}",
           cosmeticOrSkinId,
           baseMaterialId,

@@ -14,11 +14,11 @@ import java.util.function.Function;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import ua.zefir.servercosmetics.ServerCosmetics;
+import ua.zefir.servercosmetics.ModInit;
 
 public class UiResourceCreator {
   public static final Style STYLE =
-      Style.EMPTY.withColor(0xFFFFFF).withFont(ServerCosmetics.id("gui"));
+      Style.EMPTY.withColor(0xFFFFFF).withFont(ModInit.id("gui"));
   private static char character = 'a';
   private static final Char2IntMap SPACES = new Char2IntOpenHashMap();
   private static final List<FontTexture> FONT_TEXTURES = new ArrayList<>();
@@ -32,7 +32,7 @@ public class UiResourceCreator {
     builder.append(CHEST_SPACE1);
 
     var texture =
-        new FontTexture(ServerCosmetics.id("item/" + path), 13, 256, new char[][] {new char[] {c}});
+        new FontTexture(ModInit.id("item/" + path), 13, 256, new char[][] {new char[] {c}});
 
     FONT_TEXTURES.add(texture);
     return new TextBuilders(Text.literal(builder.toString()).setStyle(STYLE));
@@ -78,7 +78,7 @@ public class UiResourceCreator {
     fontBase.add("providers", providers);
 
     assetWriter.accept(
-        "assets/" + ServerCosmetics.MOD_ID + "/font/gui.json",
+        "assets/" + ModInit.MOD_ID + "/font/gui.json",
         fontBase.toString().getBytes(StandardCharsets.UTF_8));
   }
 

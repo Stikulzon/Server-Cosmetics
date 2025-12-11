@@ -15,7 +15,7 @@ import net.minecraft.util.Identifier;
 import org.simpleyaml.configuration.ConfigurationSection;
 import org.simpleyaml.configuration.comments.format.YamlCommentFormat;
 import org.simpleyaml.configuration.file.YamlFile;
-import ua.zefir.servercosmetics.ServerCosmetics;
+import ua.zefir.servercosmetics.ModInit;
 import ua.zefir.servercosmetics.util.Utils;
 
 public abstract class AbstractGuiConfig {
@@ -114,7 +114,7 @@ public abstract class AbstractGuiConfig {
 
   private void loadGuiSize(int guiRows) {
     if (guiRows < 1 || guiRows > 6) {
-      ServerCosmetics.LOGGER.warn(
+      ModInit.LOGGER.warn(
           "Invalid guiRows value '{}' in {}. Must be between 1 and 6. Defaulting to 6.",
           guiRows,
           this.configFilePath.getFileName());
@@ -134,7 +134,7 @@ public abstract class AbstractGuiConfig {
   protected void loadNavigationButton(YamlFile yamlFile, String buttonKey) {
     String basePath = "buttons." + buttonKey;
     if (!yamlFile.isConfigurationSection(basePath)) {
-      ServerCosmetics.LOGGER.warn(
+      ModInit.LOGGER.warn(
           "Button configuration for '{}' not found in {}.",
           buttonKey,
           this.configFilePath.getFileName());
@@ -142,7 +142,7 @@ public abstract class AbstractGuiConfig {
     }
     String baseItemString = yamlFile.getString(basePath + ".item");
     if (baseItemString == null || baseItemString.isEmpty()) {
-      ServerCosmetics.LOGGER.error(
+      ModInit.LOGGER.error(
           "Button '{}' in {} is missing 'item' field.",
           buttonKey,
           this.configFilePath.getFileName());
@@ -154,7 +154,7 @@ public abstract class AbstractGuiConfig {
     Item item = Registries.ITEM.get(Identifier.of(complitedItemString));
     if (item == Registries.ITEM.get(Registries.ITEM.getDefaultId())
         && !complitedItemString.equals(Registries.ITEM.getDefaultId().toString())) {
-      ServerCosmetics.LOGGER.error(
+      ModInit.LOGGER.error(
           "Button '{}' in {} has invalid item id: {}. Defaulting to paper.",
           buttonKey,
           this.configFilePath.getFileName(),
@@ -170,9 +170,9 @@ public abstract class AbstractGuiConfig {
         try {
           polymerModelData =
               PolymerResourcePackUtils.requestModel(
-                  item, Identifier.of(ServerCosmetics.MOD_ID, "item/" + textureName));
+                  item, Identifier.of(ModInit.MOD_ID, "item/" + textureName));
         } catch (Exception e) {
-          ServerCosmetics.LOGGER.error(
+          ModInit.LOGGER.error(
               "Failed to request model for button '{}' (item: {}, texture: {}): {}",
               buttonKey,
               complitedItemString,
@@ -230,7 +230,7 @@ public abstract class AbstractGuiConfig {
   public ConfigManager.NavigationButton getButtonConfig(String buttonKey) {
     ConfigManager.NavigationButton button = navigationButtons.get(buttonKey);
     if (button == null) {
-      ServerCosmetics.LOGGER.warn(
+      ModInit.LOGGER.warn(
           "Requested non-existent button config: '{}' from {}",
           buttonKey,
           this.configFilePath.getFileName());
