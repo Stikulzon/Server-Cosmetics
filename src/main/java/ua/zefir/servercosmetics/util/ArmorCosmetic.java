@@ -40,9 +40,9 @@ public class ArmorCosmetic implements ICosmetic {
     this.cosmeticItemStack = newCosmeticStack.copy();
 
     if (itemType == ItemType.HAT_BODY_COSMETIC
-            || itemType == ItemType.CHESTPLATE_BODY_COSMETIC
-            || itemType == ItemType.LEGGINGS_BODY_COSMETIC
-            || itemType == ItemType.BOOTS_BODY_COSMETIC) {
+        || itemType == ItemType.CHESTPLATE_BODY_COSMETIC
+        || itemType == ItemType.LEGGINGS_BODY_COSMETIC
+        || itemType == ItemType.BOOTS_BODY_COSMETIC) {
       this.bodyCosmeticDelegate.equip(this.cosmeticItemStack, itemType);
       DatabaseManager.setCosmetic(player, slotType, ItemStack.EMPTY);
     } else {
@@ -110,17 +110,17 @@ public class ArmorCosmetic implements ICosmetic {
     ItemStack cosmeticStack = this.cosmeticItemStack;
 
     ItemStack stackForDisplay =
-            cosmeticStack.isEmpty() ? player.getEquippedStack(slot) : cosmeticStack;
+        cosmeticStack.isEmpty() ? player.getEquippedStack(slot) : cosmeticStack;
 
     sendInventorySlotPacket(player, getSlotFor(this.slotType), stackForDisplay);
 
     List<Pair<EquipmentSlot, ItemStack>> equipmentList =
-            Lists.newArrayList(Pair.of(slot, stackForDisplay.copy()));
+        Lists.newArrayList(Pair.of(slot, stackForDisplay.copy()));
     player
-            .getServerWorld()
-            .getChunkManager()
-            .sendToNearbyPlayers(
-                    player, new EntityEquipmentUpdateS2CPacket(player.getId(), equipmentList));
+        .getServerWorld()
+        .getChunkManager()
+        .sendToNearbyPlayers(
+            player, new EntityEquipmentUpdateS2CPacket(player.getId(), equipmentList));
   }
 
   public static int getSlotFor(ItemType type) {
@@ -140,7 +140,7 @@ public class ArmorCosmetic implements ICosmetic {
       case LEGS -> ItemType.LEGGINGS;
       case FEET -> ItemType.BOOTS;
       default ->
-              throw new IllegalArgumentException("Invalid EquipmentSlot for ArmorCosmetic: " + slot);
+          throw new IllegalArgumentException("Invalid EquipmentSlot for ArmorCosmetic: " + slot);
     };
   }
 
@@ -165,12 +165,12 @@ public class ArmorCosmetic implements ICosmetic {
   }
 
   public static void sendInventorySlotPacket(
-          ServerPlayerEntity player, int slot, ItemStack targetItemStack) {
+      ServerPlayerEntity player, int slot, ItemStack targetItemStack) {
     player.networkHandler.sendPacket(
-            new ScreenHandlerSlotUpdateS2CPacket(
-                    player.playerScreenHandler.syncId,
-                    player.playerScreenHandler.nextRevision(),
-                    slot,
-                    targetItemStack));
+        new ScreenHandlerSlotUpdateS2CPacket(
+            player.playerScreenHandler.syncId,
+            player.playerScreenHandler.nextRevision(),
+            slot,
+            targetItemStack));
   }
 }

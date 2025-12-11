@@ -222,8 +222,7 @@ public class ConfigManager {
           sneakingTranslation = Arrays.asList(0, -75, 8.15);
           break;
         default:
-          ModInit.LOGGER.warn(
-              "Unhandled cosmetic type {} in handleBodyCosmeticJson.", type);
+          ModInit.LOGGER.warn("Unhandled cosmetic type {} in handleBodyCosmeticJson.", type);
           return;
       }
     } else {
