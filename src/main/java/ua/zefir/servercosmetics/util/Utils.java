@@ -226,7 +226,7 @@ public class Utils {
           return stack;
         } else if (skinEntry.type() == ItemType.ITEM_SKIN) {
           if (player != null && !Permissions.check(player, skinEntry.permission(), 4)) {
-              stack.apply(
+            stack.apply(
                 DataComponentTypes.CUSTOM_DATA,
                 NbtComponent.DEFAULT,
                 comp -> comp.apply(currentNbt -> currentNbt.remove(NEW_NBT_KEY_CUSTOM_ITEM_ID)));
