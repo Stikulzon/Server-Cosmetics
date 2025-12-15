@@ -198,8 +198,8 @@ public class Utils {
   }
 
   public static ItemStack filterItemStack(ItemStack originalStack, ServerPlayerEntity player) {
-    NbtDatafixer.fixItemStackNbt(originalStack);
     ItemStack stack = originalStack.copy();
+    NbtDatafixer.fixItemStackNbt(stack);
 
     if (stack == null || stack.isEmpty()) {
       return stack;
@@ -207,43 +207,41 @@ public class Utils {
 
     NbtComponent customDataComponent = stack.get(DataComponentTypes.CUSTOM_DATA);
 
-    if (customDataComponent == null
-        || !customDataComponent
-            .copyNbt()
-            .contains(NEW_NBT_KEY_CUSTOM_ITEM_ID, NbtCompound.STRING_TYPE)) {
-      return originalStack;
-    }
+    if (customDataComponent != null) {
+      NbtCompound nbt = customDataComponent.copyNbt();
 
-    NbtCompound nbt = customDataComponent.copyNbt();
+      if (nbt.contains(NEW_NBT_KEY_CUSTOM_ITEM_ID, NbtCompound.STRING_TYPE)) {
+        String itemSkinId = nbt.getString(NEW_NBT_KEY_CUSTOM_ITEM_ID);
 
-    String itemSkinId = nbt.getString(NEW_NBT_KEY_CUSTOM_ITEM_ID);
+        CustomItemEntry skinEntry = CustomItemRegistry.getCosmetic(itemSkinId);
+        if (skinEntry == null) {
+          skinEntry = CustomItemRegistry.getCosmetic(itemSkinId + "_" + stack.getItem());
+        }
 
-    CustomItemEntry skinEntry = CustomItemRegistry.getCosmetic(itemSkinId);
-    if (skinEntry == null) {
-      skinEntry = CustomItemRegistry.getCosmetic(itemSkinId + "_" + stack.getItem());
-    }
+        if (skinEntry == null) {
+          stack.apply(
+              DataComponentTypes.CUSTOM_DATA,
+              NbtComponent.DEFAULT,
+              comp -> comp.apply(currentNbt -> currentNbt.remove(NEW_NBT_KEY_CUSTOM_ITEM_ID)));
+          return stack;
+        } else if (skinEntry.type() == ItemType.ITEM_SKIN) {
+          if (player != null && !Permissions.check(player, skinEntry.permission(), 4)) {
+            stack.apply(
+                DataComponentTypes.CUSTOM_DATA,
+                NbtComponent.DEFAULT,
+                comp -> comp.apply(currentNbt -> currentNbt.remove(NEW_NBT_KEY_CUSTOM_ITEM_ID)));
+            return stack;
+          }
+        }
 
-    if (skinEntry == null) {
-      stack.apply(
-          DataComponentTypes.CUSTOM_DATA,
-          NbtComponent.DEFAULT,
-          comp -> comp.apply(currentNbt -> currentNbt.remove(NEW_NBT_KEY_CUSTOM_ITEM_ID)));
-      return stack;
-    } else if (skinEntry.type() == ItemType.ITEM_SKIN) {
-      if (player != null && !Permissions.check(player, skinEntry.permission(), 4)) {
-        originalStack.apply(
-            DataComponentTypes.CUSTOM_DATA,
-            NbtComponent.DEFAULT,
-            comp -> comp.apply(currentNbt -> currentNbt.remove(NEW_NBT_KEY_CUSTOM_ITEM_ID)));
-        return originalStack;
+        CustomModelDataComponent expectedModelData =
+            skinEntry.itemStack().get(DataComponentTypes.CUSTOM_MODEL_DATA);
+        stack.set(DataComponentTypes.CUSTOM_MODEL_DATA, expectedModelData);
+
+        return stack;
       }
     }
-
-    CustomModelDataComponent expectedModelData =
-        skinEntry.itemStack().get(DataComponentTypes.CUSTOM_MODEL_DATA);
-    stack.set(DataComponentTypes.CUSTOM_MODEL_DATA, expectedModelData);
-
-    return stack;
+    return originalStack;
   }
 
   public static ItemStack filterItemStack(ItemStack originalStack) {
