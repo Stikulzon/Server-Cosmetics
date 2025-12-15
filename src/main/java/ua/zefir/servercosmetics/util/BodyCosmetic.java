@@ -114,17 +114,42 @@ public class BodyCosmetic implements ICosmetic {
     if (cosmeticItemStack == ItemStack.EMPTY) {
       return;
     }
+    tickYaw();
+    tickSneaking();
+    tickIsHidden();
+  }
 
+  private void tickYaw() {
     (bodyCosmeticsModel).setYaw(player.bodyYaw);
     player
-        .getServerWorld()
-        .getChunkManager()
-        .sendToNearbyPlayers(
-            player,
-            new EntitySetHeadYawS2CPacket(
-                bodyCosmeticsModel,
-                (byte) MathHelper.floor(bodyCosmeticsModel.getYaw() * 256.0F / 360.0F)));
+            .getServerWorld()
+            .getChunkManager()
+            .sendToNearbyPlayers(
+                    player,
+                    new EntitySetHeadYawS2CPacket(
+                            bodyCosmeticsModel,
+                            (byte) MathHelper.floor(bodyCosmeticsModel.getYaw() * 256.0F / 360.0F)));
 
+  }
+
+  private void tickIsHidden() {
+    boolean shouldBeHidden =
+        player.isSwimming()
+            || player.isCrawling()
+            || player.isSpectator()
+            || player.isInvisible()
+            || player.isSleeping();
+
+    if (shouldBeHidden && !isHidden) {
+      setItem(ItemStack.EMPTY);
+      isHidden = true;
+    } else if (!shouldBeHidden && isHidden) {
+      setItem(isTilted ? cosmeticItemStackWhenSneaking : cosmeticItemStack);
+      isHidden = false;
+    }
+  }
+
+  private void tickSneaking() {
     if (cosmeticData != null && cosmeticData.offsetWhenSneaking()) {
       if (player.isSneaking() && !isTilted) {
         setItem(cosmeticItemStackWhenSneaking);
@@ -152,21 +177,6 @@ public class BodyCosmetic implements ICosmetic {
                     bodyCosmeticsModel.getDataTracker().getChangedEntries()));
         isTilted = false;
       }
-    }
-
-    boolean shouldBeHidden =
-        player.isSwimming()
-            || player.isCrawling()
-            || player.isSpectator()
-            || player.isInvisible()
-            || player.isSleeping();
-
-    if (shouldBeHidden && !isHidden) {
-      setItem(ItemStack.EMPTY);
-      isHidden = true;
-    } else if (!shouldBeHidden && isHidden) {
-      setItem(isTilted ? cosmeticItemStackWhenSneaking : cosmeticItemStack);
-      isHidden = false;
     }
   }
 
