@@ -122,14 +122,13 @@ public class BodyCosmetic implements ICosmetic {
   private void tickYaw() {
     (bodyCosmeticsModel).setYaw(player.bodyYaw);
     player
-            .getServerWorld()
-            .getChunkManager()
-            .sendToNearbyPlayers(
-                    player,
-                    new EntitySetHeadYawS2CPacket(
-                            bodyCosmeticsModel,
-                            (byte) MathHelper.floor(bodyCosmeticsModel.getYaw() * 256.0F / 360.0F)));
-
+        .getServerWorld()
+        .getChunkManager()
+        .sendToNearbyPlayers(
+            player,
+            new EntitySetHeadYawS2CPacket(
+                bodyCosmeticsModel,
+                (byte) MathHelper.floor(bodyCosmeticsModel.getYaw() * 256.0F / 360.0F)));
   }
 
   private void tickIsHidden() {
