@@ -11,11 +11,11 @@ import ua.zefir.servercosmetics.ext.ICosmetics;
 
 @Mixin(PlayerEntity.class)
 public class PlayerEntityMixin {
-    @Inject(method = "remove", at = @At("HEAD"))
-    private void onRemove(Entity.RemovalReason reason, CallbackInfo ci) {
-        PlayerEntity player = (PlayerEntity) (Object) this;
-        if (player instanceof ServerPlayerEntity serverPlayerEntity) {
-            ((ICosmetics) serverPlayerEntity).removeCosmetics();
-        }
+  @Inject(method = "remove", at = @At("HEAD"))
+  private void onRemove(Entity.RemovalReason reason, CallbackInfo ci) {
+    PlayerEntity player = (PlayerEntity) (Object) this;
+    if (player instanceof ServerPlayerEntity serverPlayerEntity) {
+      ((ICosmetics) serverPlayerEntity).removeCosmetics();
     }
+  }
 }

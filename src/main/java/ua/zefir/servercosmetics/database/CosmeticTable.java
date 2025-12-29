@@ -9,18 +9,18 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @DatabaseTable(tableName = "cosmetics")
 public class CosmeticTable {
-    @DatabaseField(generatedId = true)
-    private int id;
+  @DatabaseField(generatedId = true)
+  private int id;
 
-    @DatabaseField(uniqueCombo = true, columnName = "uuid")
-    private String uuid;
+  @DatabaseField(uniqueCombo = true, columnName = "uuid")
+  private String uuid;
 
-    @DatabaseField(uniqueCombo = true, columnName = "cosmetic_type")
-    private String cosmeticType;
+  @DatabaseField(uniqueCombo = true, columnName = "cosmetic_type")
+  private String cosmeticType;
 
-    @DatabaseField(columnName = "cosmetic_id")
-    private String cosmeticId;
+  @DatabaseField(columnName = "cosmetic_id")
+  private String cosmeticId;
 
-    @DatabaseField(columnName = "dyed_color")
-    private Integer dyedColor;
+  @DatabaseField(columnName = "dyed_color")
+  private Integer dyedColor;
 }
