@@ -45,11 +45,7 @@ public class ModInit implements ModInitializer {
     UiResourceCreator.setup();
     GuiTextures.register();
 
-    if (PolymerResourcePackUtils.addModAssets(MOD_ID)) {
-      LOGGER.info("Successfully added mod assets for " + MOD_ID);
-    } else {
-      LOGGER.error("Failed to add mod assets for " + MOD_ID);
-    }
+    PolymerResourcePackUtils.addModAssets(MOD_ID);
     PolymerResourcePackUtils.markAsRequired();
   }
 

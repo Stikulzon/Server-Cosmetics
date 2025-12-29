@@ -61,8 +61,8 @@ public abstract class ServerPlayerEntityMixin_cosmetics implements ICosmetics {
   @Override
   public void initCosmetics() {
     ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
-    if (player.getServer() != null) {
-      player.getServer().execute(() -> cosmeticsList.forEach(ICosmetic::init));
+    if (player.getEntityWorld() != null) {
+      player.getEntityWorld().getServer().execute(() -> cosmeticsList.forEach(ICosmetic::init));
     } else {
       cosmeticsList.forEach(ICosmetic::init);
     }

@@ -117,7 +117,7 @@ public class ArmorCosmetic implements ICosmetic {
     List<Pair<EquipmentSlot, ItemStack>> equipmentList =
         Lists.newArrayList(Pair.of(slot, stackForDisplay.copy()));
     player
-        .getWorld()
+        .getEntityWorld()
         .getChunkManager()
         .sendToNearbyPlayers(
             player, new EntityEquipmentUpdateS2CPacket(player.getId(), equipmentList));

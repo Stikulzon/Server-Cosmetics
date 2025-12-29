@@ -107,7 +107,7 @@ public class ItemSkinsGUI {
         ITEM_SKINS_GUI_CONFIG.getButtonConfig("removeSkin"),
         () -> {
           if (targetStack.get(DataComponentTypes.CUSTOM_DATA) != null
-              && Objects.requireNonNull(targetStack.get(DataComponentTypes.CUSTOM_DATA))
+              && Objects.requireNonNull(targetStack.get(DataComponentTypes.CUSTOM_DATA)).copyNbt()
                   .contains(NEW_NBT_KEY_CUSTOM_ITEM_ID)) {
             targetStack.apply(
                 DataComponentTypes.CUSTOM_DATA,

@@ -33,7 +33,7 @@ public class BodyCosmetic implements ICosmetic {
   private boolean isTilted = false;
 
   public BodyCosmetic(ServerPlayerEntity player, ItemType itemType) {
-    this.bodyCosmeticsModel = new ArmorStandEntity(EntityType.ARMOR_STAND, player.getWorld());
+    this.bodyCosmeticsModel = new ArmorStandEntity(EntityType.ARMOR_STAND, player.getEntityWorld());
     this.player = player;
     this.itemType = itemType;
   }
@@ -77,14 +77,14 @@ public class BodyCosmetic implements ICosmetic {
 
     // Send packets to spawn the new entity for all nearby players
     player
-        .getWorld()
+        .getEntityWorld()
         .getChunkManager()
         .sendToNearbyPlayers(
             player,
             new EntitySpawnS2CPacket(bodyCosmeticsModel, 1, bodyCosmeticsModel.getBlockPos()));
     setItem(cosmeticItemStack);
     player
-        .getWorld()
+        .getEntityWorld()
         .getChunkManager()
         .sendToNearbyPlayers(
             player,
@@ -93,9 +93,9 @@ public class BodyCosmetic implements ICosmetic {
                 bodyCosmeticsModel.getDataTracker().getChangedEntries()));
 
     // Set the cosmetic to ride the player
-    bodyCosmeticsModel.startRiding(player, true);
+    bodyCosmeticsModel.startRiding(player, true, false);
     player
-        .getWorld()
+        .getEntityWorld()
         .getChunkManager()
         .sendToNearbyPlayers(player, new EntityPassengersSetS2CPacket(player));
   }
@@ -104,7 +104,7 @@ public class BodyCosmetic implements ICosmetic {
   public void onUnload() {
     if (!cosmeticItemStack.isEmpty()) {
       player
-          .getWorld()
+          .getEntityWorld()
           .getChunkManager()
           .sendToNearbyPlayers(player, new EntitiesDestroyS2CPacket(bodyCosmeticsModel.getId()));
     }
@@ -118,7 +118,7 @@ public class BodyCosmetic implements ICosmetic {
 
     (bodyCosmeticsModel).setYaw(player.bodyYaw);
     player
-        .getWorld()
+        .getEntityWorld()
         .getChunkManager()
         .sendToNearbyPlayers(
             player,
@@ -156,7 +156,7 @@ public class BodyCosmetic implements ICosmetic {
     List<Pair<EquipmentSlot, ItemStack>> equipmentList =
         ImmutableList.of(new Pair<>(EquipmentSlot.HEAD, itemStack));
     player
-        .getWorld()
+        .getEntityWorld()
         .getChunkManager()
         .sendToNearbyPlayers(
             player, new EntityEquipmentUpdateS2CPacket(bodyCosmeticsModel.getId(), equipmentList));
@@ -166,11 +166,11 @@ public class BodyCosmetic implements ICosmetic {
     if (!this.cosmeticItemStack.isEmpty()) {
       bodyCosmeticsModel.stopRiding();
       player
-          .getWorld()
+          .getEntityWorld()
           .getChunkManager()
           .sendToNearbyPlayers(player, new EntitiesDestroyS2CPacket(bodyCosmeticsModel.getId()));
       player
-          .getWorld()
+          .getEntityWorld()
           .getChunkManager()
           .sendToNearbyPlayers(player, new EntityPassengersSetS2CPacket(player));
     }
