@@ -114,7 +114,6 @@ public class ItemSkinsGUI {
                 DataComponentTypes.CUSTOM_DATA,
                 NbtComponent.DEFAULT,
                 comp -> comp.apply(nbt -> nbt.remove(NEW_NBT_KEY_CUSTOM_ITEM_ID)));
-            targetStack.remove(DataComponentTypes.ITEM_MODEL);
           }
 
           gui.setSlot(ItemSkinsGUIConfig.getItemSlot(), targetStack.copy());
