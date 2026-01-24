@@ -57,7 +57,7 @@ dependencies {
 
 	include(implementation 'com.github.Carleslc.Simple-YAML:Simple-Yaml:1.8.4')
 
-	include(implementation 'org.xerial:sqlite-jdbc:3.46.0.1')
+	include(implementation 'org.xerial:sqlite-jdbc:3.51.1.0')
 	include(implementation 'com.j256.ormlite:ormlite-jdbc:6.1')
 	include(implementation 'com.j256.ormlite:ormlite-core:6.1')
 
