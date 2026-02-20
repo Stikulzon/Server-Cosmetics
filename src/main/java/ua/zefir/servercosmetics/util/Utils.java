@@ -14,9 +14,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import me.lucko.fabric.api.permissions.v0.Permissions;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.minimessage.tag.standard.StandardTags;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.CustomModelDataComponent;
@@ -38,17 +35,10 @@ import ua.zefir.servercosmetics.gui.ColorPickerComponent;
 import ua.zefir.servercosmetics.gui.actions.EquipCosmeticAction;
 
 public class Utils {
-  public static final LegacyComponentSerializer SERIALIZER =
-      LegacyComponentSerializer.builder()
-          .hexColors()
-          .useUnusualXRepeatedCharacterHexFormat()
-          .build();
-  public static final MiniMessage MINI_MESSAGE =
-      MiniMessage.builder().tags(StandardTags.defaults()).build();
 
   public static Text formatDisplayName(String st) {
     StringBuilder sb = new StringBuilder(st.length());
-
+    // fixing unicodes
     for (int i = 0; i < st.length(); i++) {
       char ch = st.charAt(i);
       if (ch == '\\' && i < st.length() - 1) {
@@ -61,14 +51,9 @@ public class Utils {
       }
       sb.append(ch);
     }
-    String sf = sb.toString().replace("§", "&");
-    String formatted =
-        LegacyComponentSerializer.legacySection()
-            .serialize(
-                LegacyComponentSerializer.legacyAmpersand()
-                    .deserialize(SERIALIZER.serialize(MINI_MESSAGE.deserialize(sf))));
+    String sf = sb.toString().replace("&", "§");
 
-    return Text.of(formatted);
+    return TextParser.format(sf);
   }
 
   public static int wearCosmeticById(CommandContext<ServerCommandSource> context) {
