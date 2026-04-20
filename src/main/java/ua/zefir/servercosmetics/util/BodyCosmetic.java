@@ -115,8 +115,8 @@ public class BodyCosmetic implements ICosmetic {
       return;
     }
     tickYaw();
-    tickSneaking();
     tickIsHidden();
+    tickSneaking();
   }
 
   private void tickYaw() {
@@ -149,7 +149,7 @@ public class BodyCosmetic implements ICosmetic {
   }
 
   private void tickSneaking() {
-    if (cosmeticData != null && cosmeticData.offsetWhenSneaking()) {
+    if (cosmeticData != null && cosmeticData.offsetWhenSneaking() && !isHidden) {
       if (player.isSneaking() && !isTilted) {
         setItem(cosmeticItemStackWhenSneaking);
 
