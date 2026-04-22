@@ -3,7 +3,6 @@ package ua.zefir.servercosmetics.data;
 import static ua.zefir.servercosmetics.ModInit.id;
 import static ua.zefir.servercosmetics.datafixer.NbtDatafixer.NEW_NBT_KEY_CUSTOM_ITEM_ID;
 
-import eu.pb4.polymer.resourcepack.api.PolymerArmorModel;
 import eu.pb4.polymer.resourcepack.api.PolymerModelData;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import java.io.IOException;
@@ -14,7 +13,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import lombok.Setter;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.CustomModelDataComponent;
-import net.minecraft.component.type.DyedColorComponent;
 import net.minecraft.component.type.LoreComponent;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.ArmorItem;
@@ -331,7 +329,6 @@ public class CustomItemRegistry {
     PolymerModelData polymerModel;
     try {
       if (baseItem instanceof ArmorItem armorItem && armorItem.getType() != ArmorItem.Type.BODY) {
-
         String armorId =
             cosmeticOrSkinId.replace("_" + armorItem.getType().getName().toLowerCase(), "");
 
@@ -340,6 +337,8 @@ public class CustomItemRegistry {
         String modelIdPath = "item/armor/" + cosmeticOrSkinId;
         polymerModel =
             PolymerResourcePackUtils.requestModel(getItemFor(armorItem.getType()), id(modelIdPath));
+
+        ArmorTrimRegistry.schedulePattern(armorId, displayName);
 
       } else {
         polymerModel =
@@ -364,13 +363,7 @@ public class CustomItemRegistry {
         NbtComponent.DEFAULT,
         comp -> comp.apply(nbt -> nbt.putString(NEW_NBT_KEY_CUSTOM_ITEM_ID, cosmeticOrSkinId)));
 
-    if (baseItem instanceof ArmorItem armorItem && armorItem.getType() != ArmorItem.Type.BODY) {
-      String armorId =
-          cosmeticOrSkinId.replace("_" + armorItem.getType().getName().toLowerCase(), "");
-      PolymerArmorModel armorModel = PolymerResourcePackUtils.requestArmor(id(armorId));
-      itemStack.set(
-          DataComponentTypes.DYED_COLOR, new DyedColorComponent(armorModel.color(), true));
-    }
+    if (baseItem instanceof ArmorItem armorItem && armorItem.getType() != ArmorItem.Type.BODY) {}
 
     if (loreTexts != null && !loreTexts.isEmpty()) {
       itemStack.set(DataComponentTypes.LORE, new LoreComponent(loreTexts));

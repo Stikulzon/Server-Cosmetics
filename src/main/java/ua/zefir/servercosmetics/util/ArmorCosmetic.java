@@ -4,13 +4,17 @@ import com.google.common.collect.Lists;
 import com.mojang.datafixers.util.Pair;
 import java.util.List;
 import lombok.Getter;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.item.ArmorItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.trim.ArmorTrim;
 import net.minecraft.network.packet.s2c.play.EntityEquipmentUpdateS2CPacket;
 import net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.jetbrains.annotations.Nullable;
+import ua.zefir.servercosmetics.data.ArmorTrimRegistry;
 import ua.zefir.servercosmetics.data.ItemType;
 import ua.zefir.servercosmetics.database.DatabaseManager;
 import ua.zefir.servercosmetics.ext.ICosmetic;
@@ -39,6 +43,8 @@ public class ArmorCosmetic implements ICosmetic {
     this.itemType = Utils.getRealEquipedItemType(newType);
     this.cosmeticItemStack = newCosmeticStack.copy();
 
+    applyTrimComponent(this.cosmeticItemStack);
+
     if (itemType == ItemType.HAT_BODY_COSMETIC
         || itemType == ItemType.CHESTPLATE_BODY_COSMETIC
         || itemType == ItemType.LEGGINGS_BODY_COSMETIC
@@ -51,6 +57,39 @@ public class ArmorCosmetic implements ICosmetic {
     }
 
     updateArmorView();
+  }
+
+  private void applyTrimComponent(ItemStack stack) {
+    if (stack.isEmpty()
+        || !(stack.getItem() instanceof ArmorItem)
+        || !ArmorTrimRegistry.isRegistered()) {
+      return;
+    }
+    String armorId = extractArmorId(stack);
+    if (armorId == null) {
+      return;
+    }
+    var pattern = ArmorTrimRegistry.getPattern(armorId);
+    var material = ArmorTrimRegistry.getCosmeticMaterial();
+    if (pattern != null && material != null) {
+      stack.set(DataComponentTypes.TRIM, new ArmorTrim(material, pattern, false));
+    }
+  }
+
+  private static String extractArmorId(ItemStack stack) {
+    var customData = stack.get(DataComponentTypes.CUSTOM_DATA);
+    if (customData != null) {
+      var nbt = customData.copyNbt();
+      String key = "cosmeticItemId";
+      if (nbt.contains(key, net.minecraft.nbt.NbtCompound.STRING_TYPE)) {
+        String fullId = nbt.getString(key);
+        if (stack.getItem() instanceof ArmorItem armorItem) {
+          return fullId.replace("_" + armorItem.getType().getName().toLowerCase(), "");
+        }
+        return fullId;
+      }
+    }
+    return null;
   }
 
   @Override

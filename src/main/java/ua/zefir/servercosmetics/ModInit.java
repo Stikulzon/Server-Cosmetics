@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ua.zefir.servercosmetics.command.CosmeticCommands;
 import ua.zefir.servercosmetics.config.ConfigManager;
+import ua.zefir.servercosmetics.data.ArmorTrimRegistry;
 import ua.zefir.servercosmetics.database.DatabaseManager;
 import ua.zefir.servercosmetics.gui.resources.GuiTextures;
 import ua.zefir.servercosmetics.gui.resources.UiResourceCreator;
@@ -39,6 +40,7 @@ public class ModInit implements ModInitializer {
 
     ConfigManager.registerConfigs();
     DatabaseManager.init();
+    ArmorTrimRegistry.registerCallback();
 
     ServerLifecycleEvents.SERVER_STARTING.register(this::onServerStarting);
     CosmeticCommands.registerCommands();

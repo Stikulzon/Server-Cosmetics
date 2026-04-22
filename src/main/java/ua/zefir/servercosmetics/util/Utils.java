@@ -20,6 +20,7 @@ import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.item.trim.ArmorTrim;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.command.ServerCommandSource;
@@ -227,6 +228,11 @@ public class Utils {
     CustomModelDataComponent expectedModelData =
         skinEntry.itemStack().get(DataComponentTypes.CUSTOM_MODEL_DATA);
     stack.set(DataComponentTypes.CUSTOM_MODEL_DATA, expectedModelData);
+
+    ArmorTrim trim = skinEntry.itemStack().get(DataComponentTypes.TRIM);
+    if (trim != null) {
+      stack.set(DataComponentTypes.TRIM, trim);
+    }
 
     return stack;
   }

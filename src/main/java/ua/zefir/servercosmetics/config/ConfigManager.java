@@ -21,6 +21,7 @@ import org.json.JSONObject;
 import org.simpleyaml.configuration.comments.format.YamlCommentFormat;
 import org.simpleyaml.configuration.file.YamlFile;
 import ua.zefir.servercosmetics.ModInit;
+import ua.zefir.servercosmetics.data.ArmorTrimRegistry;
 import ua.zefir.servercosmetics.data.BodyCosmeticsData;
 import ua.zefir.servercosmetics.data.CustomItemEntry;
 import ua.zefir.servercosmetics.data.CustomItemRegistry;
@@ -69,6 +70,13 @@ public class ConfigManager {
         (builder) -> {
           // Generate and add runtime armor models
           RuntimeModelManager.generateAndProvideModels(builder::addData);
+
+          // Add atlas config for armor trims (directory source to load custom trim textures)
+          String atlasJson =
+              "{\"sources\":[{\"type\":\"directory\",\"source\":\"trims/models/armor\",\"prefix\":\"trims/models/armor/\"}]}";
+          builder.addData(
+              "assets/minecraft/atlases/armor_trims.json",
+              atlasJson.getBytes(java.nio.charset.StandardCharsets.UTF_8));
 
           Path resourcePackSourceDir = SERVER_COSMETICS_DIR.resolve("Assets");
           if (!Files.isDirectory(resourcePackSourceDir)) {
@@ -140,6 +148,17 @@ public class ConfigManager {
       targetBaseDir = TARGET_TEXTURE_PATH + "item/armor/";
     } else if (fileNameLower.endsWith("_layer_1.png") || fileNameLower.endsWith("_layer_2.png")) {
       targetBaseDir = TARGET_TEXTURE_PATH + "models/armor/";
+
+      String armorId = fileNameLower.replace("_layer_1.png", "").replace("_layer_2.png", "");
+      String trimBaseDir = TARGET_TEXTURE_PATH + "trims/models/armor/";
+
+        String trimName;
+        if (fileNameLower.endsWith("_layer_1.png")) {
+            trimName = armorId + ".png";
+        } else {
+            trimName = armorId + "_leggings" + ".png";
+        }
+        addData(builder, trimBaseDir + trimName, fileName, data);
     } else {
       targetBaseDir = TARGET_TEXTURE_PATH + "item/";
     }

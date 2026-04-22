@@ -10,13 +10,6 @@ import ua.zefir.servercosmetics.ModInit;
 public class RuntimeModelManager {
   private static final Map<String, Set<ArmorItem.Type>> requestedModels = new ConcurrentHashMap<>();
 
-  /**
-   * Submits a request to generate an armor model at runtime. This should be called when an armor
-   * cosmetic is loaded from the config.
-   *
-   * @param cosmeticId The unique ID of the cosmetic set (e.g., "magma_armor").
-   * @param type The type of armor piece (e.g., HELMET).
-   */
   public static void requestArmorModel(String cosmeticId, ArmorItem.Type type) {
     requestedModels.computeIfAbsent(cosmeticId, k -> ConcurrentHashMap.newKeySet()).add(type);
     ModInit.LOGGER.debug(
@@ -25,12 +18,6 @@ public class RuntimeModelManager {
         type.getName());
   }
 
-  /**
-   * Generates all requested models and provides them to the given consumer. This is called during
-   * the Polymer resource pack creation event.
-   *
-   * @param provider A consumer that accepts a resource path and the corresponding file data.
-   */
   public static void generateAndProvideModels(BiConsumer<String, byte[]> provider) {
 
     if (requestedModels.isEmpty()) {
@@ -53,8 +40,6 @@ public class RuntimeModelManager {
                 });
           }
         });
-
-    //        requestedModels.clear();
   }
 
   public static void clearRequestedModels() {

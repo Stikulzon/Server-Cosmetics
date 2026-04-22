@@ -12,12 +12,14 @@ import java.util.HashMap;
 import java.util.Map;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.DyedColorComponent;
 import net.minecraft.component.type.NbtComponent;
+import net.minecraft.item.ArmorItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.trim.ArmorTrim;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import ua.zefir.servercosmetics.ModInit;
+import ua.zefir.servercosmetics.data.ArmorTrimRegistry;
 import ua.zefir.servercosmetics.data.CustomItemEntry;
 import ua.zefir.servercosmetics.data.CustomItemRegistry;
 import ua.zefir.servercosmetics.data.ItemType;
@@ -109,10 +111,20 @@ public class DatabaseManager {
       }
 
       ItemStack cosmeticStack = cosmeticDefinition.itemStack().copy();
-      if (cosmeticData.getDyedColor() != null) {
+
+      if (cosmeticStack.getItem() instanceof ArmorItem && ArmorTrimRegistry.isRegistered()) {
+        String armorId = extractArmorId(cosmeticStack);
+        if (armorId != null) {
+          var pattern = ArmorTrimRegistry.getPattern(armorId);
+          var material = ArmorTrimRegistry.getCosmeticMaterial();
+          if (pattern != null && material != null) {
+            cosmeticStack.set(DataComponentTypes.TRIM, new ArmorTrim(material, pattern, false));
+          }
+        }
+      } else if (cosmeticData.getDyedColor() != null) {
         cosmeticStack.set(
             DataComponentTypes.DYED_COLOR,
-            new DyedColorComponent(cosmeticData.getDyedColor(), true));
+            new net.minecraft.component.type.DyedColorComponent(cosmeticData.getDyedColor(), true));
       }
       return cosmeticStack;
     } catch (SQLException e) {
@@ -163,7 +175,23 @@ public class DatabaseManager {
   }
 
   private static Integer getDyedColorFromStack(ItemStack stack) {
-    DyedColorComponent dyedColor = stack.get(DataComponentTypes.DYED_COLOR);
+    net.minecraft.component.type.DyedColorComponent dyedColor =
+        stack.get(DataComponentTypes.DYED_COLOR);
     return dyedColor != null ? dyedColor.rgb() : null;
+  }
+
+  private static String extractArmorId(ItemStack stack) {
+    NbtComponent customData = stack.get(DataComponentTypes.CUSTOM_DATA);
+    if (customData != null) {
+      NbtCompound nbt = customData.copyNbt();
+      if (nbt.contains(NEW_NBT_KEY_CUSTOM_ITEM_ID, NbtCompound.STRING_TYPE)) {
+        String fullId = nbt.getString(NEW_NBT_KEY_CUSTOM_ITEM_ID);
+        if (stack.getItem() instanceof ArmorItem armorItem) {
+          return fullId.replace("_" + armorItem.getType().getName().toLowerCase(), "");
+        }
+        return fullId;
+      }
+    }
+    return null;
   }
 }

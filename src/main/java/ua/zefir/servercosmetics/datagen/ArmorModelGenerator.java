@@ -8,11 +8,13 @@ import lombok.Getter;
 import net.minecraft.item.*;
 import net.minecraft.registry.entry.RegistryEntry;
 import ua.zefir.servercosmetics.ModInit;
+import ua.zefir.servercosmetics.data.ArmorTrimRegistry;
 
 public class ArmorModelGenerator {
   @Getter
   public enum TrimMaterialSource {
-    VANILLA("minecraft");
+    VANILLA("minecraft"),
+    CUSTOM(ModInit.MOD_ID);
     private final String namespace;
 
     TrimMaterialSource(String namespace) {
@@ -33,7 +35,12 @@ public class ArmorModelGenerator {
   private static final List<TrimMaterial> ALL_TRIM_MATERIALS = createTrimMaterials();
 
   private static List<TrimMaterial> createTrimMaterials() {
-    return List.of(
+    return Arrays.asList(
+        new TrimMaterial(
+            ArmorTrimRegistry.getMaterialAssetName(),
+            ArmorTrimRegistry.getItemModelIndex(),
+            Map.of(),
+            TrimMaterialSource.CUSTOM),
         new TrimMaterial("quartz", 0.1F, Map.of(), TrimMaterialSource.VANILLA),
         new TrimMaterial(
             "iron", 0.2F, Map.of(ArmorMaterials.IRON, "iron_darker"), TrimMaterialSource.VANILLA),
@@ -80,8 +87,14 @@ public class ArmorModelGenerator {
       String appliedTrimName = trimMaterial.getAppliedName(dummyArmorItem.getMaterial());
       String trimModelName = modelName + "_" + appliedTrimName + "_trim";
       String trimModelPath = "assets/servercosmetics/models/item/armor/" + trimModelName + ".json";
-      String trimTexturePath =
-          "minecraft:trims/items/" + armorType.getName() + "_trim_" + appliedTrimName;
+
+      String trimTexturePath;
+      if (trimMaterial.source() == TrimMaterialSource.CUSTOM) {
+        trimTexturePath = baseTexturePath;
+      } else {
+        trimTexturePath =
+            "minecraft:trims/items/" + armorType.getName() + "_trim_" + appliedTrimName;
+      }
 
       JsonObject trimModelJson = createTrimmedArmorJson(baseTexturePath, trimTexturePath);
       generatedModels.put(trimModelPath, trimModelJson.toString().getBytes(StandardCharsets.UTF_8));
