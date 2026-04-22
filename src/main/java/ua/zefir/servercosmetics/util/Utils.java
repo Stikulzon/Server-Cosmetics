@@ -18,6 +18,7 @@ import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.component.type.NbtComponent;
+import net.minecraft.item.ArmorItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.trim.ArmorTrim;
@@ -28,6 +29,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import ua.zefir.servercosmetics.ModInit;
+import ua.zefir.servercosmetics.config.ConfigManager;
+import ua.zefir.servercosmetics.data.ArmorTrimRegistry;
 import ua.zefir.servercosmetics.data.CustomItemEntry;
 import ua.zefir.servercosmetics.data.CustomItemRegistry;
 import ua.zefir.servercosmetics.data.ItemType;
@@ -191,6 +194,12 @@ public class Utils {
       return stack;
     }
 
+    if (stack.getItem() instanceof ArmorItem && stack.get(DataComponentTypes.TRIM) == null) {
+      if (ConfigManager.isRenderChainmailAsTrim()) {
+        applyChainmailTrimIfApplicable(stack);
+      }
+    }
+
     NbtComponent customDataComponent = stack.get(DataComponentTypes.CUSTOM_DATA);
 
     if (customDataComponent == null) {
@@ -239,5 +248,34 @@ public class Utils {
 
   public static ItemStack filterItemStack(ItemStack originalStack) {
     return filterItemStack(originalStack, null);
+  }
+
+  private static void applyChainmailTrimIfApplicable(ItemStack stack) {
+    if (!(stack.getItem() instanceof ArmorItem)) {
+      return;
+    }
+
+    boolean isChainmail =
+        stack.getItem() == Items.CHAINMAIL_HELMET
+            || stack.getItem() == Items.CHAINMAIL_CHESTPLATE
+            || stack.getItem() == Items.CHAINMAIL_LEGGINGS
+            || stack.getItem() == Items.CHAINMAIL_BOOTS;
+
+    if (!isChainmail) {
+      return;
+    }
+
+    if (!ArmorTrimRegistry.isRegistered()) {
+      return;
+    }
+
+    var chainmailPattern = ArmorTrimRegistry.getChainmailPattern();
+    var cosmeticMaterial = ArmorTrimRegistry.getCosmeticMaterial();
+
+    if (chainmailPattern == null || cosmeticMaterial == null) {
+      return;
+    }
+
+    stack.set(DataComponentTypes.TRIM, new ArmorTrim(cosmeticMaterial, chainmailPattern, false));
   }
 }

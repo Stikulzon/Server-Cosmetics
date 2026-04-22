@@ -50,6 +50,7 @@ public class ConfigManager {
   private static Text errorConfigReloadMessage;
   private static boolean legacyMode;
   @Getter private static boolean enableExperimentalFeatures;
+  @Getter private static boolean renderChainmailAsTrim;
 
   public static final AbstractGuiConfig ITEM_SKINS_GUI_CONFIG = new ItemSkinsGUIConfig();
   public static final AbstractGuiConfig COSMETICS_GUI_CONFIG = new CosmeticsGUIConfig();
@@ -455,6 +456,7 @@ public class ConfigManager {
       errorConfigReloadMessage =
           Utils.formatDisplayName(yamlFile.getString("configReload.message.error"));
       legacyMode = yamlFile.getBoolean("legacyMode");
+      renderChainmailAsTrim = yamlFile.getBoolean("renderChainmailAsTrim", true);
 
     } catch (IOException e) {
       throw new RuntimeException(
@@ -491,6 +493,10 @@ public class ConfigManager {
         .addDefault(false)
         .commentSide(
             "If true, plugin will try to read some fields from older config structures for cosmetic/skin definitions. Recommended: false for new setups.");
+    yamlFile
+        .path("renderChainmailAsTrim")
+        .addDefault(true)
+        .commentSide("If true, vanilla chainmail armor will appear as a trim overlay. Will be transparent of false.");
 
     try {
       yamlFile.save();

@@ -13,6 +13,7 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import ua.zefir.servercosmetics.ModInit;
+import ua.zefir.servercosmetics.config.ConfigManager;
 
 public class ArmorTrimRegistry {
   private static final String MATERIAL_ASSET_NAME = "cosmetic";
@@ -22,6 +23,7 @@ public class ArmorTrimRegistry {
   private static RegistryEntry<ArmorTrimMaterial> cosmeticMaterial;
   private static final Map<String, Text> pendingPatterns = new HashMap<>();
   private static boolean registered = false;
+  private static final String CHAINMAIL_PATTERN_ID = "chainmail";
 
   public static void schedulePattern(String armorId, Text displayName) {
     if (!patternEntries.containsKey(armorId)) {
@@ -64,6 +66,22 @@ public class ArmorTrimRegistry {
       patternEntries.put(armorId, trimPatternRegistry.getEntry(patternId).orElseThrow());
       ModInit.LOGGER.debug("Registered trim pattern for armor set: {}", armorId);
     }
+
+    if (ConfigManager.isRenderChainmailAsTrim()) {
+      Identifier chainmailId = Identifier.of(ModInit.MOD_ID, CHAINMAIL_PATTERN_ID);
+      if (trimPatternRegistry.getEntry(chainmailId).isPresent()) {
+        patternEntries.put(
+            CHAINMAIL_PATTERN_ID, trimPatternRegistry.getEntry(chainmailId).orElseThrow());
+      } else {
+        ArmorTrimPattern chainmailPattern =
+            new ArmorTrimPattern(chainmailId, templateItem, Text.literal("Chainmail"), false);
+        Registry.register(trimPatternRegistry, chainmailId, chainmailPattern);
+        patternEntries.put(
+            CHAINMAIL_PATTERN_ID, trimPatternRegistry.getEntry(chainmailId).orElseThrow());
+        ModInit.LOGGER.debug("Registered chainmail trim pattern");
+      }
+    }
+
     pendingPatterns.clear();
     registered = true;
   }
@@ -124,5 +142,9 @@ public class ArmorTrimRegistry {
   public static String getTrimTexturePath(String armorId, boolean leggings) {
     String suffix = leggings ? "_leggings_" : "_";
     return "trims/models/armor/" + armorId + suffix + MATERIAL_ASSET_NAME;
+  }
+
+  public static RegistryEntry<ArmorTrimPattern> getChainmailPattern() {
+    return patternEntries.get(CHAINMAIL_PATTERN_ID);
   }
 }
