@@ -7,7 +7,7 @@ import net.minecraft.item.*;
 import ua.zefir.servercosmetics.ModInit;
 
 public class ArmorModelGenerator {
-    private final static String EMPTY_TEXTURE_PATH = String.valueOf(ModInit.id("item/empty"));
+  private static final String EMPTY_TEXTURE_PATH = String.valueOf(ModInit.id("item/empty"));
 
   public static Map<String, byte[]> generateModels(String cosmeticId, ArmorItem.Type armorType) {
     Map<String, byte[]> generatedModels = new HashMap<>();
@@ -40,11 +40,10 @@ public class ArmorModelGenerator {
 
     root.addProperty("parent", "minecraft:item/generated");
     JsonObject textures = new JsonObject();
-      textures.addProperty("layer0", EMPTY_TEXTURE_PATH);
+    textures.addProperty("layer0", EMPTY_TEXTURE_PATH);
     textures.addProperty("layer1", ModInit.MOD_ID + ":item/armor/" + modelName);
     root.add("textures", textures);
 
     return root;
   }
-
 }

@@ -146,23 +146,22 @@ public class ConfigManager {
         || fileNameLower.endsWith("_leggings.png")
         || fileNameLower.endsWith("_boots.png")) {
       targetBaseDir = TARGET_TEXTURE_PATH + "item/armor/";
+      addData(builder, targetBaseDir + fileName, fileName, data);
     } else if (fileNameLower.endsWith("_layer_1.png") || fileNameLower.endsWith("_layer_2.png")) {
-      targetBaseDir = TARGET_TEXTURE_PATH + "models/armor/";
-
       String armorId = fileNameLower.replace("_layer_1.png", "").replace("_layer_2.png", "");
       String trimBaseDir = TARGET_TEXTURE_PATH + "trims/models/armor/";
 
-        String trimName;
-        if (fileNameLower.endsWith("_layer_1.png")) {
-            trimName = armorId + "_" + ArmorTrimRegistry.getMaterialAssetName() + ".png";
-        } else {
-            trimName = armorId + "_leggings_" + ArmorTrimRegistry.getMaterialAssetName() + ".png";
-        }
-        addData(builder, trimBaseDir + trimName, fileName, data);
+      String trimName;
+      if (fileNameLower.endsWith("_layer_1.png")) {
+        trimName = armorId + "_" + ArmorTrimRegistry.getMaterialAssetName() + ".png";
+      } else {
+        trimName = armorId + "_leggings_" + ArmorTrimRegistry.getMaterialAssetName() + ".png";
+      }
+      addData(builder, trimBaseDir + trimName, fileName, data);
     } else {
       targetBaseDir = TARGET_TEXTURE_PATH + "item/";
+      addData(builder, targetBaseDir + fileName, fileName, data);
     }
-    addData(builder, targetBaseDir + fileName, fileName, data);
   }
 
   /** Adds a .mcmeta file to the resource pack. */
