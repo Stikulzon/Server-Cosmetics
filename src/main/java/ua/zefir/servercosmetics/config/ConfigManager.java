@@ -154,9 +154,9 @@ public class ConfigManager {
 
         String trimName;
         if (fileNameLower.endsWith("_layer_1.png")) {
-            trimName = armorId + ".png";
+            trimName = armorId + "_" + ArmorTrimRegistry.getMaterialAssetName() + ".png";
         } else {
-            trimName = armorId + "_leggings" + ".png";
+            trimName = armorId + "_leggings_" + ArmorTrimRegistry.getMaterialAssetName() + ".png";
         }
         addData(builder, trimBaseDir + trimName, fileName, data);
     } else {

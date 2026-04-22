@@ -15,8 +15,6 @@ import net.minecraft.util.Identifier;
 import ua.zefir.servercosmetics.ModInit;
 
 public class ArmorTrimRegistry {
-  private ArmorTrimRegistry() {}
-
   private static final String MATERIAL_ASSET_NAME = "cosmetic";
   private static final float CUSTOM_ITEM_MODEL_INDEX = 0.05f;
   private static final Map<String, RegistryEntry<ArmorTrimPattern>> patternEntries =
