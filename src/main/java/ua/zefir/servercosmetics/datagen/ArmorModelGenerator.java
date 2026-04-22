@@ -24,10 +24,10 @@ public class ArmorModelGenerator {
 
   private static ArmorItem getDummyArmorItem(ArmorItem.Type armorType) {
     return switch (armorType) {
-      case HELMET -> (ArmorItem) Items.LEATHER_HELMET;
-      case CHESTPLATE -> (ArmorItem) Items.LEATHER_CHESTPLATE;
-      case LEGGINGS -> (ArmorItem) Items.LEATHER_LEGGINGS;
-      case BOOTS -> (ArmorItem) Items.LEATHER_BOOTS;
+      case HELMET -> (ArmorItem) Items.CHAINMAIL_HELMET;
+      case CHESTPLATE -> (ArmorItem) Items.CHAINMAIL_CHESTPLATE;
+      case LEGGINGS -> (ArmorItem) Items.CHAINMAIL_LEGGINGS;
+      case BOOTS -> (ArmorItem) Items.CHAINMAIL_BOOTS;
       default ->
           throw new IllegalStateException(
               "Unsupported armor type for model generation: " + armorType);

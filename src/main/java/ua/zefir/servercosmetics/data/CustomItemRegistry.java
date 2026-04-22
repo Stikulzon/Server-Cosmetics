@@ -164,7 +164,7 @@ public class CustomItemRegistry {
               || ItemType.valueOf(type.toUpperCase()) == ItemType.CHESTPLATE
               || ItemType.valueOf(type.toUpperCase()) == ItemType.LEGGINGS
               || ItemType.valueOf(type.toUpperCase()) == ItemType.BOOTS) {
-            baseItemMaterial = "leather_" + type.toLowerCase();
+            baseItemMaterial = "minecraft:chainmail_" + type.toLowerCase();
           } else {
             baseItemMaterial =
                 yamlFile.getString(materialPath) == null
@@ -380,10 +380,10 @@ public class CustomItemRegistry {
 
   private static Item getItemFor(ArmorItem.Type type) {
     return switch (type) {
-      case ArmorItem.Type.HELMET -> Items.LEATHER_HELMET;
-      case ArmorItem.Type.CHESTPLATE -> Items.LEATHER_CHESTPLATE;
-      case ArmorItem.Type.LEGGINGS -> Items.LEATHER_LEGGINGS;
-      case ArmorItem.Type.BOOTS -> Items.LEATHER_BOOTS;
+      case ArmorItem.Type.HELMET -> Items.CHAINMAIL_HELMET;
+      case ArmorItem.Type.CHESTPLATE -> Items.CHAINMAIL_CHESTPLATE;
+      case ArmorItem.Type.LEGGINGS -> Items.CHAINMAIL_LEGGINGS;
+      case ArmorItem.Type.BOOTS -> Items.CHAINMAIL_BOOTS;
       default -> Items.STONE;
     };
   }

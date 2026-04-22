@@ -78,6 +78,8 @@ public class ConfigManager {
               "assets/minecraft/atlases/armor_trims.json",
               atlasJson.getBytes(java.nio.charset.StandardCharsets.UTF_8));
 
+          addTransparentChainmailArmorTextures(builder);
+
           Path resourcePackSourceDir = SERVER_COSMETICS_DIR.resolve("Assets");
           if (!Files.isDirectory(resourcePackSourceDir)) {
             ModInit.LOGGER.info(
@@ -291,6 +293,37 @@ public class ConfigManager {
     }
     if (!headObject.isEmpty()) {
       displayObject.put("head", headObject);
+    }
+  }
+
+  private static void addTransparentChainmailArmorTextures(ResourcePackBuilder builder) {
+    byte[] transparentPng = createTransparentPng(64, 32);
+
+    addData(
+        builder,
+        "assets/minecraft/textures/models/armor/chainmail_layer_1.png",
+        "chainmail_layer_1.png",
+        transparentPng);
+    addData(
+        builder,
+        "assets/minecraft/textures/models/armor/chainmail_layer_2.png",
+        "chainmail_layer_2.png",
+        transparentPng);
+  }
+
+  @SuppressWarnings("SameParameterValue")
+  private static byte[] createTransparentPng(int width, int height) {
+    try {
+      var image =
+          new java.awt.image.BufferedImage(
+              width, height, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+      var baos = new java.io.ByteArrayOutputStream();
+      javax.imageio.ImageIO.write(image, "PNG", baos);
+      return baos.toByteArray();
+    } catch (IOException e) {
+      ModInit.LOGGER.error("Failed to create transparent PNG", e);
+      throw new RuntimeException(
+          "Failed to create transparent PNG for chainmail armor override", e);
     }
   }
 
