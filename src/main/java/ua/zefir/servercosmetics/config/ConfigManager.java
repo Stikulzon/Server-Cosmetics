@@ -496,7 +496,8 @@ public class ConfigManager {
     yamlFile
         .path("renderChainmailAsTrim")
         .addDefault(true)
-        .commentSide("If true, vanilla chainmail armor will appear as a trim overlay. Will be transparent of false.");
+        .commentSide(
+            "If true, vanilla chainmail armor will appear as a trim overlay. Will be transparent of false.");
 
     try {
       yamlFile.save();
