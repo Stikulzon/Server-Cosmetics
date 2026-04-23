@@ -3,7 +3,6 @@ package ua.zefir.servercosmetics.config;
 import static ua.zefir.servercosmetics.ModInit.id;
 
 import java.util.*;
-import lombok.Getter;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -17,20 +16,20 @@ import ua.zefir.servercosmetics.datagen.ui.GuiTextures;
 import ua.zefir.servercosmetics.util.Utils;
 
 public class CosmeticsGUIConfig extends AbstractGuiConfig {
-  @Getter private static int[] colorSlots;
-  @Getter private static int[] colorGradientSlots;
-  @Getter private static int colorInputSlot;
-  @Getter private static int colorOutputSlot;
-  @Getter private static String[] colorHexValues;
-  @Getter private static String colorPickerGUINameString;
-  @Getter private static float saturationAdjustmentValue;
-  @Getter private static String signType;
-  @Getter private static ItemStack paintItemStack;
-  @Getter private static DyeColor signColor;
+  private static int[] colorSlots;
+  private static int[] colorGradientSlots;
+  private static int colorInputSlot;
+  private static int colorOutputSlot;
+  private static String[] colorHexValues;
+  private static String colorPickerGUINameString;
+  private static float saturationAdjustmentValue;
+  private static String signType;
+  private static ItemStack paintItemStack;
+  private static DyeColor signColor;
   private static List<String> textLines;
-  @Getter private static String successMessageString;
-  @Getter private static String errorMessageString;
-  @Getter private static boolean bodyCosmeticsAutoAlignment;
+  private static String successMessageString;
+  private static String errorMessageString;
+  private static boolean bodyCosmeticsAutoAlignment;
 
   public CosmeticsGUIConfig() {
     super("CosmeticsGUI.yml");
@@ -268,5 +267,57 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
 
   public Text getGuiName() {
     return GuiTextures.COSMETICS_MENU.apply(Utils.formatDisplayName(this.guiNameString));
+  }
+
+  public static int[] getColorSlots() {
+    return colorSlots;
+  }
+
+  public static int[] getColorGradientSlots() {
+    return colorGradientSlots;
+  }
+
+  public static int getColorInputSlot() {
+    return colorInputSlot;
+  }
+
+  public static int getColorOutputSlot() {
+    return colorOutputSlot;
+  }
+
+  public static String[] getColorHexValues() {
+    return colorHexValues;
+  }
+
+  public static String getColorPickerGUINameString() {
+    return colorPickerGUINameString;
+  }
+
+  public static float getSaturationAdjustmentValue() {
+    return saturationAdjustmentValue;
+  }
+
+  public static String getSignType() {
+    return signType;
+  }
+
+  public static ItemStack getPaintItemStack() {
+    return paintItemStack;
+  }
+
+  public static DyeColor getSignColor() {
+    return signColor;
+  }
+
+  public static String getSuccessMessageString() {
+    return successMessageString;
+  }
+
+  public static String getErrorMessageString() {
+    return errorMessageString;
+  }
+
+  public static boolean getBodyCosmeticsAutoAlignment() {
+    return bodyCosmeticsAutoAlignment;
   }
 }

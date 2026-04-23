@@ -1,3 +1,4 @@
+TODO: Update docs to 1.21.10
 # Getting Started
 
 ServerCosmetics is a **server-side Fabric mod** available on [Modrinth](https://modrinth.com/mod/server-cosmetics).

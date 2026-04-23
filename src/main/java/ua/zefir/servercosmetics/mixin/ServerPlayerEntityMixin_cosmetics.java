@@ -2,7 +2,6 @@ package ua.zefir.servercosmetics.mixin;
 
 import java.util.ArrayList;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import org.spongepowered.asm.mixin.Mixin;
@@ -17,7 +16,6 @@ import ua.zefir.servercosmetics.util.ArmorCosmetic;
 import ua.zefir.servercosmetics.util.BodyCosmetic;
 import ua.zefir.servercosmetics.util.Utils;
 
-@Slf4j
 @SuppressWarnings("AddedMixinMembersNamePattern")
 @Mixin(ServerPlayerEntity.class)
 public abstract class ServerPlayerEntityMixin_cosmetics implements ICosmetics {

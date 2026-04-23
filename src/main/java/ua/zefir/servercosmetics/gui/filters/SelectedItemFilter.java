@@ -1,12 +1,15 @@
 package ua.zefir.servercosmetics.gui.filters;
 
 import java.util.function.Predicate;
-import lombok.Setter;
 import net.minecraft.item.Item;
 import ua.zefir.servercosmetics.data.CustomItemEntry;
 
 public class SelectedItemFilter implements Predicate<CustomItemEntry> {
-  @Setter private Item selectedItem;
+  private Item selectedItem;
+
+  public void setSelectedItem(Item selectedItem) {
+    this.selectedItem = selectedItem;
+  }
 
   @Override
   public boolean test(CustomItemEntry entry) {

@@ -7,7 +7,6 @@ import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
 import java.util.List;
 import java.util.Objects;
-import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.EquipmentSlot;
@@ -24,9 +23,9 @@ import ua.zefir.servercosmetics.ext.ICosmetic;
 
 public class BodyCosmetic implements ICosmetic {
   private final ServerPlayerEntity player;
-  @Getter private final ItemType itemType;
-  @Getter private final Entity bodyCosmeticsModel;
-  @Getter private ItemStack cosmeticItemStack = ItemStack.EMPTY;
+  private final ItemType itemType;
+  private final Entity bodyCosmeticsModel;
+  private ItemStack cosmeticItemStack = ItemStack.EMPTY;
   private ItemStack cosmeticItemStackWhenSneaking = ItemStack.EMPTY;
   private BodyCosmeticsData cosmeticData;
   private boolean isHidden = false;
@@ -187,5 +186,19 @@ public class BodyCosmetic implements ICosmetic {
     this.cosmeticItemStackWhenSneaking = ItemStack.EMPTY;
     this.isHidden = false;
     this.isTilted = false;
+  }
+
+  @Override
+  public ItemType getItemType() {
+    return itemType;
+  }
+
+  public Entity getBodyCosmeticsModel() {
+    return bodyCosmeticsModel;
+  }
+
+  @Override
+  public ItemStack getCosmeticItemStack() {
+    return cosmeticItemStack;
   }
 }

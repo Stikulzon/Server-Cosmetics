@@ -1,3 +1,4 @@
+TODO: Update docs to 1.21.10
 # Formatting
 
 Display names and lore use **QuickText** format (from [Placeholder API](https://placeholders.pb4.eu/user/quicktext/)), with legacy `&`/`§` color codes also supported. Both can be mixed in the same string.

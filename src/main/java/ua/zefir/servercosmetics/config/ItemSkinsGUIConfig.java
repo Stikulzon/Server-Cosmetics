@@ -1,7 +1,6 @@
 package ua.zefir.servercosmetics.config;
 
 import java.util.*;
-import lombok.Getter;
 import net.minecraft.text.Text;
 import org.simpleyaml.configuration.ConfigurationSection;
 import org.simpleyaml.configuration.file.YamlFile;
@@ -10,7 +9,11 @@ import ua.zefir.servercosmetics.util.Utils;
 
 public class ItemSkinsGUIConfig extends AbstractGuiConfig {
 
-  @Getter private static int itemSlot;
+  private static int itemSlot;
+
+  public static int getItemSlot() {
+    return itemSlot;
+  }
 
   public ItemSkinsGUIConfig() {
     super("ItemSkinsGUI.yml");

@@ -10,7 +10,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.stream.Stream;
-import lombok.Getter;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.item.Item;
 import net.minecraft.server.command.ServerCommandSource;
@@ -40,13 +39,13 @@ public class ConfigManager {
   public record NavigationButton(
       Text name, Item baseItem, Identifier modelPath, int slotIndex, List<String> lore) {}
 
-  @Getter private static String configReloadPermission;
-  @Getter private static String itemSkinsReloadPermission;
-  @Getter private static String cosmeticsReloadPermission;
+  private static String configReloadPermission;
+  private static String itemSkinsReloadPermission;
+  private static String cosmeticsReloadPermission;
   private static Text successConfigReloadMessage;
   private static Text errorConfigReloadMessage;
   private static boolean legacyMode;
-  @Getter private static boolean enableExperimentalFeatures;
+  private static boolean enableExperimentalFeatures;
 
   public static final AbstractGuiConfig ITEM_SKINS_GUI_CONFIG = new ItemSkinsGUIConfig();
   public static final AbstractGuiConfig COSMETICS_GUI_CONFIG = new CosmeticsGUIConfig();
@@ -438,5 +437,21 @@ public class ConfigManager {
     } catch (IOException e) {
       throw new RuntimeException("Failed to save default main yml configuration", e);
     }
+  }
+
+  public static String getConfigReloadPermission() {
+    return configReloadPermission;
+  }
+
+  public static String getItemSkinsReloadPermission() {
+    return itemSkinsReloadPermission;
+  }
+
+  public static String getCosmeticsReloadPermission() {
+    return cosmeticsReloadPermission;
+  }
+
+  public static boolean isEnableExperimentalFeatures() {
+    return enableExperimentalFeatures;
   }
 }

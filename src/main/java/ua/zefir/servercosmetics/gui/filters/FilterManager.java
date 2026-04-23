@@ -4,8 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
-import lombok.Getter;
-import lombok.Setter;
 import ua.zefir.servercosmetics.config.ConfigManager;
 import ua.zefir.servercosmetics.data.CustomItemEntry;
 import ua.zefir.servercosmetics.data.ItemType;
@@ -16,8 +14,8 @@ public class FilterManager {
   private final PagedItemDisplayGui gui;
   private final Map<String, FilterRegistration> registeredFilters = new HashMap<>();
   private final Map<String, Boolean> activeStates = new HashMap<>();
-  @Getter private List<ItemType> targetTypes;
-  @Getter @Setter private String searchTerm = "";
+  private List<ItemType> targetTypes;
+  private String searchTerm = "";
 
   public record FilterRegistration(
       Predicate<CustomItemEntry> filter,
@@ -116,5 +114,17 @@ public class FilterManager {
             });
       }
     }
+  }
+
+  public List<ItemType> getTargetTypes() {
+    return targetTypes;
+  }
+
+  public String getSearchTerm() {
+    return searchTerm;
+  }
+
+  public void setSearchTerm(String searchTerm) {
+    this.searchTerm = searchTerm;
   }
 }

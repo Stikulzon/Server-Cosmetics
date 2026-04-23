@@ -5,7 +5,6 @@ import static ua.zefir.servercosmetics.ModInit.id;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
-import lombok.Getter;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.screen.GenericContainerScreenHandler;
@@ -25,17 +24,16 @@ public abstract class AbstractGuiConfig {
   protected final Path configFilePath;
   protected YamlFile yamlFile;
 
-  @Getter protected String guiNameString;
-  @Getter protected int[] displaySlots;
-  @Getter protected String permissionOpenGui;
-  @Getter protected String messageUnlockedString;
-  @Getter protected String messageLockedString;
-  @Getter protected boolean pageIndicatorEnabled;
-  @Getter protected boolean replaceInventory;
-  @Getter private List<String> disabledFilters;
-  @Getter ScreenHandlerType<GenericContainerScreenHandler> screenHandlerType;
+  protected String guiNameString;
+  protected int[] displaySlots;
+  protected String permissionOpenGui;
+  protected String messageUnlockedString;
+  protected String messageLockedString;
+  protected boolean pageIndicatorEnabled;
+  protected boolean replaceInventory;
+  private List<String> disabledFilters;
+  ScreenHandlerType<GenericContainerScreenHandler> screenHandlerType;
 
-  @Getter
   protected final Map<String, ConfigManager.NavigationButton> navigationButtons = new HashMap<>();
 
   static final Map<String, Map<String, Object>> buttonDefaults = new HashMap<>();
@@ -345,5 +343,45 @@ public abstract class AbstractGuiConfig {
 
     loadNavigationButton(file, "filter.show-owned-skins-enabled");
     loadNavigationButton(file, "filter.show-owned-skins-disabled");
+  }
+
+  public String getGuiNameString() {
+    return guiNameString;
+  }
+
+  public int[] getDisplaySlots() {
+    return displaySlots;
+  }
+
+  public String getPermissionOpenGui() {
+    return permissionOpenGui;
+  }
+
+  public String getMessageUnlockedString() {
+    return messageUnlockedString;
+  }
+
+  public String getMessageLockedString() {
+    return messageLockedString;
+  }
+
+  public boolean isPageIndicatorEnabled() {
+    return pageIndicatorEnabled;
+  }
+
+  public boolean isReplaceInventory() {
+    return replaceInventory;
+  }
+
+  public List<String> getDisabledFilters() {
+    return disabledFilters;
+  }
+
+  public ScreenHandlerType<GenericContainerScreenHandler> getScreenHandlerType() {
+    return screenHandlerType;
+  }
+
+  public Map<String, ConfigManager.NavigationButton> getNavigationButtons() {
+    return navigationButtons;
   }
 }

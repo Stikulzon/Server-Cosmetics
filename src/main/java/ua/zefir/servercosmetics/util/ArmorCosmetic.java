@@ -3,7 +3,6 @@ package ua.zefir.servercosmetics.util;
 import com.google.common.collect.Lists;
 import com.mojang.datafixers.util.Pair;
 import java.util.List;
-import lombok.Getter;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.ItemStack;
@@ -20,7 +19,7 @@ public class ArmorCosmetic implements ICosmetic {
   private final ServerPlayerEntity player;
   private final ItemType slotType;
   private ItemType itemType;
-  @Getter private ItemStack cosmeticItemStack = ItemStack.EMPTY;
+  private ItemStack cosmeticItemStack = ItemStack.EMPTY;
   private final BodyCosmetic bodyCosmeticDelegate;
 
   public ArmorCosmetic(ServerPlayerEntity player, ItemType itemType) {
@@ -172,5 +171,10 @@ public class ArmorCosmetic implements ICosmetic {
             player.playerScreenHandler.nextRevision(),
             slot,
             targetItemStack));
+  }
+
+  @Override
+  public ItemStack getCosmeticItemStack() {
+    return cosmeticItemStack;
   }
 }

@@ -8,7 +8,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
-import lombok.Setter;
 import net.minecraft.component.type.*;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -24,7 +23,11 @@ public class CustomItemRegistry {
 
   private static final List<CustomItemEntry> cosmeticsList = new CopyOnWriteArrayList<>();
 
-  @Setter private static boolean legacyMode = false;
+  private static boolean legacyMode = false;
+
+  public static void setLegacyMode(boolean legacyMode) {
+    CustomItemRegistry.legacyMode = legacyMode;
+  }
 
   public static void initialize() {
     loadAllCosmetics();

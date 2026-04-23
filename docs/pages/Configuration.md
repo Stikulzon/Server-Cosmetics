@@ -1,3 +1,4 @@
+TODO: Update docs to 1.21.10
 # Configuration
 
 After first run, ServerCosmetics generates config files in `<server>/config/ServerCosmetics/`.

@@ -6,7 +6,6 @@ import eu.pb4.sgui.api.gui.SimpleGui;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import lombok.Getter;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -26,9 +25,9 @@ public class PagedItemDisplayGui extends SimpleGui {
 
   private ICosmeticProvider provider;
   private IItemAction defaultClickAction;
-  @Getter private final AbstractGuiConfig guiConfig;
+  private final AbstractGuiConfig guiConfig;
   private int currentPage = 0;
-  @Getter private final FilterManager filterManager;
+  private final FilterManager filterManager;
 
   public PagedItemDisplayGui(
       ServerPlayerEntity player,
@@ -211,5 +210,13 @@ public class PagedItemDisplayGui extends SimpleGui {
     this.filterManager.setSearchTerm(term);
     this.open();
     this.onFilterStateChanged();
+  }
+
+  public AbstractGuiConfig getGuiConfig() {
+    return guiConfig;
+  }
+
+  public FilterManager getFilterManager() {
+    return filterManager;
   }
 }

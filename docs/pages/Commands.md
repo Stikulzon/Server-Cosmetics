@@ -1,3 +1,4 @@
+TODO: Update docs to 1.21.10
 ## Commands
 
 All commands require permissions configured in the YAML files. Without a permissions plugin (like LuckPerms), only operators (OP level 4) can use reload commands.
