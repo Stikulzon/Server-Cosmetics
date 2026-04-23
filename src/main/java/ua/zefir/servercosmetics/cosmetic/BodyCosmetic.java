@@ -1,4 +1,4 @@
-package ua.zefir.servercosmetics.util;
+package ua.zefir.servercosmetics.cosmetic;
 
 import static ua.zefir.servercosmetics.database.DatabaseManager.setCosmetic;
 import static ua.zefir.servercosmetics.util.Utils.getTiltedItemStack;
@@ -19,9 +19,8 @@ import net.minecraft.util.math.MathHelper;
 import ua.zefir.servercosmetics.data.BodyCosmeticsData;
 import ua.zefir.servercosmetics.data.ItemType;
 import ua.zefir.servercosmetics.database.DatabaseManager;
-import ua.zefir.servercosmetics.ext.ICosmetic;
 
-public class BodyCosmetic implements ICosmetic {
+public class BodyCosmetic implements Cosmetic {
   private final ServerPlayerEntity player;
   private final ItemType itemType;
   private final Entity bodyCosmeticsModel;

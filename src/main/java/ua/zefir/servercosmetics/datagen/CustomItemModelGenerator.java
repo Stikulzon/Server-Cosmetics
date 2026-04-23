@@ -38,7 +38,7 @@ public class CustomItemModelGenerator {
     return models;
   }
 
-  public static Map<String, byte[]> generateDyebleItemModel(String itemId) {
+  public static Map<String, byte[]> generateDyeableItemModel(String itemId) {
     Map<String, byte[]> models = new HashMap<>();
     String texturePath = ModInit.MOD_ID + ":item/" + itemId;
     String modelLocation = ModInit.MOD_ID + ":item/" + itemId;
@@ -48,7 +48,7 @@ public class CustomItemModelGenerator {
         "assets/servercosmetics/models/item/" + itemId + ".json",
         textureModel.toString().getBytes(StandardCharsets.UTF_8));
 
-    JsonObject itemDefinition = createDyableModelDefinition(modelLocation);
+    JsonObject itemDefinition = createDyeableModelDefinition(modelLocation);
     models.put(
         "assets/servercosmetics/items/" + itemId + ".json",
         itemDefinition.toString().getBytes(StandardCharsets.UTF_8));
@@ -135,7 +135,7 @@ public class CustomItemModelGenerator {
     return root;
   }
 
-  private static JsonObject createDyableModelDefinition(String modelId) {
+  private static JsonObject createDyeableModelDefinition(String modelId) {
     JsonObject root = new JsonObject();
     JsonObject model = new JsonObject();
     model.addProperty("type", "minecraft:model");

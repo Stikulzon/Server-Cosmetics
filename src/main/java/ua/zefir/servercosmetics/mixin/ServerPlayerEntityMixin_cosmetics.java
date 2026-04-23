@@ -9,17 +9,17 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import ua.zefir.servercosmetics.cosmetic.ArmorCosmetic;
+import ua.zefir.servercosmetics.cosmetic.BodyCosmetic;
+import ua.zefir.servercosmetics.cosmetic.Cosmetic;
+import ua.zefir.servercosmetics.cosmetic.CosmeticHolder;
 import ua.zefir.servercosmetics.data.ItemType;
-import ua.zefir.servercosmetics.ext.ICosmetic;
-import ua.zefir.servercosmetics.ext.ICosmetics;
-import ua.zefir.servercosmetics.util.ArmorCosmetic;
-import ua.zefir.servercosmetics.util.BodyCosmetic;
 import ua.zefir.servercosmetics.util.Utils;
 
 @SuppressWarnings("AddedMixinMembersNamePattern")
 @Mixin(ServerPlayerEntity.class)
-public abstract class ServerPlayerEntityMixin_cosmetics implements ICosmetics {
-  @Unique private final List<ICosmetic> cosmeticsList = new ArrayList<>();
+public abstract class ServerPlayerEntityMixin_cosmetics implements CosmeticHolder {
+  @Unique private final List<Cosmetic> cosmeticsList = new ArrayList<>();
 
   @Inject(method = "<init>", at = @At("TAIL"))
   private void init(CallbackInfo ci) {
@@ -41,7 +41,7 @@ public abstract class ServerPlayerEntityMixin_cosmetics implements ICosmetics {
 
   @Inject(method = "copyFrom", at = @At("TAIL"))
   private void onRespawn(ServerPlayerEntity oldPlayer, boolean alive, CallbackInfo ci) {
-    ((ICosmetics) oldPlayer).removeCosmetics();
+    ((CosmeticHolder) oldPlayer).removeCosmetics();
 
     this.initCosmetics();
   }
@@ -53,33 +53,33 @@ public abstract class ServerPlayerEntityMixin_cosmetics implements ICosmetics {
 
   @Override
   public void tickArmor() {
-    cosmeticsList.forEach(ICosmetic::tick);
+    cosmeticsList.forEach(Cosmetic::tick);
   }
 
   @Override
   public void initCosmetics() {
     ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
     if (player.getEntityWorld() != null) {
-      player.getEntityWorld().getServer().execute(() -> cosmeticsList.forEach(ICosmetic::init));
+      player.getEntityWorld().getServer().execute(() -> cosmeticsList.forEach(Cosmetic::init));
     } else {
-      cosmeticsList.forEach(ICosmetic::init);
+      cosmeticsList.forEach(Cosmetic::init);
     }
   }
 
   @Override
   public void removeCosmetics() {
-    cosmeticsList.forEach(ICosmetic::onUnload);
+    cosmeticsList.forEach(Cosmetic::onUnload);
   }
 
   @Override
-  public List<ICosmetic> getCosmeticsList() {
+  public List<Cosmetic> getCosmeticsList() {
     return cosmeticsList;
   }
 
   @Override
-  public ICosmetic getCosmeticFor(ItemType itemType) {
+  public Cosmetic getCosmeticFor(ItemType itemType) {
 
-    for (ICosmetic cosmetic : cosmeticsList) {
+    for (Cosmetic cosmetic : cosmeticsList) {
       if (cosmetic.getItemType() == Utils.getRealEquipedItemType(itemType)) {
         return cosmetic;
       }

@@ -12,8 +12,8 @@ import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import ua.zefir.servercosmetics.config.ConfigManager;
-import ua.zefir.servercosmetics.gui.CosmeticsGUI;
-import ua.zefir.servercosmetics.gui.ItemSkinsGUI;
+import ua.zefir.servercosmetics.gui.CosmeticsGui;
+import ua.zefir.servercosmetics.gui.ItemSkinsGui;
 import ua.zefir.servercosmetics.util.ConfigGenerator;
 import ua.zefir.servercosmetics.util.Utils;
 
@@ -38,7 +38,7 @@ public class CosmeticCommands {
                           .executes(ConfigGenerator::generateCosmeticDefinitions)));
           dispatcher.register(
               literal("cm")
-                  .executes(CosmeticsGUI::openGui)
+                  .executes(CosmeticsGui::openGui)
                   .requires(Permissions.require(COSMETICS_GUI_CONFIG.getPermissionOpenGui(), 0))
                   .then(
                       literal("reload")
@@ -51,7 +51,7 @@ public class CosmeticCommands {
                           .executes(ConfigManager::reloadCosmeticsConfigsCommand)));
           dispatcher.register(
               literal("cosmetics")
-                  .executes(CosmeticsGUI::openGui)
+                  .executes(CosmeticsGui::openGui)
                   .requires(Permissions.require(COSMETICS_GUI_CONFIG.getPermissionOpenGui(), 0))
                   .then(
                       literal("reload")
@@ -77,7 +77,7 @@ public class CosmeticCommands {
                                   .executes(Utils::wearCosmeticById))));
           dispatcher.register(
               literal("is")
-                  .executes(ItemSkinsGUI::openItemSkinsGui)
+                  .executes(ItemSkinsGui::openItemSkinsGui)
                   .requires(Permissions.require(ITEM_SKINS_GUI_CONFIG.getPermissionOpenGui(), 0))
                   .then(
                       literal("reload")
@@ -90,7 +90,7 @@ public class CosmeticCommands {
                           .executes(ConfigManager::reloadItemSkinsConfigsCommand)));
           dispatcher.register(
               literal("itemskins")
-                  .executes(ItemSkinsGUI::openItemSkinsGui)
+                  .executes(ItemSkinsGui::openItemSkinsGui)
                   .requires(Permissions.require(ITEM_SKINS_GUI_CONFIG.getPermissionOpenGui(), 0))
                   .then(
                       literal("reload")

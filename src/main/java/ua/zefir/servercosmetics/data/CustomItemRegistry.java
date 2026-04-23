@@ -1,7 +1,7 @@
 package ua.zefir.servercosmetics.data;
 
 import static ua.zefir.servercosmetics.ModInit.id;
-import static ua.zefir.servercosmetics.datafixer.NbtDatafixer.NEW_NBT_KEY_CUSTOM_ITEM_ID;
+import static ua.zefir.servercosmetics.datafixer.NbtDataFixer.NEW_NBT_KEY_CUSTOM_ITEM_ID;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -131,7 +131,7 @@ public class CustomItemRegistry {
       YamlFile yaml, String itemId, String permission, String fileName) {
     Text displayName = parseDisplayName(yaml, ItemType.ITEM_SKIN, fileName, null);
     List<Text> lore = parseLore(yaml, ItemType.ITEM_SKIN, null);
-    boolean dyable = yaml.getBoolean("dyable");
+    boolean dyeable = yaml.getBoolean("dyeable", yaml.getBoolean("dyable", false));
     int sortingPriority = yaml.getInt("sortingPriority", 0);
 
     List<String> targetMaterials = yaml.getStringList("material");
@@ -150,7 +150,7 @@ public class CustomItemRegistry {
 
       ItemStack itemStack =
           ItemBuilder.fromId(formattedMaterial)
-              .applyCosmeticLogic(itemId, dyable)
+              .applyCosmeticLogic(itemId, dyeable)
               .name(displayName)
               .lore(lore)
               .customData(NEW_NBT_KEY_CUSTOM_ITEM_ID, itemId + "_" + formattedMaterial)
@@ -166,7 +166,7 @@ public class CustomItemRegistry {
               ItemType.ITEM_SKIN,
               formattedMaterial,
               sortingPriority,
-              dyable,
+              dyeable,
               new ArrayList<>(),
               null);
       cosmeticsList.add(entry);
@@ -183,7 +183,7 @@ public class CustomItemRegistry {
     ItemType type = ItemType.valueOf(typeStr.toUpperCase());
     Text displayName = parseDisplayName(yaml, type, fileName, itemPropertiesRootNode);
     List<Text> lore = parseLore(yaml, type, itemPropertiesRootNode);
-    boolean dyable = yaml.getBoolean("dyable");
+    boolean dyeable = yaml.getBoolean("dyeable", yaml.getBoolean("dyable", false));
     int sortingPriority = yaml.getInt("sortingPriority", 0);
 
     String baseItemMaterial = parseBaseMaterial(yaml, type, itemPropertiesRootNode);
@@ -197,7 +197,7 @@ public class CustomItemRegistry {
 
     ItemStack itemStack =
         ItemBuilder.fromId(formattedMaterial)
-            .applyCosmeticLogic(itemId, dyable)
+            .applyCosmeticLogic(itemId, dyeable)
             .name(displayName)
             .lore(lore)
             .customData(NEW_NBT_KEY_CUSTOM_ITEM_ID, itemId)
@@ -214,7 +214,7 @@ public class CustomItemRegistry {
             type,
             formattedMaterial,
             sortingPriority,
-            dyable);
+            dyeable);
     cosmeticsList.add(entry);
   }
 
@@ -228,7 +228,7 @@ public class CustomItemRegistry {
       ItemType type,
       String baseItemMaterial,
       int sortingPriority,
-      boolean dyable) {
+      boolean dyeable) {
     BodyCosmeticsData bodyData;
     return switch (type) {
       case BODY_COSMETIC -> {
@@ -242,8 +242,8 @@ public class CustomItemRegistry {
             type,
             baseItemMaterial,
             sortingPriority,
-            dyable,
-            List.of(Tags.ENTITY, Tags.BODY_COSMETIC),
+            dyeable,
+            List.of("entity", "body_cosmetic"),
             bodyData);
       }
       case CHESTPLATE_BODY_COSMETIC, HAT_BODY_COSMETIC, BOOTS_BODY_COSMETIC -> {
@@ -257,8 +257,8 @@ public class CustomItemRegistry {
             type,
             baseItemMaterial,
             sortingPriority,
-            dyable,
-            List.of(Tags.ENTITY, Tags.ARMOR, Tags.BODY_COSMETIC),
+            dyeable,
+            List.of("entity", "armor", "body_cosmetic"),
             bodyData);
       }
       case HELMET, CHESTPLATE, LEGGINGS, BOOTS ->
@@ -271,8 +271,8 @@ public class CustomItemRegistry {
               type,
               baseItemMaterial,
               sortingPriority,
-              dyable,
-              List.of(Tags.ARMOR, Tags.ITEM),
+              dyeable,
+              List.of("armor", "item"),
               new ArmorCosmeticsData());
       default -> // HAT and other types
           new CustomItemEntry(
@@ -284,8 +284,8 @@ public class CustomItemRegistry {
               type,
               baseItemMaterial,
               sortingPriority,
-              dyable,
-              List.of(Tags.ITEM),
+              dyeable,
+              List.of("item"),
               null);
     };
   }

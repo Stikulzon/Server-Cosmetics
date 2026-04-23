@@ -15,16 +15,16 @@ import ua.zefir.servercosmetics.config.ConfigManager;
 import ua.zefir.servercosmetics.data.CustomItemEntry;
 import ua.zefir.servercosmetics.datagen.ui.GuiTextures;
 import ua.zefir.servercosmetics.gui.actions.OpenColorPickerAction;
-import ua.zefir.servercosmetics.gui.core.ICosmeticProvider;
-import ua.zefir.servercosmetics.gui.core.IItemAction;
+import ua.zefir.servercosmetics.gui.core.CosmeticProvider;
+import ua.zefir.servercosmetics.gui.core.ItemAction;
 import ua.zefir.servercosmetics.gui.filters.FilterManager;
-import ua.zefir.servercosmetics.util.GUIUtils;
+import ua.zefir.servercosmetics.util.GuiUtils;
 import ua.zefir.servercosmetics.util.Utils;
 
 public class PagedItemDisplayGui extends SimpleGui {
 
-  private ICosmeticProvider provider;
-  private IItemAction defaultClickAction;
+  private CosmeticProvider provider;
+  private ItemAction defaultClickAction;
   private final AbstractGuiConfig guiConfig;
   private int currentPage = 0;
   private final FilterManager filterManager;
@@ -32,8 +32,8 @@ public class PagedItemDisplayGui extends SimpleGui {
   public PagedItemDisplayGui(
       ServerPlayerEntity player,
       AbstractGuiConfig config,
-      ICosmeticProvider provider,
-      IItemAction defaultClickAction) {
+      CosmeticProvider provider,
+      ItemAction defaultClickAction) {
     super(config.getScreenHandlerType(), player, config.isReplaceInventory());
     this.guiConfig = config;
     this.provider = provider;
@@ -43,7 +43,7 @@ public class PagedItemDisplayGui extends SimpleGui {
     populateGui();
   }
 
-  public void reinitialize(ICosmeticProvider newProvider, IItemAction newAction) {
+  public void reinitialize(CosmeticProvider newProvider, ItemAction newAction) {
     this.provider = newProvider;
     this.defaultClickAction = newAction;
     this.currentPage = 0;
@@ -106,13 +106,13 @@ public class PagedItemDisplayGui extends SimpleGui {
     }
 
     if (itemsToDisplay.isEmpty()) {
-      GUIUtils.setUpButton(
+      GuiUtils.setUpButton(
           this, guiConfig.getButtonConfig("noCosmeticsAvailable"), () -> {}, displaySlots[0]);
     }
   }
 
-  private IItemAction determineAction(CustomItemEntry entry) {
-    if (entry.dyable()) {
+  private ItemAction determineAction(CustomItemEntry entry) {
+    if (entry.dyeable()) {
       return new OpenColorPickerAction();
     }
     return defaultClickAction;
@@ -123,7 +123,7 @@ public class PagedItemDisplayGui extends SimpleGui {
 
     // Next Button
     if ((currentPage + 1) * itemsPerPage < totalFilteredItems) {
-      GUIUtils.setUpButton(
+      GuiUtils.setUpButton(
           this,
           guiConfig.getButtonConfig("next"),
           () -> {
@@ -137,7 +137,7 @@ public class PagedItemDisplayGui extends SimpleGui {
 
     // Previous Button
     if (currentPage - 1 >= 0) {
-      GUIUtils.setUpButton(
+      GuiUtils.setUpButton(
           this,
           guiConfig.getButtonConfig("previous"),
           () -> {
@@ -174,7 +174,7 @@ public class PagedItemDisplayGui extends SimpleGui {
             btnConfig.slotIndex(),
             dynamicLore);
 
-    //    GUIUtils.setUpButton(this, dynamicBtn, this::openSearchGui);
+    //    GuiUtils.setUpButton(this, dynamicBtn, this::openSearchGui);
   }
 
   public void openSearchGui() {

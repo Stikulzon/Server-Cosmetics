@@ -11,15 +11,15 @@ public class RuntimeModelManager {
   private static final Map<String, Set<EquipmentSlot>> requestedArmorModels =
       new ConcurrentHashMap<>();
   private static final Set<String> requestedItemModels = ConcurrentHashMap.newKeySet();
-  private static final Set<String> requestedDyebleItemModels = ConcurrentHashMap.newKeySet();
+  private static final Set<String> requestedDyeableItemModels = ConcurrentHashMap.newKeySet();
 
   public static void requestArmorModel(String cosmeticId, EquipmentSlot slot) {
     requestedArmorModels.computeIfAbsent(cosmeticId, k -> ConcurrentHashMap.newKeySet()).add(slot);
   }
 
-  public static void requestItemModel(String modelId, boolean dyable) {
-    if (dyable) {
-      requestedDyebleItemModels.add(modelId);
+  public static void requestItemModel(String modelId, boolean dyeable) {
+    if (dyeable) {
+      requestedDyeableItemModels.add(modelId);
     } else {
       requestedItemModels.add(modelId);
     }
@@ -28,6 +28,7 @@ public class RuntimeModelManager {
   public static void clearRequestedModels() {
     requestedArmorModels.clear();
     requestedItemModels.clear();
+    requestedDyeableItemModels.clear();
   }
 
   public static void generateAndProvideModels(BiConsumer<String, byte[]> provider) {
@@ -45,8 +46,8 @@ public class RuntimeModelManager {
       provideModels(models, provider);
     }
 
-    for (String modelId : requestedDyebleItemModels) {
-      Map<String, byte[]> models = CustomItemModelGenerator.generateDyebleItemModel(modelId);
+    for (String modelId : requestedDyeableItemModels) {
+      Map<String, byte[]> models = CustomItemModelGenerator.generateDyeableItemModel(modelId);
       provideModels(models, provider);
     }
 

@@ -13,8 +13,8 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import ua.zefir.servercosmetics.cosmetic.CosmeticHolder;
 import ua.zefir.servercosmetics.data.ItemType;
-import ua.zefir.servercosmetics.ext.ICosmetics;
 
 @Mixin(ServerPlayNetworkHandler.class)
 public class ServerPlayNetworkHandlerMixin {
@@ -22,7 +22,7 @@ public class ServerPlayNetworkHandlerMixin {
 
   @Inject(method = "onPickItem", at = @At(value = "TAIL"))
   void modifyItemStack(ItemStack stack, CallbackInfo ci) {
-    ICosmetics cosmetics = (ICosmetics) player;
+    CosmeticHolder cosmetics = (CosmeticHolder) player;
     cosmetics.tickArmor();
   }
 
@@ -30,7 +30,7 @@ public class ServerPlayNetworkHandlerMixin {
   void modifyItemStack(ClickSlotC2SPacket packet, CallbackInfo ci) {
     ScreenHandler handler = this.player.currentScreenHandler;
     if (handler instanceof PlayerScreenHandler) {
-      ICosmetics cosmetics = (ICosmetics) player;
+      CosmeticHolder cosmetics = (CosmeticHolder) player;
       ItemType itemType = getItemTypeForSlot(packet.slot());
       if (itemType != null) {
         cosmetics.getCosmeticFor(itemType).tick();

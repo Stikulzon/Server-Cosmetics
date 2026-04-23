@@ -9,11 +9,11 @@ import net.minecraft.network.packet.s2c.play.EntityPassengersSetS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import ua.zefir.servercosmetics.cosmetic.ArmorCosmetic;
+import ua.zefir.servercosmetics.cosmetic.BodyCosmetic;
+import ua.zefir.servercosmetics.cosmetic.Cosmetic;
+import ua.zefir.servercosmetics.cosmetic.CosmeticHolder;
 import ua.zefir.servercosmetics.data.ItemType;
-import ua.zefir.servercosmetics.ext.ICosmetic;
-import ua.zefir.servercosmetics.ext.ICosmetics;
-import ua.zefir.servercosmetics.util.ArmorCosmetic;
-import ua.zefir.servercosmetics.util.BodyCosmetic;
 
 @Mixin(EntityPassengersSetS2CPacket.class)
 public class EntityPassengersSetS2CPacketMixin {
@@ -27,9 +27,9 @@ public class EntityPassengersSetS2CPacketMixin {
     List<Entity> modifiedList = new ArrayList<>(original.call(instance));
 
     if (instance instanceof ServerPlayerEntity player) {
-      ICosmetics cosmetics = (ICosmetics) player;
+      CosmeticHolder cosmetics = (CosmeticHolder) player;
 
-      ICosmetic body = cosmetics.getCosmeticFor(ItemType.BODY_COSMETIC);
+      Cosmetic body = cosmetics.getCosmeticFor(ItemType.BODY_COSMETIC);
       if (body instanceof BodyCosmetic bodyCosmetic
           && !bodyCosmetic.getCosmeticItemStack().isEmpty()) {
         modifiedList.add(bodyCosmetic.getBodyCosmeticsModel());
@@ -39,7 +39,7 @@ public class EntityPassengersSetS2CPacketMixin {
           List.of(ItemType.HAT, ItemType.CHESTPLATE, ItemType.LEGGINGS, ItemType.BOOTS);
 
       for (ItemType type : armorTypes) {
-        ICosmetic cosmetic = cosmetics.getCosmeticFor(type);
+        Cosmetic cosmetic = cosmetics.getCosmeticFor(type);
         if (cosmetic instanceof ArmorCosmetic armorCosmetic) {
           Entity model = armorCosmetic.getBodyCosmeticModel();
           if (model != null) {

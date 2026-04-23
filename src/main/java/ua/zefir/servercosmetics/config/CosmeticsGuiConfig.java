@@ -15,7 +15,7 @@ import ua.zefir.servercosmetics.datagen.RuntimeModelManager;
 import ua.zefir.servercosmetics.datagen.ui.GuiTextures;
 import ua.zefir.servercosmetics.util.Utils;
 
-public class CosmeticsGUIConfig extends AbstractGuiConfig {
+public class CosmeticsGuiConfig extends AbstractGuiConfig {
   private static int[] colorSlots;
   private static int[] colorGradientSlots;
   private static int colorInputSlot;
@@ -31,7 +31,7 @@ public class CosmeticsGUIConfig extends AbstractGuiConfig {
   private static String errorMessageString;
   private static boolean bodyCosmeticsAutoAlignment;
 
-  public CosmeticsGUIConfig() {
+  public CosmeticsGuiConfig() {
     super("CosmeticsGUI.yml");
   }
 

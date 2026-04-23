@@ -13,6 +13,6 @@ public record CustomItemEntry(
     ItemType type,
     String baseItemForModel,
     int sortingPriority,
-    boolean dyable,
-    List<Tags> tags,
-    ICosmeticData cosmeticData) {}
+    boolean dyeable,
+    List<String> tags,
+    CosmeticData cosmeticData) {}

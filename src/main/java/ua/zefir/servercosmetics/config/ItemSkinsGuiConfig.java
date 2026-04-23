@@ -7,7 +7,7 @@ import org.simpleyaml.configuration.file.YamlFile;
 import ua.zefir.servercosmetics.datagen.ui.GuiTextures;
 import ua.zefir.servercosmetics.util.Utils;
 
-public class ItemSkinsGUIConfig extends AbstractGuiConfig {
+public class ItemSkinsGuiConfig extends AbstractGuiConfig {
 
   private static int itemSlot;
 
@@ -15,7 +15,7 @@ public class ItemSkinsGUIConfig extends AbstractGuiConfig {
     return itemSlot;
   }
 
-  public ItemSkinsGUIConfig() {
+  public ItemSkinsGuiConfig() {
     super("ItemSkinsGUI.yml");
   }
 

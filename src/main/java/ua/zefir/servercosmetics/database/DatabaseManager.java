@@ -1,6 +1,6 @@
 package ua.zefir.servercosmetics.database;
 
-import static ua.zefir.servercosmetics.datafixer.NbtDatafixer.NEW_NBT_KEY_CUSTOM_ITEM_ID;
+import static ua.zefir.servercosmetics.datafixer.NbtDataFixer.NEW_NBT_KEY_CUSTOM_ITEM_ID;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
@@ -24,14 +24,14 @@ import ua.zefir.servercosmetics.data.ItemType;
 
 public class DatabaseManager {
   private static final String DATABASE_URL = "jdbc:sqlite:cosmetics.db";
-  private static final Dao<CosmeticTable, Integer> cosmeticDao;
+  private static final Dao<CosmeticEntry, Integer> cosmeticDao;
 
   static {
     try {
       Class.forName("org.sqlite.JDBC");
       ConnectionSource connectionSource = new JdbcConnectionSource(DATABASE_URL);
-      TableUtils.createTableIfNotExists(connectionSource, CosmeticTable.class);
-      cosmeticDao = DaoManager.createDao(connectionSource, CosmeticTable.class);
+      TableUtils.createTableIfNotExists(connectionSource, CosmeticEntry.class);
+      cosmeticDao = DaoManager.createDao(connectionSource, CosmeticEntry.class);
     } catch (Exception e) {
       ModInit.LOGGER.error("Failed to initialize database", e);
       throw new RuntimeException("Error initializing database", e);
@@ -42,7 +42,7 @@ public class DatabaseManager {
 
   public static void setCosmetic(ServerPlayerEntity player, ItemType type, ItemStack itemStack) {
     try {
-      CosmeticTable existingEntry = findEntry(player.getUuidAsString(), type);
+      CosmeticEntry existingEntry = findEntry(player.getUuidAsString(), type);
 
       if (itemStack == null || itemStack.isEmpty()) {
         if (existingEntry != null) {
@@ -69,7 +69,7 @@ public class DatabaseManager {
         existingEntry.setDyedColor(dyedColor);
         cosmeticDao.update(existingEntry);
       } else {
-        CosmeticTable newEntry = new CosmeticTable();
+        CosmeticEntry newEntry = new CosmeticEntry();
         newEntry.setUuid(player.getUuidAsString());
         newEntry.setCosmeticType(type.toString());
         newEntry.setCosmeticId(cosmeticId);
@@ -88,7 +88,7 @@ public class DatabaseManager {
 
   public static ItemStack getCosmeticItemStack(ServerPlayerEntity player, ItemType type) {
     try {
-      CosmeticTable cosmeticData = findEntry(player.getUuidAsString(), type);
+      CosmeticEntry cosmeticData = findEntry(player.getUuidAsString(), type);
 
       if (cosmeticData == null || cosmeticData.getCosmeticId() == null) {
         return ItemStack.EMPTY;
@@ -121,7 +121,7 @@ public class DatabaseManager {
 
   public static CustomItemEntry getCosmeticEntry(ServerPlayerEntity player, ItemType type) {
     try {
-      CosmeticTable cosmeticData = findEntry(player.getUuidAsString(), type);
+      CosmeticEntry cosmeticData = findEntry(player.getUuidAsString(), type);
 
       if (cosmeticData == null || cosmeticData.getCosmeticId() == null) {
         return null;
@@ -138,7 +138,7 @@ public class DatabaseManager {
     }
   }
 
-  private static CosmeticTable findEntry(String playerUUID, ItemType type) throws SQLException {
+  private static CosmeticEntry findEntry(String playerUUID, ItemType type) throws SQLException {
     Map<String, Object> queryFields = new HashMap<>();
     queryFields.put("uuid", playerUUID);
     queryFields.put("cosmetic_type", type.toString());

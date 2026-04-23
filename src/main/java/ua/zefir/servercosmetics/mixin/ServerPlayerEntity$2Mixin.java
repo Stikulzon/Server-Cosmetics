@@ -12,8 +12,8 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import ua.zefir.servercosmetics.cosmetic.CosmeticHolder;
 import ua.zefir.servercosmetics.data.ItemType;
-import ua.zefir.servercosmetics.ext.ICosmetics;
 
 @Mixin(targets = "net.minecraft.server.network.ServerPlayerEntity$2")
 public class ServerPlayerEntity$2Mixin {
@@ -28,7 +28,7 @@ public class ServerPlayerEntity$2Mixin {
                   "Lnet/minecraft/advancement/criterion/Criteria;INVENTORY_CHANGED:Lnet/minecraft/advancement/criterion/InventoryChangedCriterion;"))
   void modifyArmorItemStack(ScreenHandler handler, int slot, ItemStack _stack, CallbackInfo ci) {
     if (handler instanceof PlayerScreenHandler) {
-      ICosmetics cosmetics = (ICosmetics) field_29183;
+      CosmeticHolder cosmetics = (CosmeticHolder) field_29183;
       ItemType itemType = getItemTypeForSlot(slot);
       if (itemType != null) {
         cosmetics.getCosmeticFor(itemType).tick();

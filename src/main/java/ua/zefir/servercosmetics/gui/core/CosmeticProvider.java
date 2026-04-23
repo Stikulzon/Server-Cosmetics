@@ -4,6 +4,6 @@ import java.util.List;
 import ua.zefir.servercosmetics.data.CustomItemEntry;
 
 @FunctionalInterface
-public interface ICosmeticProvider {
+public interface CosmeticProvider {
   List<CustomItemEntry> getItems();
 }

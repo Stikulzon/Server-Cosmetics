@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import ua.zefir.servercosmetics.ext.ICosmetics;
+import ua.zefir.servercosmetics.cosmetic.CosmeticHolder;
 
 @Mixin(PlayerEntity.class)
 public class PlayerEntityMixin {
@@ -15,7 +15,7 @@ public class PlayerEntityMixin {
   private void onRemove(Entity.RemovalReason reason, CallbackInfo ci) {
     PlayerEntity player = (PlayerEntity) (Object) this;
     if (player instanceof ServerPlayerEntity serverPlayerEntity) {
-      ((ICosmetics) serverPlayerEntity).removeCosmetics();
+      ((CosmeticHolder) serverPlayerEntity).removeCosmetics();
     }
   }
 }

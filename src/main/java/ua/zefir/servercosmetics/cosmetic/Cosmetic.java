@@ -1,9 +1,9 @@
-package ua.zefir.servercosmetics.ext;
+package ua.zefir.servercosmetics.cosmetic;
 
 import net.minecraft.item.ItemStack;
 import ua.zefir.servercosmetics.data.ItemType;
 
-public interface ICosmetic {
+public interface Cosmetic {
   ItemType getItemType();
 
   ItemStack getCosmeticItemStack();

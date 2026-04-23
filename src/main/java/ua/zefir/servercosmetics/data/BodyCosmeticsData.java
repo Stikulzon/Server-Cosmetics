@@ -8,4 +8,4 @@ public record BodyCosmeticsData(
     boolean autoAlignment,
     boolean offsetWhenSneaking,
     boolean autoscale)
-    implements ICosmeticData {}
+    implements CosmeticData {}

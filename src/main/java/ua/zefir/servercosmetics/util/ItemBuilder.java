@@ -85,10 +85,10 @@ public class ItemBuilder {
     return this;
   }
 
-  public ItemBuilder applyCosmeticLogic(String cosmeticId, boolean dyable) {
+  public ItemBuilder applyCosmeticLogic(String cosmeticId, boolean dyeable) {
     EquippableComponent equippable = stack.get(DataComponentTypes.EQUIPPABLE);
 
-    if (dyable) {
+    if (dyeable) {
       this.dye(16777215);
     }
 
@@ -128,7 +128,7 @@ public class ItemBuilder {
 
     } else {
       try {
-        RuntimeModelManager.requestItemModel(cosmeticId, dyable);
+        RuntimeModelManager.requestItemModel(cosmeticId, dyeable);
         stack.set(DataComponentTypes.ITEM_MODEL, id(cosmeticId));
       } catch (Exception e) {
         ModInit.LOGGER.error("Failed to request item model '{}': {}", cosmeticId, e.getMessage());

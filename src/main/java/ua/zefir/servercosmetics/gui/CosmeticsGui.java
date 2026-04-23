@@ -14,9 +14,9 @@ import ua.zefir.servercosmetics.gui.actions.EquipCosmeticAction;
 import ua.zefir.servercosmetics.gui.filters.ItemTypeFilter;
 import ua.zefir.servercosmetics.gui.filters.PermissionFilter;
 import ua.zefir.servercosmetics.gui.providers.StandaloneCosmeticProvider;
-import ua.zefir.servercosmetics.util.GUIUtils;
+import ua.zefir.servercosmetics.util.GuiUtils;
 
-public class CosmeticsGUI {
+public class CosmeticsGui {
 
   public static int openGui(CommandContext<ServerCommandSource> ctx) {
     ServerPlayerEntity player = ctx.getSource().getPlayer();
@@ -73,7 +73,7 @@ public class CosmeticsGUI {
               config.getButtonConfig("filter.armor-cosmetics-enabled"),
               false);
 
-      GUIUtils.setUpButton(
+      GuiUtils.setUpButton(
           gui,
           config.getButtonConfig("removeSkin"),
           () -> {

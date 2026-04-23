@@ -5,7 +5,7 @@ import com.j256.ormlite.table.DatabaseTable;
 import java.util.Objects;
 
 @DatabaseTable(tableName = "cosmetics")
-public class CosmeticTable {
+public class CosmeticEntry {
   @DatabaseField(generatedId = true)
   private int id;
 
@@ -21,7 +21,7 @@ public class CosmeticTable {
   @DatabaseField(columnName = "dyed_color")
   private Integer dyedColor;
 
-  public CosmeticTable() {}
+  public CosmeticEntry() {}
 
   public int getId() {
     return id;
@@ -67,7 +67,7 @@ public class CosmeticTable {
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-    CosmeticTable that = (CosmeticTable) o;
+    CosmeticEntry that = (CosmeticEntry) o;
     return id == that.id
         && Objects.equals(uuid, that.uuid)
         && Objects.equals(cosmeticType, that.cosmeticType)
@@ -82,7 +82,7 @@ public class CosmeticTable {
 
   @Override
   public String toString() {
-    return "CosmeticTable{"
+    return "CosmeticEntry{"
         + "id="
         + id
         + ", uuid='"

@@ -48,8 +48,8 @@ public class ConfigManager {
   private static boolean legacyMode;
   private static boolean enableExperimentalFeatures;
 
-  public static final AbstractGuiConfig ITEM_SKINS_GUI_CONFIG = new ItemSkinsGUIConfig();
-  public static final AbstractGuiConfig COSMETICS_GUI_CONFIG = new CosmeticsGUIConfig();
+  public static final AbstractGuiConfig ITEM_SKINS_GUI_CONFIG = new ItemSkinsGuiConfig();
+  public static final AbstractGuiConfig COSMETICS_GUI_CONFIG = new CosmeticsGuiConfig();
 
   public static void registerConfigs() {
     RuntimeModelManager.clearRequestedModels();

@@ -12,8 +12,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import ua.zefir.servercosmetics.cosmetic.CosmeticHolder;
 import ua.zefir.servercosmetics.data.ItemType;
-import ua.zefir.servercosmetics.ext.ICosmetics;
 import ua.zefir.servercosmetics.util.Utils;
 
 @Mixin(targets = "net.minecraft.server.network.ServerPlayerEntity$1")
@@ -22,7 +22,7 @@ public class ServerPlayerEntity$1Mixin {
 
   @ModifyVariable(method = "updateSlot", at = @At("HEAD"), argsOnly = true)
   private ItemStack modifyArmorItemStack(ItemStack stack, ScreenHandler handler, int slot) {
-    ICosmetics cosmetics = (ICosmetics) field_58075;
+    CosmeticHolder cosmetics = (CosmeticHolder) field_58075;
     ItemType itemType = Utils.getItemTypeForSlot(slot);
     if (itemType != null) {
       cosmetics.getCosmeticFor(itemType).tick();
@@ -38,7 +38,7 @@ public class ServerPlayerEntity$1Mixin {
       int[] properties,
       CallbackInfo ci) {
     if (handler instanceof PlayerScreenHandler) {
-      ICosmetics cosmetics = (ICosmetics) field_58075;
+      CosmeticHolder cosmetics = (CosmeticHolder) field_58075;
       cosmetics.tickArmor();
     }
   }

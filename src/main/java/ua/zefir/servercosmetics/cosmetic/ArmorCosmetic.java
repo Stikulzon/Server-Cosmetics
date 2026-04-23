@@ -1,4 +1,4 @@
-package ua.zefir.servercosmetics.util;
+package ua.zefir.servercosmetics.cosmetic;
 
 import com.google.common.collect.Lists;
 import com.mojang.datafixers.util.Pair;
@@ -12,9 +12,9 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import org.jetbrains.annotations.Nullable;
 import ua.zefir.servercosmetics.data.ItemType;
 import ua.zefir.servercosmetics.database.DatabaseManager;
-import ua.zefir.servercosmetics.ext.ICosmetic;
+import ua.zefir.servercosmetics.util.Utils;
 
-public class ArmorCosmetic implements ICosmetic {
+public class ArmorCosmetic implements Cosmetic {
 
   private final ServerPlayerEntity player;
   private final ItemType slotType;
@@ -97,9 +97,6 @@ public class ArmorCosmetic implements ICosmetic {
     return null;
   }
 
-  /**
-   * Updates the armor appearance for both the wearer (inventory) and nearby players (entity model).
-   */
   private void updateArmorView() {
     if (player.isRemoved()) {
       return;

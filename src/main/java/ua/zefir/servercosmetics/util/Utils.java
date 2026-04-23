@@ -1,6 +1,6 @@
 package ua.zefir.servercosmetics.util;
 
-import static ua.zefir.servercosmetics.datafixer.NbtDatafixer.NEW_NBT_KEY_CUSTOM_ITEM_ID;
+import static ua.zefir.servercosmetics.datafixer.NbtDataFixer.NEW_NBT_KEY_CUSTOM_ITEM_ID;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -29,7 +29,7 @@ import ua.zefir.servercosmetics.ModInit;
 import ua.zefir.servercosmetics.data.CustomItemEntry;
 import ua.zefir.servercosmetics.data.CustomItemRegistry;
 import ua.zefir.servercosmetics.data.ItemType;
-import ua.zefir.servercosmetics.datafixer.NbtDatafixer;
+import ua.zefir.servercosmetics.datafixer.NbtDataFixer;
 import ua.zefir.servercosmetics.gui.ColorPickerComponent;
 import ua.zefir.servercosmetics.gui.actions.EquipCosmeticAction;
 
@@ -192,7 +192,7 @@ public class Utils {
 
   public static ItemStack filterItemStack(ItemStack originalStack, ServerPlayerEntity player) {
     ItemStack stack = originalStack.copy();
-    NbtDatafixer.fixItemStackNbt(stack);
+    NbtDataFixer.fixItemStackNbt(stack);
 
     if (stack == null || stack.isEmpty()) {
       return stack;

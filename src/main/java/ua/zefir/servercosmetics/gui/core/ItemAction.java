@@ -5,6 +5,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import ua.zefir.servercosmetics.data.CustomItemEntry;
 
 @FunctionalInterface
-public interface IItemAction {
+public interface ItemAction {
   void execute(ServerPlayerEntity player, CustomItemEntry entry, SimpleGui gui);
 }

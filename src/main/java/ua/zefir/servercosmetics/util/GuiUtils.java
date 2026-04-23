@@ -6,7 +6,7 @@ import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
 import ua.zefir.servercosmetics.config.ConfigManager;
 
-public class GUIUtils {
+public class GuiUtils {
   public static void setUpButton(
       SimpleGui gui, ConfigManager.NavigationButton buttonConfig, Runnable callback) {
     setUpButton(gui, buttonConfig, callback, buttonConfig.slotIndex());

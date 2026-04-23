@@ -8,7 +8,7 @@ import ua.zefir.servercosmetics.config.ConfigManager;
 import ua.zefir.servercosmetics.data.CustomItemEntry;
 import ua.zefir.servercosmetics.data.ItemType;
 import ua.zefir.servercosmetics.gui.PagedItemDisplayGui;
-import ua.zefir.servercosmetics.util.GUIUtils;
+import ua.zefir.servercosmetics.util.GuiUtils;
 
 public class FilterManager {
   private final PagedItemDisplayGui gui;
@@ -95,7 +95,7 @@ public class FilterManager {
       }
 
       if (!reg.isHidden) {
-        GUIUtils.setUpButton(
+        GuiUtils.setUpButton(
             gui,
             button,
             () -> {

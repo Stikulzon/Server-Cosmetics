@@ -1,7 +1,7 @@
 package ua.zefir.servercosmetics.gui;
 
 import static ua.zefir.servercosmetics.config.ConfigManager.ITEM_SKINS_GUI_CONFIG;
-import static ua.zefir.servercosmetics.datafixer.NbtDatafixer.NEW_NBT_KEY_CUSTOM_ITEM_ID;
+import static ua.zefir.servercosmetics.datafixer.NbtDataFixer.NEW_NBT_KEY_CUSTOM_ITEM_ID;
 
 import com.mojang.brigadier.context.CommandContext;
 import eu.pb4.sgui.api.ClickType;
@@ -17,14 +17,14 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import ua.zefir.servercosmetics.ModInit;
-import ua.zefir.servercosmetics.config.ItemSkinsGUIConfig;
+import ua.zefir.servercosmetics.config.ItemSkinsGuiConfig;
 import ua.zefir.servercosmetics.gui.actions.ApplySkinAction;
 import ua.zefir.servercosmetics.gui.filters.PermissionFilter;
 import ua.zefir.servercosmetics.gui.filters.SelectedItemFilter;
 import ua.zefir.servercosmetics.gui.providers.ItemSkinProvider;
-import ua.zefir.servercosmetics.util.GUIUtils;
+import ua.zefir.servercosmetics.util.GuiUtils;
 
-public class ItemSkinsGUI {
+public class ItemSkinsGui {
   public static int openItemSkinsGui(CommandContext<ServerCommandSource> ctx) {
     ServerPlayerEntity player = ctx.getSource().getPlayer();
     if (player == null) {
@@ -37,7 +37,7 @@ public class ItemSkinsGUI {
       ItemStack handStack = player.getMainHandStack();
       var config = ITEM_SKINS_GUI_CONFIG;
       var provider = new ItemSkinProvider();
-      var action = new ApplySkinAction(handStack, ItemSkinsGUIConfig.getItemSlot());
+      var action = new ApplySkinAction(handStack, ItemSkinsGuiConfig.getItemSlot());
       PagedItemDisplayGui gui =
           new PagedItemDisplayGui(player, config, provider, action) {
             @Override
@@ -47,7 +47,7 @@ public class ItemSkinsGUI {
                 if (!newClicked.isEmpty()) {
                   GuiHelpers.sendPlayerScreenHandler(this.player);
                   var newProvider = new ItemSkinProvider();
-                  var newAction = new ApplySkinAction(newClicked, ItemSkinsGUIConfig.getItemSlot());
+                  var newAction = new ApplySkinAction(newClicked, ItemSkinsGuiConfig.getItemSlot());
 
                   setupDynamicSlots(this, newClicked);
                   this.reinitialize(newProvider, newAction);
@@ -87,7 +87,7 @@ public class ItemSkinsGUI {
     if (targetStack.getItem() == Items.AIR
         || targetStack.isEmpty()
         || targetStack.getItem() == null) {
-      GUIUtils.setUpButton(gui, ITEM_SKINS_GUI_CONFIG.getButtonConfig("selectItem"), () -> {});
+      GuiUtils.setUpButton(gui, ITEM_SKINS_GUI_CONFIG.getButtonConfig("selectItem"), () -> {});
 
       ((SelectedItemFilter) (gui.getFilterManager().getFilter("selected-item").filter()))
           .setSelectedItem(null);
@@ -95,14 +95,14 @@ public class ItemSkinsGUI {
     }
 
     gui.setSlot(
-        ItemSkinsGUIConfig.getItemSlot(),
+        ItemSkinsGuiConfig.getItemSlot(),
         new GuiElementBuilder(targetStack.copy())
             .setCallback(() -> setupDynamicSlots(gui, ItemStack.EMPTY)));
 
     ((SelectedItemFilter) (gui.getFilterManager().getFilter("selected-item").filter()))
         .setSelectedItem(targetStack.getItem());
 
-    GUIUtils.setUpButton(
+    GuiUtils.setUpButton(
         gui,
         ITEM_SKINS_GUI_CONFIG.getButtonConfig("removeSkin"),
         () -> {
@@ -116,7 +116,7 @@ public class ItemSkinsGUI {
                 comp -> comp.apply(nbt -> nbt.remove(NEW_NBT_KEY_CUSTOM_ITEM_ID)));
           }
 
-          gui.setSlot(ItemSkinsGUIConfig.getItemSlot(), targetStack.copy());
+          gui.setSlot(ItemSkinsGuiConfig.getItemSlot(), targetStack.copy());
         });
   }
 }

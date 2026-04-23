@@ -6,7 +6,7 @@ import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 
-public class NbtDatafixer {
+public class NbtDataFixer {
   private static final String OLD_NBT_KEY_ITEM_SKIN_ID = "itemSkinsID";
   public static final String NEW_NBT_KEY_CUSTOM_ITEM_ID = "cosmeticItemId";
 
@@ -34,7 +34,7 @@ public class NbtDatafixer {
             existing -> NbtComponent.of(finalNbt));
       }
 
-      if (nbt.contains(NbtDatafixer.NEW_NBT_KEY_CUSTOM_ITEM_ID)) {
+      if (nbt.contains(NbtDataFixer.NEW_NBT_KEY_CUSTOM_ITEM_ID)) {
         CustomModelDataComponent expectedModelData =
             stack.get(DataComponentTypes.CUSTOM_MODEL_DATA);
         if (expectedModelData != null) {

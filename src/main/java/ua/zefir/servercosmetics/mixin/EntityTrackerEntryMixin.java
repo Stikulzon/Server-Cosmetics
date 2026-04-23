@@ -13,10 +13,10 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import ua.zefir.servercosmetics.cosmetic.ArmorCosmetic;
+import ua.zefir.servercosmetics.cosmetic.Cosmetic;
+import ua.zefir.servercosmetics.cosmetic.CosmeticHolder;
 import ua.zefir.servercosmetics.data.ItemType;
-import ua.zefir.servercosmetics.ext.ICosmetic;
-import ua.zefir.servercosmetics.ext.ICosmetics;
-import ua.zefir.servercosmetics.util.ArmorCosmetic;
 
 @Mixin(EntityTrackerEntry.class)
 public class EntityTrackerEntryMixin {
@@ -36,7 +36,7 @@ public class EntityTrackerEntryMixin {
       return originalList;
     }
 
-    ICosmetics cosmetics = (ICosmetics) trackedPlayer;
+    CosmeticHolder cosmetics = (CosmeticHolder) trackedPlayer;
     if (cosmetics.getCosmeticsList().isEmpty()) {
       return originalList;
     }
@@ -49,7 +49,7 @@ public class EntityTrackerEntryMixin {
       if (slot.getType() == EquipmentSlot.Type.HUMANOID_ARMOR) {
         try {
           ItemType itemType = ArmorCosmetic.getItemTypeForSlot(slot);
-          ICosmetic cosmetic = cosmetics.getCosmeticFor(itemType);
+          Cosmetic cosmetic = cosmetics.getCosmeticFor(itemType);
           ItemStack cosmeticStack = cosmetic.getCosmeticItemStack();
 
           if (cosmeticStack != null && !cosmeticStack.isEmpty()) {
