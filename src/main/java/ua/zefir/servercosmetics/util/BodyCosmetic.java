@@ -115,7 +115,12 @@ public class BodyCosmetic implements ICosmetic {
     if (cosmeticItemStack.isEmpty()) {
       return;
     }
+    tickYaw();
+    tickIsHidden();
+    tickSneaking();
+  }
 
+  private void tickYaw() {
     (bodyCosmeticsModel).setYaw(player.bodyYaw);
     player
         .getEntityWorld()
@@ -125,17 +130,9 @@ public class BodyCosmetic implements ICosmetic {
             new EntitySetHeadYawS2CPacket(
                 bodyCosmeticsModel,
                 (byte) MathHelper.floor(bodyCosmeticsModel.getYaw() * 256.0F / 360.0F)));
+  }
 
-    if (cosmeticData != null && cosmeticData.offsetWhenSneaking()) {
-      if (player.isSneaking() && !isTilted) {
-        setItem(cosmeticItemStackWhenSneaking);
-        isTilted = true;
-      } else if (!player.isSneaking() && isTilted) {
-        setItem(cosmeticItemStack);
-        isTilted = false;
-      }
-    }
-
+  private void tickIsHidden() {
     boolean shouldBeHidden =
         player.isSwimming()
             || player.isCrawling()
@@ -149,6 +146,18 @@ public class BodyCosmetic implements ICosmetic {
     } else if (!shouldBeHidden && isHidden) {
       setItem(isTilted ? cosmeticItemStackWhenSneaking : cosmeticItemStack);
       isHidden = false;
+    }
+  }
+
+  private void tickSneaking() {
+    if (cosmeticData != null && cosmeticData.offsetWhenSneaking() && !isHidden) {
+      if (player.isSneaking() && !isTilted) {
+        setItem(cosmeticItemStackWhenSneaking);
+        isTilted = true;
+      } else if (!player.isSneaking() && isTilted) {
+        setItem(cosmeticItemStack);
+        isTilted = false;
+      }
     }
   }
 

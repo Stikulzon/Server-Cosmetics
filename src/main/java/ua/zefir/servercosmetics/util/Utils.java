@@ -34,27 +34,27 @@ import ua.zefir.servercosmetics.gui.ColorPickerComponent;
 import ua.zefir.servercosmetics.gui.actions.EquipCosmeticAction;
 
 public class Utils {
-    public static Text formatDisplayName(String st) {
-        StringBuilder sb = new StringBuilder(st.length());
-        // fixing unicodes
-        for (int i = 0; i < st.length(); i++) {
-            char ch = st.charAt(i);
-            if (ch == '\\' && i < st.length() - 1) {
-                char nextChar = st.charAt(i + 1);
-                if (nextChar == 'u') {
-                    String hex = st.substring(i + 2, i + 6);
-                    ch = (char) Integer.parseInt(hex, 16);
-                    i += 5;
-                }
-            }
-            sb.append(ch);
+  public static Text formatDisplayName(String st) {
+    StringBuilder sb = new StringBuilder(st.length());
+    // fixing unicodes
+    for (int i = 0; i < st.length(); i++) {
+      char ch = st.charAt(i);
+      if (ch == '\\' && i < st.length() - 1) {
+        char nextChar = st.charAt(i + 1);
+        if (nextChar == 'u') {
+          String hex = st.substring(i + 2, i + 6);
+          ch = (char) Integer.parseInt(hex, 16);
+          i += 5;
         }
-        String sf = sb.toString().replace("&", "§");
-
-        return TextParser.format(sf);
+      }
+      sb.append(ch);
     }
+    String sf = sb.toString().replace("&", "§");
 
-    public static int wearCosmeticById(CommandContext<ServerCommandSource> context) {
+    return TextParser.format(sf);
+  }
+
+  public static int wearCosmeticById(CommandContext<ServerCommandSource> context) {
     final ServerPlayerEntity player;
     try {
       player = EntityArgumentType.getPlayer(context, "player");
