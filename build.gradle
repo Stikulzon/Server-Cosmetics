@@ -61,8 +61,6 @@ dependencies {
     include(implementation 'com.j256.ormlite:ormlite-jdbc:6.1')
     include(implementation 'com.j256.ormlite:ormlite-core:6.1')
 
-    include(implementation("org.json:json:20250107"))
-
     modImplementation("eu.pb4:polymer-core:[${polymer_version}]")
     modImplementation("eu.pb4:polymer-blocks:[${polymer_version}]")
     modImplementation("eu.pb4:polymer-resource-pack:[${polymer_version}]")

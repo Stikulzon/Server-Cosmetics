@@ -1,5 +1,8 @@
 package ua.zefir.servercosmetics.config;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.mojang.brigadier.context.CommandContext;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import eu.pb4.polymer.resourcepack.api.ResourcePackBuilder;
@@ -15,8 +18,6 @@ import net.minecraft.item.Item;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.simpleyaml.configuration.comments.format.YamlCommentFormat;
 import org.simpleyaml.configuration.file.YamlFile;
 import ua.zefir.servercosmetics.ModInit;
@@ -187,7 +188,8 @@ public class ConfigManager {
           .contains(type)) {
 
         String content = new String(data, StandardCharsets.UTF_8);
-        handleBodyCosmeticJson(builder, new JSONObject(content), fileName, cosmeticEntry);
+        handleBodyCosmeticJson(
+            builder, JsonParser.parseString(content).getAsJsonObject(), fileName, cosmeticEntry);
         return;
       }
     }
@@ -197,7 +199,7 @@ public class ConfigManager {
 
   private static void handleBodyCosmeticJson(
       ResourcePackBuilder builder,
-      JSONObject originalJson,
+      JsonObject originalJson,
       String fileName,
       CustomItemEntry entry) {
     BodyCosmeticsData data = (BodyCosmeticsData) entry.cosmeticData();
@@ -236,7 +238,7 @@ public class ConfigManager {
         originalJson.toString().getBytes(StandardCharsets.UTF_8));
 
     // Apply sneaking (on a copy)
-    JSONObject jsonSneaking = new JSONObject(originalJson.toString());
+    JsonObject jsonSneaking = JsonParser.parseString(originalJson.toString()).getAsJsonObject();
     addHeadDisplay(jsonSneaking, sneakingRotation, sneakingTranslation, scale);
 
     String sneakingFileName = fileName.replace(".json", "_sneaking.json");
@@ -248,22 +250,36 @@ public class ConfigManager {
   }
 
   private static void addHeadDisplay(
-      JSONObject parentJson, List<Number> rotation, List<Number> translation, List<Number> scale) {
-    JSONObject headObject = parentJson.optJSONObject("display");
-    if (headObject == null) {
-      headObject = new JSONObject();
-      parentJson.put("display", headObject);
+      JsonObject parentJson, List<Number> rotation, List<Number> translation, List<Number> scale) {
+    JsonObject displayObj =
+        parentJson.has("display") && parentJson.get("display").isJsonObject()
+            ? parentJson.getAsJsonObject("display")
+            : null;
+    if (displayObj == null) {
+      displayObj = new JsonObject();
+      parentJson.add("display", displayObj);
     }
 
-    JSONObject finalHead = headObject.optJSONObject("head");
-    if (finalHead == null) {
-      finalHead = new JSONObject();
-      headObject.put("head", finalHead);
+    JsonObject headObj =
+        displayObj.has("head") && displayObj.get("head").isJsonObject()
+            ? displayObj.getAsJsonObject("head")
+            : null;
+    if (headObj == null) {
+      headObj = new JsonObject();
+      displayObj.add("head", headObj);
     }
 
-    if (rotation != null) finalHead.put("rotation", new JSONArray(rotation));
-    if (translation != null) finalHead.put("translation", new JSONArray(translation));
-    if (scale != null) finalHead.put("scale", new JSONArray(scale));
+    if (rotation != null) headObj.add("rotation", toJsonArray(rotation));
+    if (translation != null) headObj.add("translation", toJsonArray(translation));
+    if (scale != null) headObj.add("scale", toJsonArray(scale));
+  }
+
+  private static JsonArray toJsonArray(List<Number> values) {
+    JsonArray array = new JsonArray(values.size());
+    for (Number value : values) {
+      array.add(value);
+    }
+    return array;
   }
 
   private static void addData(
