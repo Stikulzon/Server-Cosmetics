@@ -72,10 +72,7 @@ dependencies {
     modImplementation("eu.pb4:polymer-virtual-entity:[${polymer_version}]")
     modImplementation("eu.pb4:polymer-autohost:${polymer_version}")
 
-    include(modImplementation "net.kyori:adventure-api:${project.adventure_version}")
-    include(modImplementation "net.kyori:adventure-text-serializer-legacy:${project.adventure_version}")
-    include(modImplementation "net.kyori:adventure-text-minimessage:${project.adventure_version}")
-    include(modImplementation "net.kyori:adventure-platform-fabric:${project.adventure_platform_version}")
+    modImplementation(include("eu.pb4:placeholder-api:${placeholder_api_version}"))
 }
 
 processResources {

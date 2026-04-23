@@ -1,3 +1,4 @@
+TODO: Update docs to 1.21.10
 # Adding Cosmetics and Skins
 
 Cosmetics and item skins are defined as YAML files inside the `ServerCosmetics/` config directory. The filename (minus `.yml`) becomes the cosmetic/skin ID, which is used to reference its texture and model.
