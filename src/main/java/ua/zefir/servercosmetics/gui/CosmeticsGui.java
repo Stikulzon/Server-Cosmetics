@@ -9,6 +9,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import ua.zefir.servercosmetics.ModInit;
+import ua.zefir.servercosmetics.config.FilterButtonPair;
 import ua.zefir.servercosmetics.data.ItemType;
 import ua.zefir.servercosmetics.gui.actions.EquipCosmeticAction;
 import ua.zefir.servercosmetics.gui.filters.ItemTypeFilter;
@@ -37,24 +38,27 @@ public class CosmeticsGui {
           .addFilter(
               "permission",
               new PermissionFilter(player),
-              config.getButtonConfig("filter.show-owned-skins-disabled"),
-              config.getButtonConfig("filter.show-owned-skins-enabled"),
+              new FilterButtonPair(
+                  config.getButtonConfig("filter.show-owned-skins-enabled"),
+                  config.getButtonConfig("filter.show-owned-skins-disabled")),
               false);
 
       gui.getFilterManager()
           .addFilter(
               "hat",
               new ItemTypeFilter(List.of(ItemType.HAT)),
-              config.getButtonConfig("filter.hats-disabled"),
-              config.getButtonConfig("filter.hats-enabled"),
+              new FilterButtonPair(
+                  config.getButtonConfig("filter.hats-enabled"),
+                  config.getButtonConfig("filter.hats-disabled")),
               true);
 
       gui.getFilterManager()
           .addFilter(
               "body-cosmetic",
               new ItemTypeFilter(List.of(ItemType.BODY_COSMETIC)),
-              config.getButtonConfig("filter.body-cosmetics-disabled"),
-              config.getButtonConfig("filter.body-cosmetics-enabled"),
+              new FilterButtonPair(
+                  config.getButtonConfig("filter.body-cosmetics-enabled"),
+                  config.getButtonConfig("filter.body-cosmetics-disabled")),
               false);
       gui.getFilterManager()
           .addFilter(
@@ -69,8 +73,9 @@ public class CosmeticsGui {
                       ItemType.CHESTPLATE_BODY_COSMETIC,
                       ItemType.LEGGINGS_BODY_COSMETIC,
                       ItemType.BOOTS_BODY_COSMETIC)),
-              config.getButtonConfig("filter.armor-cosmetics-disabled"),
-              config.getButtonConfig("filter.armor-cosmetics-enabled"),
+              new FilterButtonPair(
+                  config.getButtonConfig("filter.armor-cosmetics-enabled"),
+                  config.getButtonConfig("filter.armor-cosmetics-disabled")),
               false);
 
       GuiUtils.setUpButton(

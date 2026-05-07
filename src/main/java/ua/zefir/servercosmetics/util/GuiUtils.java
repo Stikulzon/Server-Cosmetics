@@ -4,19 +4,15 @@ import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
-import ua.zefir.servercosmetics.config.ConfigManager;
+import ua.zefir.servercosmetics.config.ButtonConfig;
 
 public class GuiUtils {
-  public static void setUpButton(
-      SimpleGui gui, ConfigManager.NavigationButton buttonConfig, Runnable callback) {
+  public static void setUpButton(SimpleGui gui, ButtonConfig buttonConfig, Runnable callback) {
     setUpButton(gui, buttonConfig, callback, buttonConfig.slotIndex());
   }
 
   public static void setUpButton(
-      SimpleGui gui,
-      ConfigManager.NavigationButton buttonConfig,
-      Runnable callback,
-      int slotIndex) {
+      SimpleGui gui, ButtonConfig buttonConfig, Runnable callback, int slotIndex) {
     if (buttonConfig != null) {
       ItemStack itemStack = new ItemStack(buttonConfig.baseItem());
       if (buttonConfig.modelPath() != null) {

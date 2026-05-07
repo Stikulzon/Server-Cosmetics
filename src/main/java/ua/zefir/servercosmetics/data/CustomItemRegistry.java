@@ -15,7 +15,7 @@ import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
 import org.simpleyaml.configuration.file.YamlFile;
 import ua.zefir.servercosmetics.ModInit;
-import ua.zefir.servercosmetics.config.ConfigManager;
+import ua.zefir.servercosmetics.config.MainConfig;
 import ua.zefir.servercosmetics.util.ItemBuilder;
 import ua.zefir.servercosmetics.util.Utils;
 
@@ -50,12 +50,12 @@ public class CustomItemRegistry {
   }
 
   private static void loadAllCosmetics() {
-    Path cosmeticsDir = ConfigManager.SERVER_COSMETICS_DIR.resolve("Cosmetics");
+    Path cosmeticsDir = MainConfig.SERVER_COSMETICS_DIR.resolve("Cosmetics");
     loadItemsFromDirectory(cosmeticsDir, "cosmetic-item");
   }
 
   private static void loadAllItemSkins() {
-    Path itemSkinsDir = ConfigManager.SERVER_COSMETICS_DIR.resolve("ItemSkins");
+    Path itemSkinsDir = MainConfig.SERVER_COSMETICS_DIR.resolve("ItemSkins");
     loadItemsFromDirectory(itemSkinsDir, null);
   }
 

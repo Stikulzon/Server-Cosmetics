@@ -1,6 +1,6 @@
 package ua.zefir.servercosmetics.util;
 
-import static ua.zefir.servercosmetics.config.ConfigManager.SERVER_COSMETICS_DIR;
+import static ua.zefir.servercosmetics.config.MainConfig.SERVER_COSMETICS_DIR;
 
 import com.mojang.brigadier.context.CommandContext;
 import java.io.IOException;
@@ -18,7 +18,6 @@ import ua.zefir.servercosmetics.data.ItemType;
 
 public class ConfigGenerator {
 
-  /** The main command logic that scans for unused models and generates definitions. */
   public static int generateCosmeticDefinitions(CommandContext<ServerCommandSource> context) {
     Path assetsDir = SERVER_COSMETICS_DIR.resolve("Assets");
     if (!Files.isDirectory(assetsDir)) {
@@ -42,8 +41,7 @@ public class ConfigGenerator {
       ModInit.LOGGER.error("Error walking assets directory for config generation", e);
       context
           .getSource()
-          .sendError(
-              Text.literal("An error occurred while scanning models. Check console for details."));
+          .sendError(Text.literal("An error occurred while scanning models. Check console."));
       return 0;
     }
 
@@ -67,29 +65,16 @@ public class ConfigGenerator {
     return (int) generatedCount;
   }
 
-  /**
-   * Processes a single model .json file. Returns true if a new config was generated, false
-   * otherwise.
-   */
   private static boolean processSingleModelFile(Path jsonFilePath) {
     String fileName = jsonFilePath.getFileName().toString();
     String cosmeticId = fileName.substring(0, fileName.lastIndexOf('.')).toLowerCase(Locale.ROOT);
-
-    //        if (GUI_BUTTON_MODELS.contains(cosmeticId)) {
-    //            return false;
-    //        }
 
     if (CustomItemRegistry.getCosmetic(cosmeticId) != null) {
       return false;
     }
 
     Path outputDir = SERVER_COSMETICS_DIR.resolve("Cosmetics/generated");
-    try {
-      Files.createDirectories(outputDir);
-    } catch (IOException e) {
-      ModInit.LOGGER.error("Failed to create generated cosmetics directory", e);
-      return false;
-    }
+    ensureDirectoryExists(outputDir);
 
     Path configFile = outputDir.resolve(cosmeticId + ".yml");
     if (Files.exists(configFile)) {
@@ -116,7 +101,14 @@ public class ConfigGenerator {
     }
   }
 
-  /** Infers the cosmetic ItemType based on common naming conventions in the filename. */
+  private static void ensureDirectoryExists(Path path) {
+    try {
+      Files.createDirectories(path);
+    } catch (IOException e) {
+      ModInit.LOGGER.error("Failed to create generated cosmetics directory", e);
+    }
+  }
+
   private static ItemType inferTypeFromFileName(String cosmeticId) {
     if (cosmeticId.contains("helmet")) return ItemType.HELMET;
     if (cosmeticId.contains("chestplate")) return ItemType.CHESTPLATE;
@@ -127,10 +119,6 @@ public class ConfigGenerator {
     return ItemType.HAT;
   }
 
-  /**
-   * Converts a filename-style string (like "cool_hat_model") to a display-style string ("Cool Hat
-   * Model").
-   */
   private static String prettifyName(String rawName) {
     rawName = rawName.replace("_", " ").replace("-", " ");
     String[] words = rawName.split(" ");

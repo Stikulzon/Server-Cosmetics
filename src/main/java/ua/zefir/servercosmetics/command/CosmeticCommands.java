@@ -12,6 +12,7 @@ import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import ua.zefir.servercosmetics.config.ConfigManager;
+import ua.zefir.servercosmetics.config.MainConfig;
 import ua.zefir.servercosmetics.gui.CosmeticsGui;
 import ua.zefir.servercosmetics.gui.ItemSkinsGui;
 import ua.zefir.servercosmetics.util.ConfigGenerator;
@@ -21,6 +22,7 @@ public class CosmeticCommands {
   public static void registerCommands() {
     CommandRegistrationCallback.EVENT.register(
         (dispatcher, registryAccess, environment) -> {
+          MainConfig mainConfig = ConfigManager.getMainConfig();
           dispatcher.register(
               literal("sc")
                   .then(
@@ -28,7 +30,7 @@ public class CosmeticCommands {
                           .requires(
                               Permissions.require(
                                   Objects.requireNonNullElse(
-                                      ConfigManager.getConfigReloadPermission(),
+                                      mainConfig.getConfigReloadPermission(),
                                       "servercosmetics.reload"),
                                   4))
                           .executes(ConfigManager::reloadAllConfigsCommand))
@@ -45,7 +47,7 @@ public class CosmeticCommands {
                           .requires(
                               Permissions.require(
                                   Objects.requireNonNullElse(
-                                      ConfigManager.getCosmeticsReloadPermission(),
+                                      mainConfig.getCosmeticsReloadPermission(),
                                       "servercosmetics.reload.cosmetics"),
                                   4))
                           .executes(ConfigManager::reloadCosmeticsConfigsCommand)));
@@ -58,7 +60,7 @@ public class CosmeticCommands {
                           .requires(
                               Permissions.require(
                                   Objects.requireNonNullElse(
-                                      ConfigManager.getCosmeticsReloadPermission(),
+                                      mainConfig.getCosmeticsReloadPermission(),
                                       "servercosmetics.reload.cosmetics"),
                                   4))
                           .executes(ConfigManager::reloadCosmeticsConfigsCommand)));
@@ -84,7 +86,7 @@ public class CosmeticCommands {
                           .requires(
                               Permissions.require(
                                   Objects.requireNonNullElse(
-                                      ConfigManager.getItemSkinsReloadPermission(),
+                                      mainConfig.getItemSkinsReloadPermission(),
                                       "servercosmetics.reload.itemskins"),
                                   4))
                           .executes(ConfigManager::reloadItemSkinsConfigsCommand)));
@@ -97,7 +99,7 @@ public class CosmeticCommands {
                           .requires(
                               Permissions.require(
                                   Objects.requireNonNullElse(
-                                      ConfigManager.getItemSkinsReloadPermission(),
+                                      mainConfig.getItemSkinsReloadPermission(),
                                       "servercosmetics.reload.itemskins"),
                                   4))
                           .executes(ConfigManager::reloadItemSkinsConfigsCommand)));

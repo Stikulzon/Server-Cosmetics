@@ -16,10 +16,56 @@ import org.simpleyaml.configuration.comments.format.YamlCommentFormat;
 import org.simpleyaml.configuration.file.YamlFile;
 import ua.zefir.servercosmetics.ModInit;
 import ua.zefir.servercosmetics.datagen.RuntimeModelManager;
-import ua.zefir.servercosmetics.util.ItemBuilder;
 import ua.zefir.servercosmetics.util.Utils;
 
 public abstract class AbstractGuiConfig {
+
+  private static final List<Integer> DEFAULT_DISPLAY_SLOTS =
+      List.of(19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41, 42, 43);
+
+  private static final List<ButtonDefinition> COMMON_BUTTONS =
+      List.of(
+          new ButtonDefinition(
+              "search",
+              "&eSearch",
+              "minecraft:oak_sign",
+              null,
+              48,
+              List.of("&7Click to search for items", "&7by name.")),
+          new ButtonDefinition("next", "Next", "minecraft:paper", "next", 51, List.of()),
+          new ButtonDefinition("previous", "Back", "minecraft:paper", "previous", 47, List.of()),
+          new ButtonDefinition(
+              "removeSkin", "Remove skin", "minecraft:paper", "remove", 49, List.of()),
+          new ButtonDefinition(
+              "filter.show-owned-skins-enabled",
+              "&bOwned Cosmetics Filter",
+              "minecraft:diamond_chestplate",
+              null,
+              10,
+              List.of(
+                  "&aShow owned cosmetics only <green>(Enabled)",
+                  "",
+                  "&aClick to change the mode!",
+                  "")),
+          new ButtonDefinition(
+              "filter.show-owned-skins-disabled",
+              "&bOwned Cosmetics Filter",
+              "minecraft:golden_chestplate",
+              null,
+              10,
+              List.of(
+                  "&7Show owned cosmetics only <blue>(Disabled)",
+                  "",
+                  "&aClick to change the mode!",
+                  "")),
+          new ButtonDefinition(
+              "noCosmeticsAvailable",
+              "No cosmetics available",
+              "minecraft:barrier",
+              null,
+              -1,
+              List.of()),
+          new ButtonDefinition("pageIndicator", "Page", "minecraft:paper", null, 53, List.of()));
 
   protected final Path configFilePath;
   protected YamlFile yamlFile;
@@ -31,15 +77,13 @@ public abstract class AbstractGuiConfig {
   protected String messageLockedString;
   protected boolean pageIndicatorEnabled;
   protected boolean replaceInventory;
-  private List<String> disabledFilters;
-  ScreenHandlerType<GenericContainerScreenHandler> screenHandlerType;
+  protected List<String> disabledFilters;
+  protected ScreenHandlerType<GenericContainerScreenHandler> screenHandlerType;
 
-  protected final Map<String, ConfigManager.NavigationButton> navigationButtons = new HashMap<>();
+  protected final Map<String, ButtonConfig> navigationButtons = new HashMap<>();
 
-  static final Map<String, Map<String, Object>> buttonDefaults = new HashMap<>();
-
-  public AbstractGuiConfig(String configFileName) {
-    this.configFilePath = ConfigManager.SERVER_COSMETICS_DIR.resolve(configFileName);
+  protected AbstractGuiConfig(String configFileName) {
+    this.configFilePath = MainConfig.SERVER_COSMETICS_DIR.resolve(configFileName);
   }
 
   public void init() {
@@ -100,13 +144,9 @@ public abstract class AbstractGuiConfig {
     loadGuiSize(file.getInt("guiRows", 6));
   }
 
-  protected void addCommonDefaults(YamlFile file) {
+  private void addCommonDefaults(YamlFile file) {
     file.addDefault("guiName", "Default GUI Name");
-    file.addDefault(
-        "displaySlots",
-        List.of(
-            19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41, 42, 43));
-    file.addDefault("permissions.openGui", "servercosmetics.gui.default");
+    file.addDefault("displaySlots", DEFAULT_DISPLAY_SLOTS);
     file.addDefault("messages.unlocked", "&a(Unlocked)");
     file.addDefault("messages.locked", "&c(Locked)");
     file.addDefault("pageIndicatorEnabled", false);
@@ -134,7 +174,42 @@ public abstract class AbstractGuiConfig {
         };
   }
 
-  protected void loadNavigationButton(YamlFile yamlFile, String buttonKey) {
+  protected List<ButtonDefinition> getButtonDefinitions() {
+    return COMMON_BUTTONS;
+  }
+
+  private void addDefaultButtons(ConfigurationSection buttonsSection) {
+    for (ButtonDefinition def : getButtonDefinitions()) {
+      addDefaultButtonToSection(buttonsSection, def.key(), def.toPropertyMap());
+    }
+  }
+
+  private static void addDefaultButtonToSection(
+      ConfigurationSection buttonsSection, String buttonName, Map<String, Object> properties) {
+    ConfigurationSection buttonSection = buttonsSection.getConfigurationSection(buttonName);
+    if (buttonSection == null) {
+      buttonSection = buttonsSection.createSection(buttonName);
+    }
+    ConfigurationSection finalButtonSection = buttonSection;
+    properties.forEach(
+        (key, value) -> {
+          if (!finalButtonSection.contains(key)
+              && value != null
+              && !value.equals("")
+              && (!(value instanceof List<?>)
+                  || (value instanceof List<?> list && !list.isEmpty()))) {
+            finalButtonSection.set(key, value);
+          }
+        });
+  }
+
+  protected void loadAllNavigationButtons(YamlFile file) {
+    for (ButtonDefinition def : getButtonDefinitions()) {
+      loadNavigationButton(file, def.key());
+    }
+  }
+
+  private void loadNavigationButton(YamlFile yamlFile, String buttonKey) {
     String basePath = "buttons." + buttonKey;
     if (!yamlFile.isConfigurationSection(basePath)) {
       ModInit.LOGGER.warn(
@@ -156,7 +231,7 @@ public abstract class AbstractGuiConfig {
     String formattedItemString =
         baseItemString.contains(":") ? baseItemString : "minecraft:" + baseItemString.toLowerCase();
 
-    Item item = ItemBuilder.fromId(formattedItemString).build().getItem();
+    Item item = Registries.ITEM.get(Identifier.of(formattedItemString));
 
     Identifier modelPath = null;
     if (yamlFile.isSet(basePath + ".textureName")) {
@@ -181,31 +256,12 @@ public abstract class AbstractGuiConfig {
 
     navigationButtons.put(
         buttonKey,
-        new ConfigManager.NavigationButton(
+        new ButtonConfig(
             Utils.formatDisplayName(yamlFile.getString(basePath + ".name", "Button " + buttonKey)),
             item,
             modelPath,
             slotIndex,
             loreStrings));
-  }
-
-  public static void addDefaultButtonToSection(
-      ConfigurationSection buttonsSection, String buttonName, Map<String, Object> properties) {
-    ConfigurationSection buttonSection = buttonsSection.getConfigurationSection(buttonName);
-    if (buttonSection == null) {
-      buttonSection = buttonsSection.createSection(buttonName);
-    }
-    final ConfigurationSection finalButtonSection = buttonSection;
-    properties.forEach(
-        (key, value) -> {
-          if (!finalButtonSection.contains(key)
-              && value != null
-              && !value.equals("")
-              && (!(value instanceof List<?>)
-                  || (value instanceof List<?> list && !list.isEmpty()))) {
-            finalButtonSection.set(key, value);
-          }
-        });
   }
 
   public Text getGuiName() {
@@ -220,14 +276,14 @@ public abstract class AbstractGuiConfig {
     return Utils.formatDisplayName(this.messageLockedString);
   }
 
-  public ConfigManager.NavigationButton getButtonConfig(String buttonKey) {
-    ConfigManager.NavigationButton button = navigationButtons.get(buttonKey);
+  public ButtonConfig getButtonConfig(String buttonKey) {
+    ButtonConfig button = navigationButtons.get(buttonKey);
     if (button == null) {
       ModInit.LOGGER.warn(
           "Requested non-existent button config: '{}' from {}",
           buttonKey,
           this.configFilePath.getFileName());
-      return new ConfigManager.NavigationButton(
+      return new ButtonConfig(
           Text.literal("Error"),
           Registries.ITEM.get(Identifier.of("minecraft:barrier")),
           null,
@@ -237,136 +293,12 @@ public abstract class AbstractGuiConfig {
     return button;
   }
 
-  // --- Abstract methods for subclasses ---
-  protected abstract String getGuiConfigHeader();
-
-  protected abstract void addSpecificDefaults(YamlFile file);
-
-  protected abstract void loadSpecificConfig(YamlFile file);
-
-  protected void addDefaultButtons(ConfigurationSection buttonsSection) {
-    buttonDefaults.put(
-        "search",
-        Map.of(
-            "name",
-            "&eSearch",
-            "item",
-            "minecraft:oak_sign",
-            "slotIndex",
-            48,
-            "lore",
-            List.of("&7Click to search for items", "&7by name.")));
-
-    //    buttonDefaults.put(
-    //        "clearSearch",
-    //        Map.of(
-    //            "name",
-    //            "&cClear Search",
-    //            "item",
-    //            "minecraft:barrier",
-    //            "slotIndex",
-    //            48,
-    //            "lore",
-    //            List.of("&7Current filter: &e%search%", "", "&7Click to clear.")));
-
-    buttonDefaults.put(
-        "next",
-        Map.of("name", "Next", "item", "minecraft:paper", "textureName", "next", "slotIndex", 51));
-
-    buttonDefaults.put(
-        "previous",
-        Map.of(
-            "name", "Back", "item", "minecraft:paper", "textureName", "previous", "slotIndex", 47));
-
-    buttonDefaults.put(
-        "removeSkin",
-        Map.of(
-            "name",
-            "Remove skin",
-            "item",
-            "minecraft:paper",
-            "textureName",
-            "remove",
-            "slotIndex",
-            49));
-
-    buttonDefaults.put(
-        "filter.show-owned-skins-enabled",
-        Map.of(
-            "name",
-            "&bOwned Cosmetics Filter",
-            "item",
-            "minecraft:diamond_chestplate",
-            "slotIndex",
-            10,
-            "lore",
-            List.of(
-                "&aShow owned cosmetics only <green>(Enabled)",
-                "",
-                "&aClick to change the mode!",
-                "")));
-
-    buttonDefaults.put(
-        "filter.show-owned-skins-disabled",
-        Map.of(
-            "name",
-            "&bOwned Cosmetics Filter",
-            "item",
-            "minecraft:golden_chestplate",
-            "slotIndex",
-            10,
-            "lore",
-            List.of(
-                "&7Show owned cosmetics only <blue>(Disabled)",
-                "",
-                "&aClick to change the mode!",
-                "")));
-
-    buttonDefaults.put(
-        "noCosmeticsAvailable",
-        Map.of(
-            "name", "No cosmetics available",
-            "item", "minecraft:barrier",
-            "slotIndex", ""));
-
-    buttonDefaults.put(
-        "pageIndicator", Map.of("name", "Page", "item", "minecraft:paper", "slotIndex", 53));
-  }
-
-  protected void loadAllNavigationButtons(YamlFile file) {
-    loadNavigationButton(file, "next");
-    loadNavigationButton(file, "previous");
-    loadNavigationButton(file, "removeSkin");
-    loadNavigationButton(file, "pageIndicator");
-    loadNavigationButton(file, "noCosmeticsAvailable");
-    loadNavigationButton(file, "search");
-
-    loadNavigationButton(file, "filter.show-owned-skins-enabled");
-    loadNavigationButton(file, "filter.show-owned-skins-disabled");
-  }
-
-  public String getGuiNameString() {
-    return guiNameString;
-  }
-
   public int[] getDisplaySlots() {
     return displaySlots;
   }
 
   public String getPermissionOpenGui() {
     return permissionOpenGui;
-  }
-
-  public String getMessageUnlockedString() {
-    return messageUnlockedString;
-  }
-
-  public String getMessageLockedString() {
-    return messageLockedString;
-  }
-
-  public boolean isPageIndicatorEnabled() {
-    return pageIndicatorEnabled;
   }
 
   public boolean isReplaceInventory() {
@@ -381,7 +313,9 @@ public abstract class AbstractGuiConfig {
     return screenHandlerType;
   }
 
-  public Map<String, ConfigManager.NavigationButton> getNavigationButtons() {
-    return navigationButtons;
-  }
+  protected abstract String getGuiConfigHeader();
+
+  protected abstract void addSpecificDefaults(YamlFile file);
+
+  protected abstract void loadSpecificConfig(YamlFile file);
 }

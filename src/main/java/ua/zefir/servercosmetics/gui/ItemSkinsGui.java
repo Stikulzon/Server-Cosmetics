@@ -17,6 +17,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import ua.zefir.servercosmetics.ModInit;
+import ua.zefir.servercosmetics.config.FilterButtonPair;
 import ua.zefir.servercosmetics.config.ItemSkinsGuiConfig;
 import ua.zefir.servercosmetics.gui.actions.ApplySkinAction;
 import ua.zefir.servercosmetics.gui.filters.PermissionFilter;
@@ -36,8 +37,9 @@ public class ItemSkinsGui {
     try {
       ItemStack handStack = player.getMainHandStack();
       var config = ITEM_SKINS_GUI_CONFIG;
+      int itemSlot = ((ItemSkinsGuiConfig) config).getItemSlot();
       var provider = new ItemSkinProvider();
-      var action = new ApplySkinAction(handStack, ItemSkinsGuiConfig.getItemSlot());
+      var action = new ApplySkinAction(handStack, itemSlot);
       PagedItemDisplayGui gui =
           new PagedItemDisplayGui(player, config, provider, action) {
             @Override
@@ -47,7 +49,7 @@ public class ItemSkinsGui {
                 if (!newClicked.isEmpty()) {
                   GuiHelpers.sendPlayerScreenHandler(this.player);
                   var newProvider = new ItemSkinProvider();
-                  var newAction = new ApplySkinAction(newClicked, ItemSkinsGuiConfig.getItemSlot());
+                  var newAction = new ApplySkinAction(newClicked, itemSlot);
 
                   setupDynamicSlots(this, newClicked);
                   this.reinitialize(newProvider, newAction);
@@ -60,11 +62,11 @@ public class ItemSkinsGui {
           .addFilter(
               "permission",
               new PermissionFilter(player),
-              config.getButtonConfig("filter.show-owned-skins-disabled"),
-              config.getButtonConfig("filter.show-owned-skins-enabled"),
+              new FilterButtonPair(
+                  config.getButtonConfig("filter.show-owned-skins-enabled"),
+                  config.getButtonConfig("filter.show-owned-skins-disabled")),
               false);
-      gui.getFilterManager()
-          .addFilter("selected-item", new SelectedItemFilter(), null, null, true, true);
+      gui.getFilterManager().addFilter("selected-item", new SelectedItemFilter(), null, true, true);
 
       setupDynamicSlots(gui, handStack);
 
@@ -84,6 +86,7 @@ public class ItemSkinsGui {
   }
 
   private static void setupDynamicSlots(PagedItemDisplayGui gui, ItemStack targetStack) {
+    int itemSlot = ((ItemSkinsGuiConfig) gui.getGuiConfig()).getItemSlot();
     if (targetStack.getItem() == Items.AIR
         || targetStack.isEmpty()
         || targetStack.getItem() == null) {
@@ -95,7 +98,7 @@ public class ItemSkinsGui {
     }
 
     gui.setSlot(
-        ItemSkinsGuiConfig.getItemSlot(),
+        itemSlot,
         new GuiElementBuilder(targetStack.copy())
             .setCallback(() -> setupDynamicSlots(gui, ItemStack.EMPTY)));
 
@@ -116,7 +119,7 @@ public class ItemSkinsGui {
                 comp -> comp.apply(nbt -> nbt.remove(NEW_NBT_KEY_CUSTOM_ITEM_ID)));
           }
 
-          gui.setSlot(ItemSkinsGuiConfig.getItemSlot(), targetStack.copy());
+          gui.setSlot(itemSlot, targetStack.copy());
         });
   }
 }

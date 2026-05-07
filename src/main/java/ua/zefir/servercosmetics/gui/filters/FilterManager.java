@@ -4,7 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
-import ua.zefir.servercosmetics.config.ConfigManager;
+import ua.zefir.servercosmetics.config.ButtonConfig;
+import ua.zefir.servercosmetics.config.FilterButtonPair;
 import ua.zefir.servercosmetics.data.CustomItemEntry;
 import ua.zefir.servercosmetics.data.ItemType;
 import ua.zefir.servercosmetics.gui.PagedItemDisplayGui;
@@ -18,10 +19,7 @@ public class FilterManager {
   private String searchTerm = "";
 
   public record FilterRegistration(
-      Predicate<CustomItemEntry> filter,
-      ConfigManager.NavigationButton activeButton,
-      ConfigManager.NavigationButton inactiveButton,
-      boolean isHidden) {}
+      Predicate<CustomItemEntry> filter, FilterButtonPair buttons, boolean isHidden) {}
 
   public FilterManager(PagedItemDisplayGui gui) {
     this.gui = gui;
@@ -30,25 +28,22 @@ public class FilterManager {
   public void addFilter(
       String key,
       Predicate<CustomItemEntry> filter,
-      ConfigManager.NavigationButton inactiveButton,
-      ConfigManager.NavigationButton activeButton,
+      FilterButtonPair buttons,
       boolean initiallyActive) {
-    addFilter(key, filter, inactiveButton, activeButton, initiallyActive, false);
+    addFilter(key, filter, buttons, initiallyActive, false);
   }
 
   public void addFilter(
       String key,
       Predicate<CustomItemEntry> filter,
-      ConfigManager.NavigationButton inactiveButton,
-      ConfigManager.NavigationButton activeButton,
+      FilterButtonPair buttons,
       boolean initiallyActive,
       boolean isHidden) {
     if (gui.getGuiConfig().getDisabledFilters() != null
         && gui.getGuiConfig().getDisabledFilters().contains(key)) {
       return;
     }
-    registeredFilters.put(
-        key, new FilterRegistration(filter, inactiveButton, activeButton, isHidden));
+    registeredFilters.put(key, new FilterRegistration(filter, buttons, isHidden));
     activeStates.put(key, initiallyActive);
   }
 
@@ -87,14 +82,8 @@ public class FilterManager {
       FilterRegistration reg = entry.getValue();
       boolean isActive = activeStates.getOrDefault(key, false);
 
-      ConfigManager.NavigationButton button = isActive ? reg.inactiveButton : reg.activeButton;
-
-      if (registeredFilters.get(key).filter() instanceof ItemTypeFilter(List<ItemType> types)
-          && isActive) {
-        this.targetTypes = types;
-      }
-
-      if (!reg.isHidden) {
+      if (!reg.isHidden && reg.buttons() != null) {
+        ButtonConfig button = isActive ? reg.buttons().inactive() : reg.buttons().active();
         GuiUtils.setUpButton(
             gui,
             button,

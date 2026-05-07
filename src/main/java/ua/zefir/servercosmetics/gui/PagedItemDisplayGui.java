@@ -11,7 +11,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import ua.zefir.servercosmetics.config.AbstractGuiConfig;
-import ua.zefir.servercosmetics.config.ConfigManager;
+import ua.zefir.servercosmetics.config.ButtonConfig;
 import ua.zefir.servercosmetics.data.CustomItemEntry;
 import ua.zefir.servercosmetics.datagen.ui.GuiTextures;
 import ua.zefir.servercosmetics.gui.actions.OpenColorPickerAction;
@@ -157,7 +157,7 @@ public class PagedItemDisplayGui extends SimpleGui {
   }
 
   private void setupSearchButton() {
-    ConfigManager.NavigationButton btnConfig = guiConfig.getButtonConfig("search");
+    ButtonConfig btnConfig = guiConfig.getButtonConfig("search");
     if (btnConfig == null) return;
 
     String currentTerm = filterManager.getSearchTerm();
@@ -166,8 +166,8 @@ public class PagedItemDisplayGui extends SimpleGui {
     List<String> dynamicLore =
         btnConfig.lore().stream().map(line -> line.replace("%search_term%", displayTerm)).toList();
 
-    ConfigManager.NavigationButton dynamicBtn =
-        new ConfigManager.NavigationButton(
+    ButtonConfig dynamicBtn =
+        new ButtonConfig(
             btnConfig.name(),
             btnConfig.baseItem(),
             btnConfig.modelPath(),
@@ -186,7 +186,7 @@ public class PagedItemDisplayGui extends SimpleGui {
           }
         };
 
-    ConfigManager.NavigationButton btnConfig = guiConfig.getButtonConfig("search");
+    ButtonConfig btnConfig = guiConfig.getButtonConfig("search");
     anvilGui.setTitle(GuiTextures.SEARCH_MENU.apply(Text.literal("")));
 
     anvilGui.setDefaultInputValue(filterManager.getSearchTerm());
