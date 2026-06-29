@@ -113,7 +113,7 @@ public class PagedItemDisplayGui extends SimpleGui {
 
   private ItemAction determineAction(CustomItemEntry entry) {
     if (entry.dyeable()) {
-      return new OpenColorPickerAction();
+      return new OpenColorPickerAction(entry.type());
     }
     return defaultClickAction;
   }

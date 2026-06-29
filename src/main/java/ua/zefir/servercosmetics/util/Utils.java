@@ -104,6 +104,7 @@ public class Utils {
       new ColorPickerComponent(
               player,
               itemForColorPicker,
+              entry.type(),
               (coloredStack) -> {
                 new EquipCosmeticAction().execute(player, coloredStack, entry.type());
                 context
@@ -113,7 +114,8 @@ public class Utils {
                             Text.literal(
                                 "Equipped colored cosmetic: " + entry.displayName().getString()),
                         false);
-              })
+              },
+              null)
           .open();
 
     } else {
@@ -242,5 +244,21 @@ public class Utils {
 
   public static ItemStack filterItemStack(ItemStack originalStack) {
     return filterItemStack(originalStack, null);
+  }
+
+  public static ItemStack reflectRealDurability(ItemStack displayStack, ItemStack realStack) {
+    if (displayStack.isEmpty() || realStack.isEmpty()) {
+      return displayStack;
+    }
+
+    int realDamage = realStack.getDamage();
+    int realMaxDamage = realStack.getMaxDamage();
+
+    if (realDamage > 0 && realMaxDamage > 0) {
+      displayStack.set(DataComponentTypes.DAMAGE, realDamage);
+      displayStack.set(DataComponentTypes.MAX_DAMAGE, realMaxDamage);
+    }
+
+    return displayStack;
   }
 }

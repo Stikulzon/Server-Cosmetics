@@ -25,6 +25,7 @@ import ua.zefir.servercosmetics.data.ItemType;
 public class DatabaseManager {
   private static final String DATABASE_URL = "jdbc:sqlite:cosmetics.db";
   private static final Dao<CosmeticEntry, Integer> cosmeticDao;
+  private static final Dao<PresetEntry, Integer> presetsDao;
 
   static {
     try {
@@ -32,6 +33,8 @@ public class DatabaseManager {
       ConnectionSource connectionSource = new JdbcConnectionSource(DATABASE_URL);
       TableUtils.createTableIfNotExists(connectionSource, CosmeticEntry.class);
       cosmeticDao = DaoManager.createDao(connectionSource, CosmeticEntry.class);
+      TableUtils.createTableIfNotExists(connectionSource, PresetEntry.class);
+      presetsDao = DaoManager.createDao(connectionSource, PresetEntry.class);
     } catch (Exception e) {
       ModInit.LOGGER.error("Failed to initialize database", e);
       throw new RuntimeException("Error initializing database", e);
@@ -159,5 +162,54 @@ public class DatabaseManager {
   private static Integer getDyedColorFromStack(ItemStack stack) {
     DyedColorComponent dyedColor = stack.get(DataComponentTypes.DYED_COLOR);
     return dyedColor != null ? dyedColor.rgb() : null;
+  }
+
+  public static void savePreset(ServerPlayerEntity player, int slot, String cosmeticIds) {
+    try {
+      PresetEntry existing = findPresetEntry(player.getUuidAsString(), slot);
+      if (existing != null) {
+        existing.setCosmeticIds(cosmeticIds);
+        presetsDao.update(existing);
+      } else {
+        PresetEntry entry = new PresetEntry();
+        entry.setUuid(player.getUuidAsString());
+        entry.setSlot(slot);
+        entry.setCosmeticIds(cosmeticIds);
+        presetsDao.create(entry);
+      }
+    } catch (SQLException e) {
+      ModInit.LOGGER.error(
+          "Error saving preset for player {} slot {}", player.getUuidAsString(), slot, e);
+    }
+  }
+
+  public static String loadPreset(ServerPlayerEntity player, int slot) {
+    try {
+      PresetEntry entry = findPresetEntry(player.getUuidAsString(), slot);
+      return entry != null ? entry.getCosmeticIds() : null;
+    } catch (SQLException e) {
+      ModInit.LOGGER.error(
+          "Error loading preset for player {} slot {}", player.getUuidAsString(), slot, e);
+      return null;
+    }
+  }
+
+  public static void deletePreset(ServerPlayerEntity player, int slot) {
+    try {
+      PresetEntry entry = findPresetEntry(player.getUuidAsString(), slot);
+      if (entry != null) {
+        presetsDao.delete(entry);
+      }
+    } catch (SQLException e) {
+      ModInit.LOGGER.error(
+          "Error deleting preset for player {} slot {}", player.getUuidAsString(), slot, e);
+    }
+  }
+
+  private static PresetEntry findPresetEntry(String playerUUID, int slot) throws SQLException {
+    Map<String, Object> queryFields = new HashMap<>();
+    queryFields.put("uuid", playerUUID);
+    queryFields.put("slot", slot);
+    return presetsDao.queryForFieldValues(queryFields).stream().findFirst().orElse(null);
   }
 }

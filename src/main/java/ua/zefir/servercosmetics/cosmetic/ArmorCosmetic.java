@@ -104,9 +104,12 @@ public class ArmorCosmetic implements Cosmetic {
 
     EquipmentSlot slot = getEquipmentSlotFor(this.slotType);
     ItemStack cosmeticStack = this.cosmeticItemStack;
+    ItemStack realStack = player.getEquippedStack(slot);
 
     ItemStack stackForDisplay =
-        cosmeticStack.isEmpty() ? player.getEquippedStack(slot) : cosmeticStack;
+        cosmeticStack.isEmpty()
+            ? realStack
+            : Utils.reflectRealDurability(cosmeticStack.copy(), realStack);
 
     sendInventorySlotPacket(player, getSlotFor(this.slotType), stackForDisplay);
 

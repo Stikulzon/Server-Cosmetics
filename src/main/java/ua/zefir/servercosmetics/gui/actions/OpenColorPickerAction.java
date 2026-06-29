@@ -9,15 +9,23 @@ import ua.zefir.servercosmetics.gui.ColorPickerComponent;
 import ua.zefir.servercosmetics.gui.core.ItemAction;
 
 public class OpenColorPickerAction implements ItemAction {
+  private final ItemType targetType;
+
+  public OpenColorPickerAction(ItemType targetType) {
+    this.targetType = targetType;
+  }
+
   @Override
   public void execute(ServerPlayerEntity player, CustomItemEntry entry, SimpleGui gui) {
     new ColorPickerComponent(
             player,
             entry.itemStack(),
+            targetType,
             (coloredStack) ->
                 ((CosmeticHolder) player)
-                    .getCosmeticFor(ItemType.HAT)
-                    .equip(coloredStack, ItemType.HAT))
+                    .getCosmeticFor(targetType)
+                    .equip(coloredStack, targetType),
+            null)
         .open();
   }
 }

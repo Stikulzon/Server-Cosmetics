@@ -66,9 +66,9 @@ public class ConfigManager {
   private static int doReload(CommandContext<ServerCommandSource> context, Runnable reloadAction) {
     try {
       reloadAction.run();
-      context.getSource().sendFeedback(() -> mainConfig.getSuccessConfigReloadMessage(), false);
+      context.getSource().sendFeedback(mainConfig::getSuccessConfigReloadMessage, false);
     } catch (Exception e) {
-      context.getSource().sendFeedback(() -> mainConfig.getErrorConfigReloadMessage(), false);
+      context.getSource().sendFeedback(mainConfig::getErrorConfigReloadMessage, false);
       ModInit.LOGGER.error("An error occurred during config reload!", e);
     }
     return 1;

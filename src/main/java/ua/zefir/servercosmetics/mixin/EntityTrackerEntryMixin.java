@@ -17,6 +17,7 @@ import ua.zefir.servercosmetics.cosmetic.ArmorCosmetic;
 import ua.zefir.servercosmetics.cosmetic.Cosmetic;
 import ua.zefir.servercosmetics.cosmetic.CosmeticHolder;
 import ua.zefir.servercosmetics.data.ItemType;
+import ua.zefir.servercosmetics.util.Utils;
 
 @Mixin(EntityTrackerEntry.class)
 public class EntityTrackerEntryMixin {
@@ -44,7 +45,8 @@ public class EntityTrackerEntryMixin {
     List<Pair<EquipmentSlot, ItemStack>> modifiedList = new ArrayList<>();
 
     for (EquipmentSlot slot : EquipmentSlot.VALUES) {
-      ItemStack stackToSend = trackedPlayer.getEquippedStack(slot);
+      ItemStack realStack = trackedPlayer.getEquippedStack(slot);
+      ItemStack stackToSend = realStack;
 
       if (slot.getType() == EquipmentSlot.Type.HUMANOID_ARMOR) {
         try {
@@ -53,7 +55,7 @@ public class EntityTrackerEntryMixin {
           ItemStack cosmeticStack = cosmetic.getCosmeticItemStack();
 
           if (cosmeticStack != null && !cosmeticStack.isEmpty()) {
-            stackToSend = cosmeticStack;
+            stackToSend = Utils.reflectRealDurability(cosmeticStack.copy(), realStack);
           }
         } catch (Exception ignored) {
         }

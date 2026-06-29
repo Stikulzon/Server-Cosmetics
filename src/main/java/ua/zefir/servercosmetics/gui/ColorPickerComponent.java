@@ -25,6 +25,7 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import ua.zefir.servercosmetics.ModInit;
 import ua.zefir.servercosmetics.config.ColorPickerConfig;
 import ua.zefir.servercosmetics.config.CosmeticsGuiConfig;
+import ua.zefir.servercosmetics.data.ItemType;
 import ua.zefir.servercosmetics.datagen.ui.GuiTextures;
 import ua.zefir.servercosmetics.util.GuiUtils;
 
@@ -33,18 +34,26 @@ public class ColorPickerComponent {
 
   private final ServerPlayerEntity player;
   private final ItemStack itemToColor;
+  private final ItemType targetType;
   private final Consumer<ItemStack> onColorSelectCallback;
+  private final Runnable onCloseCallback;
 
   public ColorPickerComponent(
-      ServerPlayerEntity player, ItemStack itemToColor, Consumer<ItemStack> onColorSelectCallback) {
+      ServerPlayerEntity player,
+      ItemStack itemToColor,
+      ItemType targetType,
+      Consumer<ItemStack> onColorSelectCallback,
+      Runnable onCloseCallback) {
     this.player = player;
     this.itemToColor = itemToColor.copy();
+    this.targetType = targetType;
     this.onColorSelectCallback = onColorSelectCallback;
+    this.onCloseCallback = onCloseCallback;
   }
 
   public void open() {
     try {
-      new ColorPickerScreen(player, itemToColor, onColorSelectCallback).open();
+      new ColorPickerScreen(player, itemToColor, onColorSelectCallback, onCloseCallback).open();
     } catch (Exception e) {
       player.sendMessage(Text.literal("Error opening color picker."), false);
       ModInit.LOGGER.error("Failed to open ColorPickerComponent", e);
@@ -55,6 +64,7 @@ public class ColorPickerComponent {
     private final ServerPlayerEntity player;
     private final ItemStack hatItemStack;
     private final Consumer<ItemStack> onColorSelectCallback;
+    private final Runnable onCloseCallback;
     private final ColorPickerConfig colorPickerConfig;
 
     private final MutableFloat saturation = new MutableFloat(100F);
@@ -65,15 +75,25 @@ public class ColorPickerComponent {
     public ColorPickerScreen(
         ServerPlayerEntity player,
         ItemStack hatItemStack,
-        Consumer<ItemStack> onColorSelectCallback) {
+        Consumer<ItemStack> onColorSelectCallback,
+        Runnable onCloseCallback) {
       super(ScreenHandlerType.GENERIC_9X5, player, true);
       this.player = player;
       this.hatItemStack = hatItemStack.copy();
       this.onColorSelectCallback = onColorSelectCallback;
+      this.onCloseCallback = onCloseCallback;
       this.colorPickerConfig = ((CosmeticsGuiConfig) COSMETICS_GUI_CONFIG).getColorPickerConfig();
 
       this.setTitle(GuiTextures.COLOR_PICKER_MENU.apply(colorPickerConfig.getColorPickerGUIName()));
       populateGui();
+    }
+
+    @Override
+    public void onClose() {
+      super.onClose();
+      if (onCloseCallback != null) {
+        onCloseCallback.run();
+      }
     }
 
     private void populateGui() {
