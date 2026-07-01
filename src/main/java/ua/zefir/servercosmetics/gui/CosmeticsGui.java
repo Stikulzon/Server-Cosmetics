@@ -110,7 +110,7 @@ public class CosmeticsGui extends SimpleGui {
       GuiElementBuilder builder = new GuiElementBuilder(displayStack);
 
       if (selectedSlot != null && selectedSlot.key().equals(slotConfig.key())) {
-        builder.addLoreLine(Text.literal("§a§lSelected"));
+        builder.addLoreLine(config.getMessageSelected());
       }
 
       builder.setCallback(
@@ -140,10 +140,10 @@ public class CosmeticsGui extends SimpleGui {
         presetItem.set(DataComponentTypes.ITEM_NAME, Text.literal("Preset " + (presetIndex + 1)));
         GuiElementBuilder builder =
             new GuiElementBuilder(presetItem)
-                .addLoreLine(Text.literal("§7Left-click to load"))
-                .addLoreLine(Text.literal("§7Shift+Left-click to reset"))
-                .addLoreLine(Text.literal("§7Right-click to overwrite"));
-        PresetSlotHandler.appendPresetLore(builder, presetData, config.getEquipmentSlots());
+                .addLoreLine(config.getMessagePresetLoad())
+                .addLoreLine(config.getMessagePresetReset())
+                .addLoreLine(config.getMessagePresetOverwrite());
+        PresetSlotHandler.appendPresetLore(builder, presetData, config.getEquipmentSlots(), config);
         builder.setCallback(
             (clickIndex, clickType, actionType) -> {
               if (clickType.shift && clickType.isLeft) {
@@ -163,8 +163,7 @@ public class CosmeticsGui extends SimpleGui {
         emptyPresetItem.set(
             DataComponentTypes.ITEM_NAME, Text.literal("Preset " + (presetIndex + 1)));
         GuiElementBuilder builder =
-            new GuiElementBuilder(emptyPresetItem)
-                .addLoreLine(Text.literal("§7Right-click to save"));
+            new GuiElementBuilder(emptyPresetItem).addLoreLine(config.getMessagePresetSave());
         builder.setCallback(
             (clickIndex, clickType, actionType) -> {
               if (clickType.isRight) {
@@ -185,7 +184,7 @@ public class CosmeticsGui extends SimpleGui {
     ItemStack indicatorStack = EquipmentSlotRenderer.getPlaceholderItem(selectedSlot.type());
     GuiElementBuilder builder =
         new GuiElementBuilder(indicatorStack)
-            .setName(Text.literal("§eSelected: " + selectedSlot.key()));
+            .setName(config.getMessageSelectedSlot(selectedSlot.displayName()));
     builder.setCallback(
         (clickIndex, clickType, actionType) -> {
           selectedSlot = null;
@@ -203,8 +202,8 @@ public class CosmeticsGui extends SimpleGui {
     ItemStack removeItem = new ItemStack(Items.BARRIER);
     GuiElementBuilder builder =
         new GuiElementBuilder(removeItem)
-            .setName(Text.literal("§cRemove Cosmetic"))
-            .addLoreLine(Text.literal("§7Click to remove from " + selectedSlot.key()));
+            .setName(config.getMessageRemoveCosmetic())
+            .addLoreLine(config.getMessageRemoveCosmeticLore(selectedSlot.displayName()));
     builder.setCallback(
         (clickIndex, clickType, actionType) -> {
           new EquipCosmeticAction().execute(player, ItemStack.EMPTY, selectedSlot.type());
@@ -218,8 +217,8 @@ public class CosmeticsGui extends SimpleGui {
     ItemStack clearItem = new ItemStack(Items.TNT);
     GuiElementBuilder builder =
         new GuiElementBuilder(clearItem)
-            .setName(Text.literal("§cUnequip All"))
-            .addLoreLine(Text.literal("§7Click to remove all cosmetics"));
+            .setName(config.getMessageUnequipAll())
+            .addLoreLine(config.getMessageUnequipAllLore());
     builder.setCallback(
         (clickIndex, clickType, actionType) -> {
           for (EquipmentSlotConfig slot : config.getEquipmentSlots()) {
@@ -249,7 +248,7 @@ public class CosmeticsGui extends SimpleGui {
     int[] gridSlots = config.getGridSlots();
     if (selectedSlot == null) {
       ItemStack promptItem = new ItemStack(Items.PAPER);
-      promptItem.set(DataComponentTypes.ITEM_NAME, Text.literal("§eSelect a slot"));
+      promptItem.set(DataComponentTypes.ITEM_NAME, config.getMessageSelectSlotPrompt());
       if (gridSlots.length > 0) {
         setSlot(gridSlots[0], new GuiElementBuilder(promptItem));
       }
@@ -304,7 +303,7 @@ public class CosmeticsGui extends SimpleGui {
     if (currentPage > 0) {
       ItemStack prevItem = new ItemStack(Items.PAPER);
       GuiElementBuilder prevBuilder =
-          new GuiElementBuilder(prevItem).setName(Text.literal("§7← Previous Page"));
+          new GuiElementBuilder(prevItem).setName(config.getMessagePreviousPage());
       prevBuilder.setCallback(
           (clickIndex, clickType, actionType) -> {
             currentPage--;
@@ -318,7 +317,7 @@ public class CosmeticsGui extends SimpleGui {
     if (currentPage < totalPages - 1) {
       ItemStack nextItem = new ItemStack(Items.PAPER);
       GuiElementBuilder nextBuilder =
-          new GuiElementBuilder(nextItem).setName(Text.literal("§7Next Page →"));
+          new GuiElementBuilder(nextItem).setName(config.getMessageNextPage());
       nextBuilder.setCallback(
           (clickIndex, clickType, actionType) -> {
             currentPage++;

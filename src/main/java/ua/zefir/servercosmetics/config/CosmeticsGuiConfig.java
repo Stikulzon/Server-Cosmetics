@@ -46,11 +46,11 @@ public class CosmeticsGuiConfig extends AbstractGuiConfig {
 
   private static final List<EquipmentSlotConfig> DEFAULT_EQUIPMENT_SLOTS =
       List.of(
-          new EquipmentSlotConfig("head", 1, 3, ItemType.HAT, true),
-          new EquipmentSlotConfig("body", 2, 2, ItemType.BODY_COSMETIC, true),
-          new EquipmentSlotConfig("chest", 2, 3, ItemType.CHESTPLATE, true),
-          new EquipmentSlotConfig("legs", 3, 3, ItemType.LEGGINGS, true),
-          new EquipmentSlotConfig("feet", 4, 3, ItemType.BOOTS, true));
+          new EquipmentSlotConfig("head", 1, 3, ItemType.HAT, true, "Hat"),
+          new EquipmentSlotConfig("body", 2, 2, ItemType.BODY_COSMETIC, true, "Body Cosmetic"),
+          new EquipmentSlotConfig("chest", 2, 3, ItemType.CHESTPLATE, true, "Chestplate"),
+          new EquipmentSlotConfig("legs", 3, 3, ItemType.LEGGINGS, true, "Leggings"),
+          new EquipmentSlotConfig("feet", 4, 3, ItemType.BOOTS, true, "Boots"));
 
   private static final int[] DEFAULT_PRESET_SLOTS = {8, 17, 26, 35, 44, 53};
   private static final int[] DEFAULT_GRID_SLOTS = {
@@ -70,6 +70,23 @@ public class CosmeticsGuiConfig extends AbstractGuiConfig {
   private int unequipAllButtonIndex;
   private int previousPageSlot;
   private int nextPageSlot;
+
+  private String messageSelected;
+  private String messagePresetLoad;
+  private String messagePresetReset;
+  private String messagePresetOverwrite;
+  private String messagePresetSave;
+  private String messageSelectedSlot;
+  private String messageRemoveCosmetic;
+  private String messageRemoveCosmeticLore;
+  private String messageUnequipAll;
+  private String messageUnequipAllLore;
+  private String messageSelectSlotPrompt;
+  private String messagePreviousPage;
+  private String messageNextPage;
+  private String messagePresetSlotNone;
+  private String messagePresetSlotCosmetic;
+  private String messagePresetSlotUnknown;
 
   private final ColorPickerConfig colorPickerConfig = new ColorPickerConfig();
 
@@ -109,6 +126,23 @@ public class CosmeticsGuiConfig extends AbstractGuiConfig {
     file.addDefault("previousPageSlot", 82);
     file.addDefault("nextPageSlot", 87);
 
+    file.addDefault("messages.selected", "&a&lSelected");
+    file.addDefault("messages.presetLoad", "&7Left-click to load");
+    file.addDefault("messages.presetReset", "&7Shift+Left-click to reset");
+    file.addDefault("messages.presetOverwrite", "&7Right-click to overwrite");
+    file.addDefault("messages.presetSave", "&7Right-click to save");
+    file.addDefault("messages.selectedSlot", "&eSelected: %s");
+    file.addDefault("messages.removeCosmetic", "&cRemove Cosmetic");
+    file.addDefault("messages.removeCosmeticLore", "&7Click to remove from %s");
+    file.addDefault("messages.unequipAll", "&cUnequip All");
+    file.addDefault("messages.unequipAllLore", "&7Click to remove all cosmetics");
+    file.addDefault("messages.selectSlotPrompt", "&eSelect a slot");
+    file.addDefault("messages.previousPage", "&7\u2190 Previous Page");
+    file.addDefault("messages.nextPage", "&7Next Page \u2192");
+    file.addDefault("messages.presetSlotNone", "&8%s: None");
+    file.addDefault("messages.presetSlotCosmetic", "&7%s: &f%s");
+    file.addDefault("messages.presetSlotUnknown", "&8%s: Unknown");
+
     colorPickerConfig.addDefaults(file);
   }
 
@@ -121,6 +155,7 @@ public class CosmeticsGuiConfig extends AbstractGuiConfig {
       slotSection.addDefault("position", List.of(slot.row(), slot.col()));
       slotSection.addDefault("type", slot.type().toString());
       slotSection.addDefault("visible", slot.visible());
+      slotSection.addDefault("displayName", slot.displayName());
     }
   }
 
@@ -134,6 +169,27 @@ public class CosmeticsGuiConfig extends AbstractGuiConfig {
     unequipAllButtonIndex = file.getInt("unequipAllButtonIndex", DEFAULT_UNEQUIP_ALL_BUTTON_INDEX);
     previousPageSlot = file.getInt("previousPageSlot", DEFAULT_PREVIOUS_PAGE_SLOT);
     nextPageSlot = file.getInt("nextPageSlot", DEFAULT_NEXT_PAGE_SLOT);
+
+    messageSelected = file.getString("messages.selected", "&a&lSelected");
+    messagePresetLoad = file.getString("messages.presetLoad", "&7Left-click to load");
+    messagePresetReset = file.getString("messages.presetReset", "&7Shift+Left-click to reset");
+    messagePresetOverwrite =
+        file.getString("messages.presetOverwrite", "&7Right-click to overwrite");
+    messagePresetSave = file.getString("messages.presetSave", "&7Right-click to save");
+    messageSelectedSlot = file.getString("messages.selectedSlot", "&eSelected: %s");
+    messageRemoveCosmetic = file.getString("messages.removeCosmetic", "&cRemove Cosmetic");
+    messageRemoveCosmeticLore =
+        file.getString("messages.removeCosmeticLore", "&7Click to remove from %s");
+    messageUnequipAll = file.getString("messages.unequipAll", "&cUnequip All");
+    messageUnequipAllLore =
+        file.getString("messages.unequipAllLore", "&7Click to remove all cosmetics");
+    messageSelectSlotPrompt = file.getString("messages.selectSlotPrompt", "&eSelect a slot");
+    messagePreviousPage = file.getString("messages.previousPage", "&7\u2190 Previous Page");
+    messageNextPage = file.getString("messages.nextPage", "&7Next Page \u2192");
+    messagePresetSlotNone = file.getString("messages.presetSlotNone", "&8%s: None");
+    messagePresetSlotCosmetic = file.getString("messages.presetSlotCosmetic", "&7%s: &f%s");
+    messagePresetSlotUnknown = file.getString("messages.presetSlotUnknown", "&8%s: Unknown");
+
     colorPickerConfig.load(file);
   }
 
@@ -153,6 +209,7 @@ public class CosmeticsGuiConfig extends AbstractGuiConfig {
       int col = position.size() > 1 ? position.get(1) : 0;
       String typeString = slotSection.getString("type", "HAT");
       boolean visible = slotSection.getBoolean("visible", true);
+      String displayName = slotSection.getString("displayName", key);
 
       ItemType type;
       try {
@@ -165,7 +222,7 @@ public class CosmeticsGuiConfig extends AbstractGuiConfig {
         type = ItemType.HAT;
       }
 
-      slots.add(new EquipmentSlotConfig(key, row, col, type, visible));
+      slots.add(new EquipmentSlotConfig(key, row, col, type, visible, displayName));
     }
     return slots;
   }
@@ -209,5 +266,70 @@ public class CosmeticsGuiConfig extends AbstractGuiConfig {
 
   public int getNextPageSlot() {
     return nextPageSlot;
+  }
+
+  public Text getMessageSelected() {
+    return Utils.formatDisplayName(messageSelected);
+  }
+
+  public Text getMessagePresetLoad() {
+    return Utils.formatDisplayName(messagePresetLoad);
+  }
+
+  public Text getMessagePresetReset() {
+    return Utils.formatDisplayName(messagePresetReset);
+  }
+
+  public Text getMessagePresetOverwrite() {
+    return Utils.formatDisplayName(messagePresetOverwrite);
+  }
+
+  public Text getMessagePresetSave() {
+    return Utils.formatDisplayName(messagePresetSave);
+  }
+
+  public Text getMessageSelectedSlot(String slotDisplayName) {
+    return Utils.formatDisplayName(String.format(messageSelectedSlot, slotDisplayName));
+  }
+
+  public Text getMessageRemoveCosmetic() {
+    return Utils.formatDisplayName(messageRemoveCosmetic);
+  }
+
+  public Text getMessageRemoveCosmeticLore(String slotDisplayName) {
+    return Utils.formatDisplayName(String.format(messageRemoveCosmeticLore, slotDisplayName));
+  }
+
+  public Text getMessageUnequipAll() {
+    return Utils.formatDisplayName(messageUnequipAll);
+  }
+
+  public Text getMessageUnequipAllLore() {
+    return Utils.formatDisplayName(messageUnequipAllLore);
+  }
+
+  public Text getMessageSelectSlotPrompt() {
+    return Utils.formatDisplayName(messageSelectSlotPrompt);
+  }
+
+  public Text getMessagePreviousPage() {
+    return Utils.formatDisplayName(messagePreviousPage);
+  }
+
+  public Text getMessageNextPage() {
+    return Utils.formatDisplayName(messageNextPage);
+  }
+
+  public Text getMessagePresetSlotNone(String slotDisplayName) {
+    return Utils.formatDisplayName(String.format(messagePresetSlotNone, slotDisplayName));
+  }
+
+  public Text getMessagePresetSlotCosmetic(String slotDisplayName, String cosmeticDisplayName) {
+    return Utils.formatDisplayName(
+        String.format(messagePresetSlotCosmetic, slotDisplayName, cosmeticDisplayName));
+  }
+
+  public Text getMessagePresetSlotUnknown(String slotDisplayName) {
+    return Utils.formatDisplayName(String.format(messagePresetSlotUnknown, slotDisplayName));
   }
 }

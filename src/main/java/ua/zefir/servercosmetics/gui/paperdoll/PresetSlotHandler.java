@@ -8,7 +8,7 @@ import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
+import ua.zefir.servercosmetics.config.CosmeticsGuiConfig;
 import ua.zefir.servercosmetics.cosmetic.CosmeticHolder;
 import ua.zefir.servercosmetics.data.CustomItemEntry;
 import ua.zefir.servercosmetics.data.CustomItemRegistry;
@@ -81,20 +81,23 @@ public class PresetSlotHandler {
   }
 
   public static void appendPresetLore(
-      GuiElementBuilder element, String presetData, List<EquipmentSlotConfig> equipmentSlots) {
+      GuiElementBuilder element,
+      String presetData,
+      List<EquipmentSlotConfig> equipmentSlots,
+      CosmeticsGuiConfig config) {
     String[] ids = presetData.split(",");
     for (int i = 0; i < equipmentSlots.size() && i < ids.length; i++) {
       String cosmeticId = ids[i].trim();
-      String slotName = EquipmentSlotRenderer.formatSlotName(equipmentSlots.get(i).type());
+      String slotName = equipmentSlots.get(i).displayName();
       if (cosmeticId.isEmpty()) {
-        element.addLoreLine(Text.literal("§8" + slotName + ": None"));
+        element.addLoreLine(config.getMessagePresetSlotNone(slotName));
       } else {
         CustomItemEntry entry = CustomItemRegistry.getCosmetic(cosmeticId);
         if (entry != null) {
           element.addLoreLine(
-              Text.literal("§7" + slotName + ": §f" + entry.displayName().getString()));
+              config.getMessagePresetSlotCosmetic(slotName, entry.displayName().getString()));
         } else {
-          element.addLoreLine(Text.literal("§8" + slotName + ": Unknown"));
+          element.addLoreLine(config.getMessagePresetSlotUnknown(slotName));
         }
       }
     }
