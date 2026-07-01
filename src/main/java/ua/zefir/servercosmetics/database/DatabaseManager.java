@@ -5,10 +5,13 @@ import static ua.zefir.servercosmetics.datafixer.NbtDataFixer.NEW_NBT_KEY_CUSTOM
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
+import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.component.DataComponentTypes;
@@ -26,6 +29,7 @@ public class DatabaseManager {
   private static final String DATABASE_URL = "jdbc:sqlite:cosmetics.db";
   private static final Dao<CosmeticEntry, Integer> cosmeticDao;
   private static final Dao<PresetEntry, Integer> presetsDao;
+  private static final Dao<RecentCosmeticEntry, Integer> recentDao;
 
   static {
     try {
@@ -35,6 +39,8 @@ public class DatabaseManager {
       cosmeticDao = DaoManager.createDao(connectionSource, CosmeticEntry.class);
       TableUtils.createTableIfNotExists(connectionSource, PresetEntry.class);
       presetsDao = DaoManager.createDao(connectionSource, PresetEntry.class);
+      TableUtils.createTableIfNotExists(connectionSource, RecentCosmeticEntry.class);
+      recentDao = DaoManager.createDao(connectionSource, RecentCosmeticEntry.class);
     } catch (Exception e) {
       ModInit.LOGGER.error("Failed to initialize database", e);
       throw new RuntimeException("Error initializing database", e);
@@ -148,7 +154,7 @@ public class DatabaseManager {
     return cosmeticDao.queryForFieldValues(queryFields).stream().findFirst().orElse(null);
   }
 
-  private static String getCosmeticIdFromStack(ItemStack stack) {
+  public static String getCosmeticIdFromStack(ItemStack stack) {
     NbtComponent customData = stack.get(DataComponentTypes.CUSTOM_DATA);
     if (customData != null) {
       NbtCompound nbt = customData.copyNbt();
@@ -211,5 +217,57 @@ public class DatabaseManager {
     queryFields.put("uuid", playerUUID);
     queryFields.put("slot", slot);
     return presetsDao.queryForFieldValues(queryFields).stream().findFirst().orElse(null);
+  }
+
+  public static void recordRecentCosmetic(ServerPlayerEntity player, String cosmeticId) {
+    if (cosmeticId == null || cosmeticId.isEmpty()) {
+      return;
+    }
+    try {
+      RecentCosmeticEntry existing = findRecentEntry(player.getUuidAsString(), cosmeticId);
+      long now = System.currentTimeMillis();
+      if (existing != null) {
+        existing.setLastUsed(now);
+        recentDao.update(existing);
+      } else {
+        RecentCosmeticEntry entry = new RecentCosmeticEntry();
+        entry.setUuid(player.getUuidAsString());
+        entry.setCosmeticId(cosmeticId);
+        entry.setLastUsed(now);
+        recentDao.create(entry);
+      }
+    } catch (SQLException e) {
+      ModInit.LOGGER.error(
+          "Error recording recent cosmetic for player {} id {}",
+          player.getUuidAsString(),
+          cosmeticId,
+          e);
+    }
+  }
+
+  public static Map<String, Long> getRecentCosmetics(ServerPlayerEntity player) {
+    try {
+      QueryBuilder<RecentCosmeticEntry, Integer> qb = recentDao.queryBuilder();
+      qb.where().eq("uuid", player.getUuidAsString());
+      qb.orderBy("last_used", false);
+      List<RecentCosmeticEntry> entries = recentDao.query(qb.prepare());
+      Map<String, Long> recent = new LinkedHashMap<>();
+      for (RecentCosmeticEntry e : entries) {
+        recent.put(e.getCosmeticId(), e.getLastUsed());
+      }
+      return recent;
+    } catch (SQLException e) {
+      ModInit.LOGGER.error(
+          "Error loading recent cosmetics for player {}", player.getUuidAsString(), e);
+      return Map.of();
+    }
+  }
+
+  private static RecentCosmeticEntry findRecentEntry(String playerUUID, String cosmeticId)
+      throws SQLException {
+    Map<String, Object> queryFields = new HashMap<>();
+    queryFields.put("uuid", playerUUID);
+    queryFields.put("cosmetic_id", cosmeticId);
+    return recentDao.queryForFieldValues(queryFields).stream().findFirst().orElse(null);
   }
 }

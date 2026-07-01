@@ -13,13 +13,21 @@ import ua.zefir.servercosmetics.cosmetic.ArmorCosmetic;
 import ua.zefir.servercosmetics.cosmetic.BodyCosmetic;
 import ua.zefir.servercosmetics.cosmetic.Cosmetic;
 import ua.zefir.servercosmetics.cosmetic.CosmeticHolder;
+import ua.zefir.servercosmetics.cosmetic.GuiStateHolder;
 import ua.zefir.servercosmetics.data.ItemType;
+import ua.zefir.servercosmetics.data.SortMode;
 import ua.zefir.servercosmetics.util.Utils;
 
 @SuppressWarnings("AddedMixinMembersNamePattern")
 @Mixin(ServerPlayerEntity.class)
-public abstract class ServerPlayerEntityMixin_cosmetics implements CosmeticHolder {
+public abstract class ServerPlayerEntityMixin_cosmetics implements CosmeticHolder, GuiStateHolder {
   @Unique private final List<Cosmetic> cosmeticsList = new ArrayList<>();
+
+  @Unique private String guiSelectedSlotKey = null;
+  @Unique private int guiCurrentPage = 0;
+  @Unique private SortMode guiSortMode = SortMode.DEFAULT;
+  @Unique private ItemType guiTypeFilter = null;
+  @Unique private boolean guiAvailableOnly = true;
 
   @Inject(method = "<init>", at = @At("TAIL"))
   private void init(CallbackInfo ci) {
@@ -85,5 +93,64 @@ public abstract class ServerPlayerEntityMixin_cosmetics implements CosmeticHolde
       }
     }
     throw new IllegalArgumentException("No cosmetic found for the type: " + itemType);
+  }
+
+  @Override
+  public String getGuiSelectedSlotKey() {
+    return guiSelectedSlotKey;
+  }
+
+  @Override
+  public void setGuiSelectedSlotKey(String key) {
+    this.guiSelectedSlotKey = key;
+  }
+
+  @Override
+  public int getGuiCurrentPage() {
+    return guiCurrentPage;
+  }
+
+  @Override
+  public void setGuiCurrentPage(int page) {
+    this.guiCurrentPage = page;
+  }
+
+  @Override
+  public SortMode getGuiSortMode() {
+    return guiSortMode;
+  }
+
+  @Override
+  public void setGuiSortMode(SortMode mode) {
+    this.guiSortMode = mode;
+  }
+
+  @Override
+  public ItemType getGuiTypeFilter() {
+    return guiTypeFilter;
+  }
+
+  @Override
+  public void setGuiTypeFilter(ItemType type) {
+    this.guiTypeFilter = type;
+  }
+
+  @Override
+  public boolean isGuiAvailableOnly() {
+    return guiAvailableOnly;
+  }
+
+  @Override
+  public void setGuiAvailableOnly(boolean availableOnly) {
+    this.guiAvailableOnly = availableOnly;
+  }
+
+  @Override
+  public void resetGuiState() {
+    guiSelectedSlotKey = null;
+    guiCurrentPage = 0;
+    guiSortMode = SortMode.DEFAULT;
+    guiTypeFilter = null;
+    guiAvailableOnly = true;
   }
 }

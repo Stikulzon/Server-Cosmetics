@@ -17,7 +17,7 @@ public enum ItemType {
 
   public List<ItemType> getMatchingTypes() {
     return switch (this) {
-      case HAT -> List.of(HAT, HAT_BODY_COSMETIC);
+      case HAT -> List.of(HAT, HAT_BODY_COSMETIC, HELMET);
       case HELMET -> List.of(HELMET);
       case CHESTPLATE -> List.of(CHESTPLATE, CHESTPLATE_BODY_COSMETIC);
       case LEGGINGS -> List.of(LEGGINGS, LEGGINGS_BODY_COSMETIC);

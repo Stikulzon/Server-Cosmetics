@@ -5,6 +5,7 @@ import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import me.lucko.fabric.api.permissions.v0.Permissions;
@@ -20,10 +21,12 @@ import ua.zefir.servercosmetics.config.ConfigManager;
 import ua.zefir.servercosmetics.config.CosmeticsGuiConfig;
 import ua.zefir.servercosmetics.cosmetic.Cosmetic;
 import ua.zefir.servercosmetics.cosmetic.CosmeticHolder;
+import ua.zefir.servercosmetics.cosmetic.GuiStateHolder;
 import ua.zefir.servercosmetics.data.CustomItemEntry;
 import ua.zefir.servercosmetics.data.CustomItemRegistry;
 import ua.zefir.servercosmetics.data.EquipmentSlotConfig;
 import ua.zefir.servercosmetics.data.ItemType;
+import ua.zefir.servercosmetics.data.SortMode;
 import ua.zefir.servercosmetics.database.DatabaseManager;
 import ua.zefir.servercosmetics.gui.actions.EquipCosmeticAction;
 import ua.zefir.servercosmetics.gui.actions.OpenColorPickerAction;
@@ -58,15 +61,39 @@ public class CosmeticsGui extends SimpleGui {
 
   private final CosmeticsGuiConfig config;
   private final List<EquipmentSlotConfig> visibleEquipmentSlots;
+  private final GuiStateHolder state;
   private EquipmentSlotConfig selectedSlot = null;
   private int currentPage = 0;
+  private ItemType typeFilter = null;
+  private SortMode sortMode = SortMode.DEFAULT;
+  private boolean availableOnly = true;
+  private Map<String, Long> recentCosmetics = Map.of();
 
   public CosmeticsGui(ServerPlayerEntity player, CosmeticsGuiConfig config) {
     super(ScreenHandlerType.GENERIC_9X6, player, config.isReplaceInventory());
     this.config = config;
+    this.state = (GuiStateHolder) player;
     this.visibleEquipmentSlots =
         config.getEquipmentSlots().stream().filter(EquipmentSlotConfig::visible).toList();
     setTitle(config.getGuiName());
+    loadState();
+  }
+
+  private void loadState() {
+    String key = state.getGuiSelectedSlotKey();
+    if (key != null) {
+      this.selectedSlot =
+          visibleEquipmentSlots.stream().filter(s -> s.key().equals(key)).findFirst().orElse(null);
+    }
+    this.currentPage = state.getGuiCurrentPage();
+    this.sortMode = state.getGuiSortMode();
+    this.typeFilter = state.getGuiTypeFilter();
+    this.availableOnly = state.isGuiAvailableOnly();
+    refreshRecentCosmetics();
+  }
+
+  private void refreshRecentCosmetics() {
+    this.recentCosmetics = DatabaseManager.getRecentCosmetics(player);
   }
 
   public void openAndPopulate() {
@@ -81,14 +108,38 @@ public class CosmeticsGui extends SimpleGui {
     drawSelectedSlotIndicator();
     drawRemoveButton();
     drawUnequipAllButton();
+    drawTypeFilterButton();
+    drawAvailableFilterButton();
+    drawSortByButton();
     drawGridItems();
     drawNavigation();
-    drawFiller();
   }
 
   private void clearSlots() {
     for (int i = 0; i < getSize(); i++) {
       clearSlot(i);
+    }
+  }
+
+  private void selectSlot(EquipmentSlotConfig slotConfig) {
+    if (selectedSlot != null && selectedSlot.key().equals(slotConfig.key())) {
+      selectedSlot = null;
+    } else {
+      selectedSlot = slotConfig;
+      validateTypeFilter();
+    }
+    state.setGuiSelectedSlotKey(selectedSlot == null ? null : selectedSlot.key());
+    currentPage = 0;
+    state.setGuiCurrentPage(0);
+  }
+
+  private void validateTypeFilter() {
+    if (typeFilter == null) {
+      return;
+    }
+    if (selectedSlot != null && !selectedSlot.type().getMatchingTypes().contains(typeFilter)) {
+      typeFilter = null;
+      state.setGuiTypeFilter(null);
     }
   }
 
@@ -115,12 +166,7 @@ public class CosmeticsGui extends SimpleGui {
 
       builder.setCallback(
           (clickIndex, clickType, actionType) -> {
-            if (selectedSlot != null && selectedSlot.key().equals(slotConfig.key())) {
-              selectedSlot = null;
-            } else {
-              selectedSlot = slotConfig;
-            }
-            currentPage = 0;
+            selectSlot(slotConfig);
             populateGui();
           });
 
@@ -154,6 +200,7 @@ public class CosmeticsGui extends SimpleGui {
                 populateGui();
               } else {
                 PresetSlotHandler.loadPreset(player, presetIndex, config.getEquipmentSlots());
+                refreshRecentCosmetics();
                 populateGui();
               }
             });
@@ -188,7 +235,9 @@ public class CosmeticsGui extends SimpleGui {
     builder.setCallback(
         (clickIndex, clickType, actionType) -> {
           selectedSlot = null;
+          state.setGuiSelectedSlotKey(null);
           currentPage = 0;
+          state.setGuiCurrentPage(0);
           populateGui();
         });
     setSlot(slotIndex, builder);
@@ -196,6 +245,11 @@ public class CosmeticsGui extends SimpleGui {
 
   private void drawRemoveButton() {
     if (selectedSlot == null) {
+      return;
+    }
+    CosmeticHolder holder = (CosmeticHolder) player;
+    ItemStack equipped = holder.getCosmeticFor(selectedSlot.type()).getCosmeticItemStack();
+    if (equipped == null || equipped.isEmpty()) {
       return;
     }
     int removeIndex = config.getRemoveButtonIndex();
@@ -212,7 +266,21 @@ public class CosmeticsGui extends SimpleGui {
     setSlot(removeIndex, builder);
   }
 
+  private boolean hasAnyCosmeticEquipped() {
+    CosmeticHolder holder = (CosmeticHolder) player;
+    for (EquipmentSlotConfig slot : config.getEquipmentSlots()) {
+      ItemStack equipped = holder.getCosmeticFor(slot.type()).getCosmeticItemStack();
+      if (equipped != null && !equipped.isEmpty()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   private void drawUnequipAllButton() {
+    if (!hasAnyCosmeticEquipped()) {
+      return;
+    }
     int slotIndex = config.getUnequipAllButtonIndex();
     ItemStack clearItem = new ItemStack(Items.TNT);
     GuiElementBuilder builder =
@@ -229,19 +297,115 @@ public class CosmeticsGui extends SimpleGui {
     setSlot(slotIndex, builder);
   }
 
+  private List<ItemType> getTypeFilterOptions() {
+    if (selectedSlot == null) {
+      return List.of();
+    }
+    return selectedSlot.type().getMatchingTypes().stream()
+        .filter(t -> CustomItemRegistry.getCosmeticsList().stream().anyMatch(e -> e.type() == t))
+        .toList();
+  }
+
+  private void drawTypeFilterButton() {
+    if (selectedSlot == null) {
+      return;
+    }
+    List<ItemType> options = getTypeFilterOptions();
+    if (options.size() <= 1) {
+      return;
+    }
+    int slotIndex = config.getTypeFilterButtonIndex();
+    ItemStack item = new ItemStack(Items.HOPPER);
+    Text name =
+        typeFilter == null
+            ? config.getMessageTypeFilterAll()
+            : config.getMessageTypeFilterSpecific(config.getTypeDisplayName(typeFilter));
+    GuiElementBuilder builder =
+        new GuiElementBuilder(item).setName(name).addLoreLine(config.getMessageTypeFilterLore());
+    builder.setCallback(
+        (clickIndex, clickType, actionType) -> {
+          List<ItemType> currentOptions = getTypeFilterOptions();
+          int currentIdx = typeFilter == null ? -1 : currentOptions.indexOf(typeFilter);
+          int nextIdx = (currentIdx + 1) % (currentOptions.size() + 1);
+          typeFilter = nextIdx == currentOptions.size() ? null : currentOptions.get(nextIdx);
+          state.setGuiTypeFilter(typeFilter);
+          currentPage = 0;
+          state.setGuiCurrentPage(0);
+          populateGui();
+        });
+    setSlot(slotIndex, builder);
+  }
+
+  private void drawAvailableFilterButton() {
+    if (selectedSlot == null || selectedSlot.type().getMatchingTypes().isEmpty()) {
+      return;
+    }
+    int slotIndex = config.getAvailableFilterButtonIndex();
+    ItemStack item = new ItemStack(Items.EMERALD);
+    Text name =
+        availableOnly
+            ? config.getMessageAvailableOnlyEnabled()
+            : config.getMessageAvailableOnlyDisabled();
+    GuiElementBuilder builder = new GuiElementBuilder(item).setName(name);
+    builder.setCallback(
+        (clickIndex, clickType, actionType) -> {
+          availableOnly = !availableOnly;
+          state.setGuiAvailableOnly(availableOnly);
+          currentPage = 0;
+          state.setGuiCurrentPage(0);
+          populateGui();
+        });
+    setSlot(slotIndex, builder);
+  }
+
+  private void drawSortByButton() {
+    if (selectedSlot == null || getFilteredItems().isEmpty()) {
+      return;
+    }
+    int slotIndex = config.getSortByButtonIndex();
+    ItemStack item = new ItemStack(Items.NETHER_STAR);
+    Text name =
+        switch (sortMode) {
+          case DEFAULT -> config.getMessageSortByDefault();
+          case NAME -> config.getMessageSortByName();
+          case RECENT -> config.getMessageSortByRecent();
+        };
+    GuiElementBuilder builder = new GuiElementBuilder(item).setName(name);
+    builder.setCallback(
+        (clickIndex, clickType, actionType) -> {
+          sortMode = sortMode.next();
+          state.setGuiSortMode(sortMode);
+          populateGui();
+        });
+    setSlot(slotIndex, builder);
+  }
+
   private List<CustomItemEntry> getFilteredItems() {
     if (selectedSlot == null) {
       return List.of();
     }
-    List<ItemType> matchingTypes = selectedSlot.type().getMatchingTypes();
-    Set<ItemType> typeSet = Set.copyOf(matchingTypes);
+    Set<ItemType> typeSet = Set.copyOf(selectedSlot.type().getMatchingTypes());
     return CustomItemRegistry.getCosmeticsList().stream()
+        .filter(entry -> typeFilter == null || entry.type() == typeFilter)
         .filter(entry -> typeSet.contains(entry.type()))
-        .filter(entry -> Permissions.check(player, entry.permission(), 4))
-        .sorted(
-            Comparator.comparing(
-                (CustomItemEntry entry) -> Utils.getSortablePriority(entry.sortingPriority())))
+        .filter(entry -> !availableOnly || Permissions.check(player, entry.permission(), 4))
+        .sorted(getSortComparator())
         .collect(Collectors.toList());
+  }
+
+  private Comparator<CustomItemEntry> getSortComparator() {
+    return switch (sortMode) {
+      case NAME ->
+          Comparator.comparing((CustomItemEntry e) -> e.displayName().getString())
+              .thenComparing(e -> Utils.getSortablePriority(e.sortingPriority()));
+      case RECENT ->
+          Comparator.comparingLong((CustomItemEntry e) -> recentCosmetics.getOrDefault(e.id(), 0L))
+              .reversed()
+              .thenComparing(e -> Utils.getSortablePriority(e.sortingPriority()));
+      default ->
+          Comparator.comparing(
+              (CustomItemEntry e) -> Utils.getSortablePriority(e.sortingPriority()));
+    };
   }
 
   private void drawGridItems() {
@@ -267,19 +431,24 @@ public class CosmeticsGui extends SimpleGui {
         CustomItemEntry entry = filteredItems.get(itemIndex);
         ItemStack displayStack = entry.itemStack().copy();
         GuiElementBuilder element = new GuiElementBuilder(displayStack);
-        element.addLoreLine(config.getMessageUnlocked());
+
+        boolean owned = Permissions.check(player, entry.permission(), 4);
+        element.addLoreLine(owned ? config.getMessageUnlocked() : config.getMessageLocked());
 
         if (entry.dyeable()) {
           OpenColorPickerAction colorPickerAction = new OpenColorPickerAction(selectedSlot.type());
           element.setCallback(
               (clickIndex, clickType, actionType) -> {
                 colorPickerAction.execute(player, entry, this);
+                refreshRecentCosmetics();
+                populateGui();
               });
         } else {
           EquipCosmeticAction equipAction = new EquipCosmeticAction();
           element.setCallback(
               (clickIndex, clickType, actionType) -> {
                 equipAction.execute(player, entry.itemStack().copy(), selectedSlot.type());
+                refreshRecentCosmetics();
                 populateGui();
               });
         }
@@ -307,6 +476,7 @@ public class CosmeticsGui extends SimpleGui {
       prevBuilder.setCallback(
           (clickIndex, clickType, actionType) -> {
             currentPage--;
+            state.setGuiCurrentPage(currentPage);
             populateGui();
           });
       setSlot(previousSlot, prevBuilder);
@@ -321,43 +491,12 @@ public class CosmeticsGui extends SimpleGui {
       nextBuilder.setCallback(
           (clickIndex, clickType, actionType) -> {
             currentPage++;
+            state.setGuiCurrentPage(currentPage);
             populateGui();
           });
       setSlot(nextSlot, nextBuilder);
     } else {
       setSlot(nextSlot, new GuiElementBuilder(ItemStack.EMPTY));
     }
-  }
-
-  private void drawFiller() {
-    Set<Integer> occupiedSlots = getOccupiedSlots();
-    ItemStack filler = new ItemStack(Items.GRAY_STAINED_GLASS_PANE);
-    filler.set(DataComponentTypes.ITEM_NAME, Text.literal(""));
-    for (int i = 0; i < getSize(); i++) {
-      if (!occupiedSlots.contains(i) && getSlot(i) == null) {
-        setSlot(i, new GuiElementBuilder(filler).setName(Text.empty()));
-      }
-    }
-  }
-
-  private Set<Integer> getOccupiedSlots() {
-    Set<Integer> occupied = new java.util.HashSet<>();
-    for (EquipmentSlotConfig slot : visibleEquipmentSlots) {
-      occupied.add(slot.slotIndex());
-    }
-    for (int slot : config.getPresetSlots()) {
-      occupied.add(slot);
-    }
-    if (selectedSlot != null) {
-      occupied.add(config.getSelectedSlotIndex());
-      occupied.add(config.getRemoveButtonIndex());
-    }
-    occupied.add(config.getUnequipAllButtonIndex());
-    for (int slot : config.getGridSlots()) {
-      occupied.add(slot);
-    }
-    occupied.add(config.getPreviousPageSlot());
-    occupied.add(config.getNextPageSlot());
-    return occupied;
   }
 }

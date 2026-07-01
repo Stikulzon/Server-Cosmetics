@@ -59,6 +59,9 @@ public class CosmeticsGuiConfig extends AbstractGuiConfig {
   private static final int DEFAULT_SELECTED_SLOT_INDEX = 54;
   private static final int DEFAULT_REMOVE_BUTTON_INDEX = 72;
   private static final int DEFAULT_UNEQUIP_ALL_BUTTON_INDEX = 79;
+  private static final int DEFAULT_TYPE_FILTER_BUTTON_INDEX = 71;
+  private static final int DEFAULT_AVAILABLE_FILTER_BUTTON_INDEX = 80;
+  private static final int DEFAULT_SORT_BY_BUTTON_INDEX = 81;
   private static final int DEFAULT_PREVIOUS_PAGE_SLOT = 82;
   private static final int DEFAULT_NEXT_PAGE_SLOT = 87;
 
@@ -68,6 +71,9 @@ public class CosmeticsGuiConfig extends AbstractGuiConfig {
   private int selectedSlotIndex;
   private int removeButtonIndex;
   private int unequipAllButtonIndex;
+  private int typeFilterButtonIndex;
+  private int availableFilterButtonIndex;
+  private int sortByButtonIndex;
   private int previousPageSlot;
   private int nextPageSlot;
 
@@ -87,6 +93,16 @@ public class CosmeticsGuiConfig extends AbstractGuiConfig {
   private String messagePresetSlotNone;
   private String messagePresetSlotCosmetic;
   private String messagePresetSlotUnknown;
+
+  private String messageTypeFilterAll;
+  private String messageTypeFilterSpecific;
+  private String messageTypeFilterLore;
+  private String messageAvailableOnlyEnabled;
+  private String messageAvailableOnlyDisabled;
+  private String messageSortByDefault;
+  private String messageSortByName;
+  private String messageSortByRecent;
+  private final java.util.Map<ItemType, String> typeDisplayNames = new java.util.HashMap<>();
 
   private final ColorPickerConfig colorPickerConfig = new ColorPickerConfig();
 
@@ -123,6 +139,9 @@ public class CosmeticsGuiConfig extends AbstractGuiConfig {
     file.addDefault("selectedSlotIndex", 54);
     file.addDefault("removeButtonIndex", 72);
     file.addDefault("unequipAllButtonIndex", 79);
+    file.addDefault("typeFilterButtonIndex", 71);
+    file.addDefault("availableFilterButtonIndex", 80);
+    file.addDefault("sortByButtonIndex", 81);
     file.addDefault("previousPageSlot", 82);
     file.addDefault("nextPageSlot", 87);
 
@@ -142,6 +161,26 @@ public class CosmeticsGuiConfig extends AbstractGuiConfig {
     file.addDefault("messages.presetSlotNone", "&8%s: None");
     file.addDefault("messages.presetSlotCosmetic", "&7%s: &f%s");
     file.addDefault("messages.presetSlotUnknown", "&8%s: Unknown");
+
+    file.addDefault("messages.typeFilterAll", "&bType: &fAll");
+    file.addDefault("messages.typeFilterSpecific", "&bType: &f%s");
+    file.addDefault("messages.typeFilterLore", "&7Click to cycle type filter");
+    file.addDefault("messages.availableOnlyEnabled", "&bAvailable Only: &aYes");
+    file.addDefault("messages.availableOnlyDisabled", "&bAvailable Only: &7No");
+    file.addDefault("messages.sortByDefault", "&bSort By: &fDefault");
+    file.addDefault("messages.sortByName", "&bSort By: &fName");
+    file.addDefault("messages.sortByRecent", "&bSort By: &fRecently Weared");
+    file.addDefault("messages.type.HAT", "Hat");
+    file.addDefault("messages.type.HELMET", "Helmet");
+    file.addDefault("messages.type.CHESTPLATE", "Chestplate");
+    file.addDefault("messages.type.LEGGINGS", "Leggings");
+    file.addDefault("messages.type.BOOTS", "Boots");
+    file.addDefault("messages.type.BODY_COSMETIC", "Body Cosmetic");
+    file.addDefault("messages.type.ITEM_SKIN", "Item Skin");
+    file.addDefault("messages.type.HAT_BODY_COSMETIC", "Hat/Body");
+    file.addDefault("messages.type.CHESTPLATE_BODY_COSMETIC", "Chestplate/Body");
+    file.addDefault("messages.type.LEGGINGS_BODY_COSMETIC", "Leggings/Body");
+    file.addDefault("messages.type.BOOTS_BODY_COSMETIC", "Boots/Body");
 
     colorPickerConfig.addDefaults(file);
   }
@@ -167,6 +206,10 @@ public class CosmeticsGuiConfig extends AbstractGuiConfig {
     selectedSlotIndex = file.getInt("selectedSlotIndex", DEFAULT_SELECTED_SLOT_INDEX);
     removeButtonIndex = file.getInt("removeButtonIndex", DEFAULT_REMOVE_BUTTON_INDEX);
     unequipAllButtonIndex = file.getInt("unequipAllButtonIndex", DEFAULT_UNEQUIP_ALL_BUTTON_INDEX);
+    typeFilterButtonIndex = file.getInt("typeFilterButtonIndex", DEFAULT_TYPE_FILTER_BUTTON_INDEX);
+    availableFilterButtonIndex =
+        file.getInt("availableFilterButtonIndex", DEFAULT_AVAILABLE_FILTER_BUTTON_INDEX);
+    sortByButtonIndex = file.getInt("sortByButtonIndex", DEFAULT_SORT_BY_BUTTON_INDEX);
     previousPageSlot = file.getInt("previousPageSlot", DEFAULT_PREVIOUS_PAGE_SLOT);
     nextPageSlot = file.getInt("nextPageSlot", DEFAULT_NEXT_PAGE_SLOT);
 
@@ -189,6 +232,23 @@ public class CosmeticsGuiConfig extends AbstractGuiConfig {
     messagePresetSlotNone = file.getString("messages.presetSlotNone", "&8%s: None");
     messagePresetSlotCosmetic = file.getString("messages.presetSlotCosmetic", "&7%s: &f%s");
     messagePresetSlotUnknown = file.getString("messages.presetSlotUnknown", "&8%s: Unknown");
+
+    messageTypeFilterAll = file.getString("messages.typeFilterAll", "&bType: &fAll");
+    messageTypeFilterSpecific = file.getString("messages.typeFilterSpecific", "&bType: &f%s");
+    messageTypeFilterLore =
+        file.getString("messages.typeFilterLore", "&7Click to cycle type filter");
+    messageAvailableOnlyEnabled =
+        file.getString("messages.availableOnlyEnabled", "&bAvailable Only: &aYes");
+    messageAvailableOnlyDisabled =
+        file.getString("messages.availableOnlyDisabled", "&bAvailable Only: &7No");
+    messageSortByDefault = file.getString("messages.sortByDefault", "&bSort By: &fDefault");
+    messageSortByName = file.getString("messages.sortByName", "&bSort By: &fName");
+    messageSortByRecent = file.getString("messages.sortByRecent", "&bSort By: &fRecently Weared");
+
+    typeDisplayNames.clear();
+    for (ItemType t : ItemType.values()) {
+      typeDisplayNames.put(t, file.getString("messages.type." + t, t.name()));
+    }
 
     colorPickerConfig.load(file);
   }
@@ -331,5 +391,53 @@ public class CosmeticsGuiConfig extends AbstractGuiConfig {
 
   public Text getMessagePresetSlotUnknown(String slotDisplayName) {
     return Utils.formatDisplayName(String.format(messagePresetSlotUnknown, slotDisplayName));
+  }
+
+  public int getTypeFilterButtonIndex() {
+    return typeFilterButtonIndex;
+  }
+
+  public int getAvailableFilterButtonIndex() {
+    return availableFilterButtonIndex;
+  }
+
+  public int getSortByButtonIndex() {
+    return sortByButtonIndex;
+  }
+
+  public String getTypeDisplayName(ItemType type) {
+    return typeDisplayNames.getOrDefault(type, type.name());
+  }
+
+  public Text getMessageTypeFilterAll() {
+    return Utils.formatDisplayName(messageTypeFilterAll);
+  }
+
+  public Text getMessageTypeFilterSpecific(String typeName) {
+    return Utils.formatDisplayName(String.format(messageTypeFilterSpecific, typeName));
+  }
+
+  public Text getMessageTypeFilterLore() {
+    return Utils.formatDisplayName(messageTypeFilterLore);
+  }
+
+  public Text getMessageAvailableOnlyEnabled() {
+    return Utils.formatDisplayName(messageAvailableOnlyEnabled);
+  }
+
+  public Text getMessageAvailableOnlyDisabled() {
+    return Utils.formatDisplayName(messageAvailableOnlyDisabled);
+  }
+
+  public Text getMessageSortByDefault() {
+    return Utils.formatDisplayName(messageSortByDefault);
+  }
+
+  public Text getMessageSortByName() {
+    return Utils.formatDisplayName(messageSortByName);
+  }
+
+  public Text getMessageSortByRecent() {
+    return Utils.formatDisplayName(messageSortByRecent);
   }
 }

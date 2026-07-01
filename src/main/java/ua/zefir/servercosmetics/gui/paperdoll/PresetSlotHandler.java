@@ -63,7 +63,8 @@ public class PresetSlotHandler {
         holder.getCosmeticFor(slot.type()).equip(ItemStack.EMPTY, slot.type());
         continue;
       }
-      holder.getCosmeticFor(slot.type()).equip(entry.itemStack().copy(), slot.type());
+      new ua.zefir.servercosmetics.gui.actions.EquipCosmeticAction()
+          .execute(player, entry.itemStack().copy(), slot.type());
     }
   }
 

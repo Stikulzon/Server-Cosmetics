@@ -2,7 +2,6 @@ package ua.zefir.servercosmetics.gui.actions;
 
 import eu.pb4.sgui.api.gui.SimpleGui;
 import net.minecraft.server.network.ServerPlayerEntity;
-import ua.zefir.servercosmetics.cosmetic.CosmeticHolder;
 import ua.zefir.servercosmetics.data.CustomItemEntry;
 import ua.zefir.servercosmetics.data.ItemType;
 import ua.zefir.servercosmetics.gui.ColorPickerComponent;
@@ -21,10 +20,7 @@ public class OpenColorPickerAction implements ItemAction {
             player,
             entry.itemStack(),
             targetType,
-            (coloredStack) ->
-                ((CosmeticHolder) player)
-                    .getCosmeticFor(targetType)
-                    .equip(coloredStack, targetType),
+            (coloredStack) -> new EquipCosmeticAction().execute(player, coloredStack, targetType),
             null)
         .open();
   }

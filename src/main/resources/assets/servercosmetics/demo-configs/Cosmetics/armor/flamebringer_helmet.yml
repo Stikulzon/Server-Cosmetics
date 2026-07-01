@@ -1,5 +1,5 @@
 type: HELMET
-display-name: "<color:#FF5555>Flame Bringer"
+display-name: "<color #FF5555>Flame Bringer"
 lore:
   - "<white>Author: <blue>Myllyd_Ogoy"
 sortingPriority: 1
