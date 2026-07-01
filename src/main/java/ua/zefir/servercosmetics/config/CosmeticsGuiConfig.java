@@ -58,6 +58,7 @@ public class CosmeticsGuiConfig extends AbstractGuiConfig {
   };
   private static final int DEFAULT_SELECTED_SLOT_INDEX = 54;
   private static final int DEFAULT_REMOVE_BUTTON_INDEX = 72;
+  private static final int DEFAULT_UNEQUIP_ALL_BUTTON_INDEX = 79;
   private static final int DEFAULT_PREVIOUS_PAGE_SLOT = 82;
   private static final int DEFAULT_NEXT_PAGE_SLOT = 87;
 
@@ -66,6 +67,7 @@ public class CosmeticsGuiConfig extends AbstractGuiConfig {
   private int[] gridSlots;
   private int selectedSlotIndex;
   private int removeButtonIndex;
+  private int unequipAllButtonIndex;
   private int previousPageSlot;
   private int nextPageSlot;
 
@@ -103,6 +105,7 @@ public class CosmeticsGuiConfig extends AbstractGuiConfig {
         List.of(55, 56, 57, 58, 59, 60, 64, 65, 66, 67, 68, 69, 73, 74, 75, 76, 77, 78));
     file.addDefault("selectedSlotIndex", 54);
     file.addDefault("removeButtonIndex", 72);
+    file.addDefault("unequipAllButtonIndex", 79);
     file.addDefault("previousPageSlot", 82);
     file.addDefault("nextPageSlot", 87);
 
@@ -128,6 +131,7 @@ public class CosmeticsGuiConfig extends AbstractGuiConfig {
     gridSlots = file.getIntegerList("gridSlots").stream().mapToInt(Integer::intValue).toArray();
     selectedSlotIndex = file.getInt("selectedSlotIndex", DEFAULT_SELECTED_SLOT_INDEX);
     removeButtonIndex = file.getInt("removeButtonIndex", DEFAULT_REMOVE_BUTTON_INDEX);
+    unequipAllButtonIndex = file.getInt("unequipAllButtonIndex", DEFAULT_UNEQUIP_ALL_BUTTON_INDEX);
     previousPageSlot = file.getInt("previousPageSlot", DEFAULT_PREVIOUS_PAGE_SLOT);
     nextPageSlot = file.getInt("nextPageSlot", DEFAULT_NEXT_PAGE_SLOT);
     colorPickerConfig.load(file);
@@ -193,6 +197,10 @@ public class CosmeticsGuiConfig extends AbstractGuiConfig {
 
   public int getRemoveButtonIndex() {
     return removeButtonIndex;
+  }
+
+  public int getUnequipAllButtonIndex() {
+    return unequipAllButtonIndex;
   }
 
   public int getPreviousPageSlot() {

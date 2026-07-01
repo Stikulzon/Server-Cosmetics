@@ -50,7 +50,9 @@ public class PresetSlotHandler {
     CosmeticHolder holder = (CosmeticHolder) player;
     for (int i = 0; i < equipmentSlots.size() && i < ids.length; i++) {
       String cosmeticId = ids[i].trim();
+      EquipmentSlotConfig slot = equipmentSlots.get(i);
       if (cosmeticId.isEmpty()) {
+        holder.getCosmeticFor(slot.type()).equip(ItemStack.EMPTY, slot.type());
         continue;
       }
       CustomItemEntry entry = CustomItemRegistry.getCosmetic(cosmeticId);
@@ -58,9 +60,9 @@ public class PresetSlotHandler {
         continue;
       }
       if (!Permissions.check(player, entry.permission(), 4)) {
+        holder.getCosmeticFor(slot.type()).equip(ItemStack.EMPTY, slot.type());
         continue;
       }
-      EquipmentSlotConfig slot = equipmentSlots.get(i);
       holder.getCosmeticFor(slot.type()).equip(entry.itemStack().copy(), slot.type());
     }
   }
