@@ -66,6 +66,13 @@ dependencies {
     implementation("eu.pb4:polymer-autohost:${polymer_version}")
 
     implementation(include("eu.pb4:placeholder-api:${placeholder_api_version}"))
+
+    testImplementation "org.junit.jupiter:junit-jupiter:6.1.2"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+}
+
+test {
+    useJUnitPlatform()
 }
 
 processResources {

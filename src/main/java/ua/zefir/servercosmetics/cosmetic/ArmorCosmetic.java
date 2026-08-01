@@ -26,7 +26,7 @@ public class ArmorCosmetic implements Cosmetic {
     this.player = player;
     this.slotType = itemType;
     this.itemType = itemType;
-    this.bodyCosmeticDelegate = new BodyCosmetic(player, getBodyCosmeticType(itemType));
+    this.bodyCosmeticDelegate = new BodyCosmetic(player, itemType.bodyCosmeticType());
   }
 
   @Override
@@ -46,7 +46,7 @@ public class ArmorCosmetic implements Cosmetic {
       DatabaseManager.setCosmetic(player, slotType, ItemStack.EMPTY);
     } else {
       DatabaseManager.setCosmetic(this.player, itemType, this.cosmeticItemStack);
-      DatabaseManager.setCosmetic(player, getBodyCosmeticType(itemType), ItemStack.EMPTY);
+      DatabaseManager.setCosmetic(player, itemType.bodyCosmeticType(), ItemStack.EMPTY);
     }
 
     updateArmorView();
@@ -56,8 +56,8 @@ public class ArmorCosmetic implements Cosmetic {
   public void init() {
     ItemStack stackFromDb = DatabaseManager.getCosmeticItemStack(player, itemType);
     if (stackFromDb.isEmpty()) {
-      stackFromDb = DatabaseManager.getCosmeticItemStack(player, getBodyCosmeticType(itemType));
-      equip(stackFromDb, getBodyCosmeticType(itemType));
+      stackFromDb = DatabaseManager.getCosmeticItemStack(player, itemType.bodyCosmeticType());
+      equip(stackFromDb, itemType.bodyCosmeticType());
     } else {
       equip(stackFromDb, this.itemType);
     }
@@ -123,44 +123,15 @@ public class ArmorCosmetic implements Cosmetic {
   }
 
   public static int getSlotFor(ItemType type) {
-    return switch (type) {
-      case HAT -> 5;
-      case CHESTPLATE -> 6;
-      case LEGGINGS -> 7;
-      case BOOTS -> 8;
-      default -> throw new IllegalArgumentException("Invalid ItemType for ArmorCosmetic: " + type);
-    };
+    return type.armorInventoryMenuSlot();
   }
 
   public static ItemType getItemTypeForSlot(EquipmentSlot slot) {
-    return switch (slot) {
-      case HEAD -> ItemType.HAT;
-      case CHEST -> ItemType.CHESTPLATE;
-      case LEGS -> ItemType.LEGGINGS;
-      case FEET -> ItemType.BOOTS;
-      default ->
-          throw new IllegalArgumentException("Invalid EquipmentSlot for ArmorCosmetic: " + slot);
-    };
+    return ItemType.fromEquipmentSlot(slot);
   }
 
   public static EquipmentSlot getEquipmentSlotFor(ItemType type) {
-    return switch (type) {
-      case HAT -> EquipmentSlot.HEAD;
-      case CHESTPLATE -> EquipmentSlot.CHEST;
-      case LEGGINGS -> EquipmentSlot.LEGS;
-      case BOOTS -> EquipmentSlot.FEET;
-      default -> throw new IllegalArgumentException("Invalid ItemType for ArmorCosmetic: " + type);
-    };
-  }
-
-  private static ItemType getBodyCosmeticType(ItemType type) {
-    return switch (type) {
-      case HAT -> ItemType.HAT_BODY_COSMETIC;
-      case CHESTPLATE -> ItemType.CHESTPLATE_BODY_COSMETIC;
-      case LEGGINGS -> ItemType.LEGGINGS_BODY_COSMETIC;
-      case BOOTS -> ItemType.BOOTS_BODY_COSMETIC;
-      default -> type;
-    };
+    return type.equipmentSlot();
   }
 
   public static void sendInventorySlotPacket(

@@ -4,10 +4,8 @@ import static ua.zefir.servercosmetics.ModInit.id;
 import static ua.zefir.servercosmetics.datafixer.NbtDataFixer.NEW_NBT_KEY_CUSTOM_ITEM_ID;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -21,7 +19,7 @@ import ua.zefir.servercosmetics.util.Utils;
 
 public class CustomItemRegistry {
 
-  private static final List<CustomItemEntry> cosmeticsList = new CopyOnWriteArrayList<>();
+  private static final CustomItemCatalog catalog = new CustomItemCatalog();
 
   private static boolean legacyMode = false;
 
@@ -35,19 +33,19 @@ public class CustomItemRegistry {
   }
 
   public static void reloadAll() {
-    cosmeticsList.clear();
+    catalog.clear();
     initialize();
     materializeAll();
   }
 
   public static void reloadCosmetics() {
-    cosmeticsList.removeIf(entry -> entry.type() != ItemType.ITEM_SKIN);
+    catalog.removeIf(entry -> entry.type() != ItemType.ITEM_SKIN);
     loadAllCosmetics();
     materializeAll();
   }
 
   public static void reloadItemSkins() {
-    cosmeticsList.removeIf(entry -> entry.type() == ItemType.ITEM_SKIN);
+    catalog.removeIf(entry -> entry.type() == ItemType.ITEM_SKIN);
     loadAllItemSkins();
     materializeAll();
   }
@@ -63,36 +61,8 @@ public class CustomItemRegistry {
   }
 
   private static void loadItemsFromDirectory(Path directory, String itemPropertiesRootNode) {
-    if (!setupDirectory(directory)) return;
-
-    List<Path> files = Utils.listFiles(directory);
-    for (Path filePath : files) {
-      if (!filePath.toString().toLowerCase().endsWith(".yml")) continue;
-
-      try {
-        processItemFile(filePath, itemPropertiesRootNode);
-      } catch (Exception e) {
-        ModInit.LOGGER.error("Failed to load custom item from file: {}", filePath, e);
-      }
-    }
-  }
-
-  private static boolean setupDirectory(Path directory) {
-    try {
-      if (Files.notExists(directory)) {
-        Files.createDirectories(directory);
-        ModInit.LOGGER.info("Created directory: {}", directory.toAbsolutePath());
-        return false;
-      }
-      if (!Files.isDirectory(directory)) {
-        ModInit.LOGGER.error("Path is not a directory: {}", directory.toAbsolutePath());
-        return false;
-      }
-      return true;
-    } catch (IOException e) {
-      ModInit.LOGGER.error("Failed to create or access directory: {}", directory, e);
-      return false;
-    }
+    CustomItemDefinitionLoader.load(
+        directory, itemPropertiesRootNode, CustomItemRegistry::processItemFile);
   }
 
   private static void processItemFile(Path filePath, String itemPropertiesRootNode)
@@ -173,7 +143,7 @@ public class CustomItemRegistry {
               dyeable,
               new ArrayList<>(),
               null);
-      cosmeticsList.add(entry);
+      catalog.add(entry);
     }
   }
 
@@ -220,7 +190,7 @@ public class CustomItemRegistry {
             formattedMaterial,
             sortingPriority,
             dyeable);
-    cosmeticsList.add(entry);
+    catalog.add(entry);
   }
 
   private static CustomItemEntry createCosmeticEntry(
@@ -372,33 +342,24 @@ public class CustomItemRegistry {
   // --- Accessor methods ---
 
   public static CustomItemEntry getCosmetic(String id) {
-    for (CustomItemEntry entry : cosmeticsList) {
-      if (entry.id().equals(id)) return entry;
-    }
-    return null;
+    return catalog.get(id);
   }
 
   public static List<CustomItemEntry> getCosmeticsList() {
-    return Collections.unmodifiableList(cosmeticsList);
+    return catalog.entries();
   }
 
   public static List<CustomItemEntry> getAllCosmeticsForMaterial(
       ItemType type, String targetMaterialId) {
-    List<CustomItemEntry> filteredList = new ArrayList<>();
-    for (CustomItemEntry entry : cosmeticsList) {
-      if (entry.type() == type && entry.baseItemForModel().equals(targetMaterialId)) {
-        filteredList.add(entry);
-      }
-    }
-    return filteredList;
+    return catalog.forMaterial(type, targetMaterialId);
   }
 
   public static List<ItemStack> getAllCosmeticItemStacks() {
-    return cosmeticsList.stream().map(CustomItemEntry::itemStack).toList();
+    return catalog.itemStacks();
   }
 
   public static void materializeAll() {
-    cosmeticsList.forEach(CustomItemEntry::itemStack);
+    catalog.materializeAll();
   }
 
   public static List<CustomItemEntry> getAllCosmeticsForMaterial(ItemType type, Item item) {
@@ -407,12 +368,6 @@ public class CustomItemRegistry {
   }
 
   public static List<CustomItemEntry> getAllCosmeticsForType(ItemType type) {
-    List<CustomItemEntry> filteredList = new ArrayList<>();
-    for (CustomItemEntry entry : cosmeticsList) {
-      if (entry.type() == type) {
-        filteredList.add(entry);
-      }
-    }
-    return filteredList;
+    return catalog.forType(type);
   }
 }

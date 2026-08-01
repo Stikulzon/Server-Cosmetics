@@ -1,6 +1,7 @@
 package ua.zefir.servercosmetics.gui.paperdoll;
 
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
+import java.util.ArrayList;
 import java.util.List;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.core.component.DataComponents;
@@ -21,23 +22,21 @@ public class PresetSlotHandler {
   public static String savePreset(
       ServerPlayer player, int presetIndex, List<EquipmentSlotConfig> equipmentSlots) {
     CosmeticHolder holder = (CosmeticHolder) player;
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < equipmentSlots.size(); i++) {
-      if (i > 0) {
-        sb.append(",");
-      }
-      EquipmentSlotConfig slot = equipmentSlots.get(i);
+    List<String> cosmeticIds = new ArrayList<>(equipmentSlots.size());
+    for (EquipmentSlotConfig slot : equipmentSlots) {
       ItemStack equipped = holder.getCosmeticFor(slot.type()).getCosmeticItemStack();
+      String id = "";
       if (equipped != null && !equipped.isEmpty()) {
         CustomData customData = equipped.get(DataComponents.CUSTOM_DATA);
         if (customData != null) {
-          String id = customData.copyTag().getStringOr(NbtDataFixer.NEW_NBT_KEY_CUSTOM_ITEM_ID, "");
-          sb.append(id.isEmpty() ? "" : id);
+          id = customData.copyTag().getStringOr(NbtDataFixer.NEW_NBT_KEY_CUSTOM_ITEM_ID, "");
         }
       }
+      cosmeticIds.add(id);
     }
-    DatabaseManager.savePreset(player, presetIndex, sb.toString());
-    return sb.toString();
+    String presetData = PresetCodec.encode(cosmeticIds);
+    DatabaseManager.savePreset(player, presetIndex, presetData);
+    return presetData;
   }
 
   public static void loadPreset(
@@ -46,10 +45,10 @@ public class PresetSlotHandler {
     if (presetData == null || presetData.isEmpty()) {
       return;
     }
-    String[] ids = presetData.split(",");
+    List<String> ids = PresetCodec.decode(presetData);
     CosmeticHolder holder = (CosmeticHolder) player;
-    for (int i = 0; i < equipmentSlots.size() && i < ids.length; i++) {
-      String cosmeticId = ids[i].trim();
+    for (int i = 0; i < equipmentSlots.size() && i < ids.size(); i++) {
+      String cosmeticId = ids.get(i).trim();
       EquipmentSlotConfig slot = equipmentSlots.get(i);
       if (cosmeticId.isEmpty()) {
         holder.getCosmeticFor(slot.type()).equip(ItemStack.EMPTY, slot.type());
@@ -69,7 +68,7 @@ public class PresetSlotHandler {
   }
 
   public static ItemStack getPresetDisplayItem(String presetData) {
-    String[] ids = presetData.split(",");
+    List<String> ids = PresetCodec.decode(presetData);
     for (String id : ids) {
       if (!id.trim().isEmpty()) {
         CustomItemEntry entry = CustomItemRegistry.getCosmetic(id.trim());
@@ -86,9 +85,9 @@ public class PresetSlotHandler {
       String presetData,
       List<EquipmentSlotConfig> equipmentSlots,
       CosmeticsGuiConfig config) {
-    String[] ids = presetData.split(",");
-    for (int i = 0; i < equipmentSlots.size() && i < ids.length; i++) {
-      String cosmeticId = ids[i].trim();
+    List<String> ids = PresetCodec.decode(presetData);
+    for (int i = 0; i < equipmentSlots.size() && i < ids.size(); i++) {
+      String cosmeticId = ids.get(i).trim();
       String slotName = equipmentSlots.get(i).displayName();
       if (cosmeticId.isEmpty()) {
         element.addLoreLine(config.getMessagePresetSlotNone(slotName));

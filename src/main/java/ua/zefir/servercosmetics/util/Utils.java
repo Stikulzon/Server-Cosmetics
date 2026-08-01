@@ -134,24 +134,11 @@ public class Utils {
   }
 
   public static ItemType getRealEquipedItemType(ItemType type) {
-    return switch (type) {
-      case HELMET, HAT_BODY_COSMETIC -> ItemType.HAT;
-      case CHESTPLATE_BODY_COSMETIC -> ItemType.CHESTPLATE;
-      case LEGGINGS_BODY_COSMETIC -> ItemType.LEGGINGS;
-      case BOOTS_BODY_COSMETIC -> ItemType.BOOTS;
-      default -> type;
-    };
+    return type.equippedSlotType();
   }
 
   public static int getSlotForType(ItemType type) {
-    return switch (type) {
-      case HAT -> 5;
-      case CHESTPLATE, CHESTPLATE_BODY_COSMETIC -> 6;
-      case LEGGINGS, LEGGINGS_BODY_COSMETIC -> 7;
-      case BOOTS, BOOTS_BODY_COSMETIC -> 8;
-      default ->
-          throw new IllegalStateException("Unsupported item type for slot calculation: " + type);
-    };
+    return type.inventoryMenuSlot();
   }
 
   public static ItemStack getTiltedItemStack(ItemStack original, Identifier modelPath) {
@@ -174,23 +161,7 @@ public class Utils {
   }
 
   public static ItemType getItemTypeForSlot(int slot) {
-    switch (slot) {
-      case 5 -> {
-        return ItemType.HAT;
-      }
-      case 6 -> {
-        return ItemType.CHESTPLATE;
-      }
-      case 7 -> {
-        return ItemType.LEGGINGS;
-      }
-      case 8 -> {
-        return ItemType.BOOTS;
-      }
-      default -> {
-        return null;
-      }
-    }
+    return ItemType.fromInventoryMenuSlot(slot);
   }
 
   public static int getSortablePriority(int actualPriority) {
