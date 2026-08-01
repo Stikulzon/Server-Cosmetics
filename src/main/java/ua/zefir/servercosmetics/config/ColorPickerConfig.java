@@ -4,11 +4,11 @@ import static ua.zefir.servercosmetics.ModInit.id;
 
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.text.Text;
-import net.minecraft.util.DyeColor;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import org.simpleyaml.configuration.file.YamlFile;
 import ua.zefir.servercosmetics.ModInit;
 import ua.zefir.servercosmetics.datagen.RuntimeModelManager;
@@ -24,6 +24,7 @@ public class ColorPickerConfig {
   private String colorPickerGUINameString;
   private float saturationAdjustmentValue;
   private String signType;
+  private String paintItemModelPath;
   private ItemStack paintItemStack;
   private DyeColor signColor;
   private List<String> textLines;
@@ -62,9 +63,10 @@ public class ColorPickerConfig {
     saturationAdjustmentValue =
         (float) file.getDouble("colorPicker.saturationAdjustmentValue", 20.0);
 
-    String paintItemModelPath = file.getString("paintItemModelPath");
+    paintItemModelPath = file.getString("paintItemModelPath");
     if (paintItemModelPath != null && !paintItemModelPath.isEmpty()) {
-      paintItemStack = createPaintItemStack(paintItemModelPath);
+      RuntimeModelManager.requestItemModel(paintItemModelPath, true);
+      paintItemStack = null;
     } else {
       paintItemStack = null;
     }
@@ -78,9 +80,8 @@ public class ColorPickerConfig {
 
   private static ItemStack createPaintItemStack(String modelPath) {
     try {
-      ItemStack stack = Items.LEATHER_HORSE_ARMOR.getDefaultStack();
-      stack.set(DataComponentTypes.ITEM_MODEL, id(modelPath));
-      RuntimeModelManager.requestItemModel(modelPath, true);
+      ItemStack stack = Items.LEATHER_HORSE_ARMOR.getDefaultInstance();
+      stack.set(DataComponents.ITEM_MODEL, id(modelPath));
       return stack;
     } catch (Exception e) {
       ModInit.LOGGER.error(
@@ -118,7 +119,7 @@ public class ColorPickerConfig {
     return colorHexValues;
   }
 
-  public Text getColorPickerGUIName() {
+  public Component getColorPickerGUIName() {
     return Utils.formatDisplayName(colorPickerGUINameString);
   }
 
@@ -130,7 +131,10 @@ public class ColorPickerConfig {
     return signType;
   }
 
-  public ItemStack getPaintItemStack() {
+  public synchronized ItemStack getPaintItemStack() {
+    if (paintItemStack == null && paintItemModelPath != null && !paintItemModelPath.isEmpty()) {
+      paintItemStack = createPaintItemStack(paintItemModelPath);
+    }
     return paintItemStack;
   }
 
@@ -142,11 +146,11 @@ public class ColorPickerConfig {
     return new ArrayList<>(textLines);
   }
 
-  public Text getSuccessColorChangeMessage() {
+  public Component getSuccessColorChangeMessage() {
     return Utils.formatDisplayName(successMessageString);
   }
 
-  public Text getErrorColorChangeMessage() {
+  public Component getErrorColorChangeMessage() {
     return Utils.formatDisplayName(errorMessageString);
   }
 }

@@ -2,12 +2,12 @@ package ua.zefir.servercosmetics.util;
 
 import eu.pb4.placeholders.api.ParserContext;
 import eu.pb4.placeholders.api.parsers.TagParser;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 
 public class TextParser {
-  private static final TagParser PARSER = TagParser.QUICK_TEXT;
+  private static final TagParser PARSER = TagParser.QUICK_TEXT_WITH_STF;
 
-  public static Text format(String content) {
-    return PARSER.parseText(content, ParserContext.of());
+  public static Component format(String content) {
+    return PARSER.parseComponent(content, ParserContext.of());
   }
 }

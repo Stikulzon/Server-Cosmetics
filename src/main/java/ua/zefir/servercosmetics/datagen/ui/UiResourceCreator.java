@@ -13,22 +13,22 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
-import net.minecraft.text.Style;
-import net.minecraft.text.StyleSpriteSource;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.FontDescription;
+import net.minecraft.network.chat.Style;
+import net.minecraft.resources.Identifier;
 import ua.zefir.servercosmetics.ModInit;
 
 public class UiResourceCreator {
   public static final Style STYLE =
-      Style.EMPTY.withColor(0xFFFFFF).withFont(new StyleSpriteSource.Font(id("gui")));
+      Style.EMPTY.withColor(0xFFFFFF).withFont(new FontDescription.Resource(id("gui")));
   private static char character = 'a';
   private static final Char2IntMap SPACES = new Char2IntOpenHashMap();
   private static final List<FontTexture> FONT_TEXTURES = new ArrayList<>();
   private static final char CHEST_SPACE0 = character++;
   private static final char CHEST_SPACE1 = character++;
 
-  public static Function<Text, Text> background(String path) {
+  public static Function<Component, Component> background(String path) {
     var builder = new StringBuilder().append(CHEST_SPACE0);
     var c = (character++);
     builder.append(c);
@@ -37,7 +37,7 @@ public class UiResourceCreator {
     var texture = new FontTexture(id("item/" + path), 13, 256, new char[][] {new char[] {c}});
 
     FONT_TEXTURES.add(texture);
-    return new TextBuilders(Text.literal(builder.toString()).setStyle(STYLE));
+    return new TextBuilders(Component.literal(builder.toString()).setStyle(STYLE));
   }
 
   public static void generateAssets(BiConsumer<String, byte[]> assetWriter) {
@@ -84,10 +84,10 @@ public class UiResourceCreator {
         fontBase.toString().getBytes(StandardCharsets.UTF_8));
   }
 
-  private record TextBuilders(Text base) implements Function<Text, Text> {
+  private record TextBuilders(Component base) implements Function<Component, Component> {
     @Override
-    public Text apply(Text text) {
-      return Text.empty().append(base).append(text);
+    public Component apply(Component text) {
+      return Component.empty().append(base).append(text);
     }
   }
 

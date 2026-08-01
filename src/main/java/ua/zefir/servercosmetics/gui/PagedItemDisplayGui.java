@@ -7,9 +7,9 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import me.lucko.fabric.api.permissions.v0.Permissions;
-import net.minecraft.item.ItemStack;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 import ua.zefir.servercosmetics.config.AbstractGuiConfig;
 import ua.zefir.servercosmetics.config.ButtonConfig;
 import ua.zefir.servercosmetics.data.CustomItemEntry;
@@ -30,7 +30,7 @@ public class PagedItemDisplayGui extends SimpleGui {
   private final FilterManager filterManager;
 
   public PagedItemDisplayGui(
-      ServerPlayerEntity player,
+      ServerPlayer player,
       AbstractGuiConfig config,
       CosmeticProvider provider,
       ItemAction defaultClickAction) {
@@ -181,13 +181,13 @@ public class PagedItemDisplayGui extends SimpleGui {
     AnvilInputGui anvilGui =
         new AnvilInputGui(this.player, false) {
           @Override
-          public void onClose() {
+          public void onManualClose() {
             confirmSearch(this.getInput());
           }
         };
 
     ButtonConfig btnConfig = guiConfig.getButtonConfig("search");
-    anvilGui.setTitle(GuiTextures.SEARCH_MENU.apply(Text.literal("")));
+    anvilGui.setTitle(GuiTextures.SEARCH_MENU.apply(Component.literal("")));
 
     anvilGui.setDefaultInputValue(filterManager.getSearchTerm());
 

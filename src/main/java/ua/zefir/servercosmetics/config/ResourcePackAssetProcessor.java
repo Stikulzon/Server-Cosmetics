@@ -33,6 +33,7 @@ public class ResourcePackAssetProcessor {
   public static void registerListener() {
     PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register(
         builder -> {
+          CustomItemRegistry.materializeAll();
           RuntimeModelManager.generateAndProvideModels(builder::addData);
           processResourcePackAssets(builder);
         });

@@ -6,7 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.commands.CommandSourceStack;
 import ua.zefir.servercosmetics.ModInit;
 import ua.zefir.servercosmetics.data.CustomItemRegistry;
 import ua.zefir.servercosmetics.datagen.RuntimeModelManager;
@@ -28,7 +28,7 @@ public class ConfigManager {
     ResourcePackAssetProcessor.registerListener();
   }
 
-  public static int reloadAllConfigsCommand(CommandContext<ServerCommandSource> context) {
+  public static int reloadAllConfigsCommand(CommandContext<CommandSourceStack> context) {
     return doReload(
         context,
         () -> {
@@ -41,7 +41,7 @@ public class ConfigManager {
         });
   }
 
-  public static int reloadItemSkinsConfigsCommand(CommandContext<ServerCommandSource> context) {
+  public static int reloadItemSkinsConfigsCommand(CommandContext<CommandSourceStack> context) {
     return doReload(
         context,
         () -> {
@@ -52,7 +52,7 @@ public class ConfigManager {
         });
   }
 
-  public static int reloadCosmeticsConfigsCommand(CommandContext<ServerCommandSource> context) {
+  public static int reloadCosmeticsConfigsCommand(CommandContext<CommandSourceStack> context) {
     return doReload(
         context,
         () -> {
@@ -63,12 +63,12 @@ public class ConfigManager {
         });
   }
 
-  private static int doReload(CommandContext<ServerCommandSource> context, Runnable reloadAction) {
+  private static int doReload(CommandContext<CommandSourceStack> context, Runnable reloadAction) {
     try {
       reloadAction.run();
-      context.getSource().sendFeedback(mainConfig::getSuccessConfigReloadMessage, false);
+      context.getSource().sendSuccess(mainConfig::getSuccessConfigReloadMessage, false);
     } catch (Exception e) {
-      context.getSource().sendFeedback(mainConfig::getErrorConfigReloadMessage, false);
+      context.getSource().sendSuccess(mainConfig::getErrorConfigReloadMessage, false);
       ModInit.LOGGER.error("An error occurred during config reload!", e);
     }
     return 1;

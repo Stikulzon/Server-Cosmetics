@@ -5,18 +5,21 @@ import static ua.zefir.servercosmetics.ModInit.id;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.*;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.item.equipment.EquipmentAsset;
-import net.minecraft.item.equipment.EquipmentAssetKeys;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.DyedItemColor;
+import net.minecraft.world.item.component.ItemLore;
+import net.minecraft.world.item.equipment.EquipmentAsset;
+import net.minecraft.world.item.equipment.EquipmentAssets;
+import net.minecraft.world.item.equipment.Equippable;
 import ua.zefir.servercosmetics.ModInit;
 import ua.zefir.servercosmetics.datagen.RuntimeModelManager;
 
@@ -32,7 +35,7 @@ public class ItemBuilder {
   }
 
   public static ItemBuilder fromId(String materialId) {
-    Item item = Registries.ITEM.get(Identifier.of(materialId));
+    Item item = BuiltInRegistries.ITEM.getValue(Identifier.parse(materialId));
     if (item == Items.AIR) {
       ModInit.LOGGER.warn("Invalid materialId '{}'. Defaulting to minecraft:paper.", materialId);
       item = Items.PAPER;
@@ -44,32 +47,32 @@ public class ItemBuilder {
     return new ItemBuilder(item);
   }
 
-  public ItemBuilder name(Text name) {
+  public ItemBuilder name(Component name) {
     if (name != null) {
-      stack.set(DataComponentTypes.CUSTOM_NAME, name);
+      stack.set(DataComponents.CUSTOM_NAME, name);
     }
     return this;
   }
 
-  public ItemBuilder lore(List<Text> lore) {
+  public ItemBuilder lore(List<Component> lore) {
     if (lore != null && !lore.isEmpty()) {
-      stack.set(DataComponentTypes.LORE, new LoreComponent(lore));
+      stack.set(DataComponents.LORE, new ItemLore(lore));
     } else {
-      stack.set(DataComponentTypes.LORE, new LoreComponent(Collections.emptyList()));
+      stack.set(DataComponents.LORE, new ItemLore(Collections.emptyList()));
     }
     return this;
   }
 
   public ItemBuilder dye(int color) {
-    stack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(color));
+    stack.set(DataComponents.DYED_COLOR, new DyedItemColor(color));
     return this;
   }
 
   public ItemBuilder customData(String key, String value) {
-    stack.apply(
-        DataComponentTypes.CUSTOM_DATA,
-        NbtComponent.DEFAULT,
-        comp -> comp.apply(nbt -> nbt.putString(key, value)));
+    stack.update(
+        DataComponents.CUSTOM_DATA,
+        CustomData.EMPTY,
+        comp -> comp.update(nbt -> nbt.putString(key, value)));
     return this;
   }
 
@@ -81,12 +84,12 @@ public class ItemBuilder {
         ModInit.LOGGER.error("Failed to request item model '{}': {}", modelId, e.getMessage());
       }
     }
-    stack.set(DataComponentTypes.ITEM_MODEL, modelId);
+    stack.set(DataComponents.ITEM_MODEL, modelId);
     return this;
   }
 
   public ItemBuilder applyCosmeticLogic(String cosmeticId, boolean dyeable) {
-    EquippableComponent equippable = stack.get(DataComponentTypes.EQUIPPABLE);
+    Equippable equippable = stack.get(DataComponents.EQUIPPABLE);
 
     if (dyeable) {
       this.dye(16777215);
@@ -101,17 +104,17 @@ public class ItemBuilder {
       this.stack = new ItemStack(getLeatherArmorFor(slot));
 
       Identifier itemModelId = id(cosmeticId);
-      stack.set(DataComponentTypes.ITEM_MODEL, itemModelId);
+      stack.set(DataComponents.ITEM_MODEL, itemModelId);
 
       Identifier armorModelId = id(armorId);
-      RegistryKey<EquipmentAsset> layers =
-          RegistryKey.of(EquipmentAssetKeys.REGISTRY_KEY, armorModelId);
+      ResourceKey<EquipmentAsset> layers =
+          ResourceKey.create(EquipmentAssets.ROOT_ID, armorModelId);
 
-      EquippableComponent currentLeatherComp = stack.get(DataComponentTypes.EQUIPPABLE);
+      Equippable currentLeatherComp = stack.get(DataComponents.EQUIPPABLE);
 
       if (currentLeatherComp != null) {
-        EquippableComponent newComp =
-            new EquippableComponent(
+        Equippable newComp =
+            new Equippable(
                 currentLeatherComp.slot(),
                 currentLeatherComp.equipSound(),
                 Optional.of(layers), // The Magic Layer Key
@@ -123,13 +126,13 @@ public class ItemBuilder {
                 currentLeatherComp.equipOnInteract(),
                 currentLeatherComp.canBeSheared(),
                 currentLeatherComp.shearingSound());
-        stack.set(DataComponentTypes.EQUIPPABLE, newComp);
+        stack.set(DataComponents.EQUIPPABLE, newComp);
       }
 
     } else {
       try {
         RuntimeModelManager.requestItemModel(cosmeticId, dyeable);
-        stack.set(DataComponentTypes.ITEM_MODEL, id(cosmeticId));
+        stack.set(DataComponents.ITEM_MODEL, id(cosmeticId));
       } catch (Exception e) {
         ModInit.LOGGER.error("Failed to request item model '{}': {}", cosmeticId, e.getMessage());
       }

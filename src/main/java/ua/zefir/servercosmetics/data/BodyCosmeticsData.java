@@ -1,6 +1,6 @@
 package ua.zefir.servercosmetics.data;
 
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
 
 public record BodyCosmeticsData(
     Identifier modelWhenSneaking,

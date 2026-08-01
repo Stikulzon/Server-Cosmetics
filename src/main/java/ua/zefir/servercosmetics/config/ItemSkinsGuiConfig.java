@@ -2,7 +2,7 @@ package ua.zefir.servercosmetics.config;
 
 import java.util.List;
 import java.util.stream.Stream;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.simpleyaml.configuration.file.YamlFile;
 import ua.zefir.servercosmetics.datagen.ui.GuiTextures;
 import ua.zefir.servercosmetics.util.Utils;
@@ -48,7 +48,7 @@ public class ItemSkinsGuiConfig extends AbstractGuiConfig {
   }
 
   @Override
-  public Text getGuiName() {
+  public Component getGuiName() {
     return GuiTextures.ITEM_SKINS_MENU.apply(Utils.formatDisplayName(this.guiNameString));
   }
 

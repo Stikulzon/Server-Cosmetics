@@ -8,11 +8,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
-import net.minecraft.component.type.*;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
-import net.minecraft.text.Text;
+import java.util.function.Supplier;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import org.simpleyaml.configuration.file.YamlFile;
 import ua.zefir.servercosmetics.ModInit;
 import ua.zefir.servercosmetics.config.MainConfig;
@@ -37,16 +37,19 @@ public class CustomItemRegistry {
   public static void reloadAll() {
     cosmeticsList.clear();
     initialize();
+    materializeAll();
   }
 
   public static void reloadCosmetics() {
     cosmeticsList.removeIf(entry -> entry.type() != ItemType.ITEM_SKIN);
     loadAllCosmetics();
+    materializeAll();
   }
 
   public static void reloadItemSkins() {
     cosmeticsList.removeIf(entry -> entry.type() == ItemType.ITEM_SKIN);
     loadAllItemSkins();
+    materializeAll();
   }
 
   private static void loadAllCosmetics() {
@@ -129,8 +132,8 @@ public class CustomItemRegistry {
 
   private static void loadItemSkin(
       YamlFile yaml, String itemId, String permission, String fileName) {
-    Text displayName = parseDisplayName(yaml, ItemType.ITEM_SKIN, fileName, null);
-    List<Text> lore = parseLore(yaml, ItemType.ITEM_SKIN, null);
+    Component displayName = parseDisplayName(yaml, ItemType.ITEM_SKIN, fileName, null);
+    List<Component> lore = parseLore(yaml, ItemType.ITEM_SKIN, null);
     boolean dyeable = yaml.getBoolean("dyeable", yaml.getBoolean("dyable", false));
     int sortingPriority = yaml.getInt("sortingPriority", 0);
 
@@ -148,13 +151,14 @@ public class CustomItemRegistry {
     for (String materialKey : targetMaterials) {
       String formattedMaterial = formatMaterialId(materialKey);
 
-      ItemStack itemStack =
-          ItemBuilder.fromId(formattedMaterial)
-              .applyCosmeticLogic(itemId, dyeable)
-              .name(displayName)
-              .lore(lore)
-              .customData(NEW_NBT_KEY_CUSTOM_ITEM_ID, itemId + "_" + formattedMaterial)
-              .build();
+      Supplier<ItemStack> itemStack =
+          () ->
+              ItemBuilder.fromId(formattedMaterial)
+                  .applyCosmeticLogic(itemId, dyeable)
+                  .name(displayName)
+                  .lore(lore)
+                  .customData(NEW_NBT_KEY_CUSTOM_ITEM_ID, itemId + "_" + formattedMaterial)
+                  .build();
 
       CustomItemEntry entry =
           new CustomItemEntry(
@@ -181,8 +185,8 @@ public class CustomItemRegistry {
       String itemPropertiesRootNode,
       String typeStr) {
     ItemType type = ItemType.valueOf(typeStr.toUpperCase());
-    Text displayName = parseDisplayName(yaml, type, fileName, itemPropertiesRootNode);
-    List<Text> lore = parseLore(yaml, type, itemPropertiesRootNode);
+    Component displayName = parseDisplayName(yaml, type, fileName, itemPropertiesRootNode);
+    List<Component> lore = parseLore(yaml, type, itemPropertiesRootNode);
     boolean dyeable = yaml.getBoolean("dyeable", yaml.getBoolean("dyable", false));
     int sortingPriority = yaml.getInt("sortingPriority", 0);
 
@@ -195,13 +199,14 @@ public class CustomItemRegistry {
 
     String formattedMaterial = formatMaterialId(baseItemMaterial);
 
-    ItemStack itemStack =
-        ItemBuilder.fromId(formattedMaterial)
-            .applyCosmeticLogic(itemId, dyeable)
-            .name(displayName)
-            .lore(lore)
-            .customData(NEW_NBT_KEY_CUSTOM_ITEM_ID, itemId)
-            .build();
+    Supplier<ItemStack> itemStack =
+        () ->
+            ItemBuilder.fromId(formattedMaterial)
+                .applyCosmeticLogic(itemId, dyeable)
+                .name(displayName)
+                .lore(lore)
+                .customData(NEW_NBT_KEY_CUSTOM_ITEM_ID, itemId)
+                .build();
 
     CustomItemEntry entry =
         createCosmeticEntry(
@@ -222,9 +227,9 @@ public class CustomItemRegistry {
       YamlFile yaml,
       String itemId,
       String permission,
-      Text displayName,
-      List<Text> lore,
-      ItemStack itemStack,
+      Component displayName,
+      List<Component> lore,
+      Supplier<ItemStack> itemStack,
       ItemType type,
       String baseItemMaterial,
       int sortingPriority,
@@ -300,7 +305,7 @@ public class CustomItemRegistry {
         yaml.getBoolean("autoscale", false));
   }
 
-  private static Text parseDisplayName(
+  private static Component parseDisplayName(
       YamlFile yaml, ItemType type, String fileName, String itemPropertiesRootNode) {
     String name;
     if (type == ItemType.ITEM_SKIN) {
@@ -325,7 +330,8 @@ public class CustomItemRegistry {
     return Utils.formatDisplayName(name);
   }
 
-  private static List<Text> parseLore(YamlFile yaml, ItemType type, String itemPropertiesRootNode) {
+  private static List<Component> parseLore(
+      YamlFile yaml, ItemType type, String itemPropertiesRootNode) {
     List<String> loreStrings;
     if (type == ItemType.ITEM_SKIN) {
       loreStrings = yaml.getStringList("lore");
@@ -391,8 +397,12 @@ public class CustomItemRegistry {
     return cosmeticsList.stream().map(CustomItemEntry::itemStack).toList();
   }
 
+  public static void materializeAll() {
+    cosmeticsList.forEach(CustomItemEntry::itemStack);
+  }
+
   public static List<CustomItemEntry> getAllCosmeticsForMaterial(ItemType type, Item item) {
-    String targetMaterialId = Registries.ITEM.getId(item).toString();
+    String targetMaterialId = BuiltInRegistries.ITEM.getKey(item).toString();
     return CustomItemRegistry.getAllCosmeticsForMaterial(type, targetMaterialId);
   }
 

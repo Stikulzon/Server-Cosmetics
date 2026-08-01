@@ -14,12 +14,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import me.lucko.fabric.api.permissions.v0.Permissions;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.DyedColorComponent;
-import net.minecraft.component.type.NbtComponent;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.DyedItemColor;
 import ua.zefir.servercosmetics.ModInit;
 import ua.zefir.servercosmetics.data.CustomItemEntry;
 import ua.zefir.servercosmetics.data.CustomItemRegistry;
@@ -49,9 +49,9 @@ public class DatabaseManager {
 
   public static void init() {}
 
-  public static void setCosmetic(ServerPlayerEntity player, ItemType type, ItemStack itemStack) {
+  public static void setCosmetic(ServerPlayer player, ItemType type, ItemStack itemStack) {
     try {
-      CosmeticEntry existingEntry = findEntry(player.getUuidAsString(), type);
+      CosmeticEntry existingEntry = findEntry(player.getStringUUID(), type);
 
       if (itemStack == null || itemStack.isEmpty()) {
         if (existingEntry != null) {
@@ -64,7 +64,7 @@ public class DatabaseManager {
       if (cosmeticId == null) {
         ModInit.LOGGER.warn(
             "Attempted to set a cosmetic with an ItemStack lacking a 'cosmeticItemId' for player {}",
-            player.getUuidAsString());
+            player.getStringUUID());
         if (existingEntry != null) {
           cosmeticDao.delete(existingEntry);
         }
@@ -79,7 +79,7 @@ public class DatabaseManager {
         cosmeticDao.update(existingEntry);
       } else {
         CosmeticEntry newEntry = new CosmeticEntry();
-        newEntry.setUuid(player.getUuidAsString());
+        newEntry.setUuid(player.getStringUUID());
         newEntry.setCosmeticType(type.toString());
         newEntry.setCosmeticId(cosmeticId);
         newEntry.setDyedColor(dyedColor);
@@ -87,17 +87,14 @@ public class DatabaseManager {
       }
     } catch (SQLException e) {
       ModInit.LOGGER.error(
-          "Error saving cosmetic data for player {} and type {}",
-          player.getUuidAsString(),
-          type,
-          e);
+          "Error saving cosmetic data for player {} and type {}", player.getStringUUID(), type, e);
       throw new RuntimeException("Error saving cosmetic data", e);
     }
   }
 
-  public static ItemStack getCosmeticItemStack(ServerPlayerEntity player, ItemType type) {
+  public static ItemStack getCosmeticItemStack(ServerPlayer player, ItemType type) {
     try {
-      CosmeticEntry cosmeticData = findEntry(player.getUuidAsString(), type);
+      CosmeticEntry cosmeticData = findEntry(player.getStringUUID(), type);
 
       if (cosmeticData == null || cosmeticData.getCosmeticId() == null) {
         return ItemStack.EMPTY;
@@ -120,17 +117,14 @@ public class DatabaseManager {
       return cosmeticDefinition.itemStack().copy();
     } catch (SQLException e) {
       ModInit.LOGGER.error(
-          "Error loading cosmetic data for player {} and type {}",
-          player.getUuidAsString(),
-          type,
-          e);
+          "Error loading cosmetic data for player {} and type {}", player.getStringUUID(), type, e);
       throw new RuntimeException("Error loading cosmetic data", e);
     }
   }
 
-  public static CustomItemEntry getCosmeticEntry(ServerPlayerEntity player, ItemType type) {
+  public static CustomItemEntry getCosmeticEntry(ServerPlayer player, ItemType type) {
     try {
-      CosmeticEntry cosmeticData = findEntry(player.getUuidAsString(), type);
+      CosmeticEntry cosmeticData = findEntry(player.getStringUUID(), type);
 
       if (cosmeticData == null || cosmeticData.getCosmeticId() == null) {
         return null;
@@ -139,10 +133,7 @@ public class DatabaseManager {
       return CustomItemRegistry.getCosmetic(cosmeticData.getCosmeticId());
     } catch (SQLException e) {
       ModInit.LOGGER.error(
-          "Error loading cosmetic data for player {} and type {}",
-          player.getUuidAsString(),
-          type,
-          e);
+          "Error loading cosmetic data for player {} and type {}", player.getStringUUID(), type, e);
       throw new RuntimeException("Error loading cosmetic data", e);
     }
   }
@@ -155,60 +146,60 @@ public class DatabaseManager {
   }
 
   public static String getCosmeticIdFromStack(ItemStack stack) {
-    NbtComponent customData = stack.get(DataComponentTypes.CUSTOM_DATA);
+    CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
     if (customData != null) {
-      NbtCompound nbt = customData.copyNbt();
+      CompoundTag nbt = customData.copyTag();
       if (nbt.contains(NEW_NBT_KEY_CUSTOM_ITEM_ID)) {
-        return nbt.getString(NEW_NBT_KEY_CUSTOM_ITEM_ID, "unknown");
+        return nbt.getStringOr(NEW_NBT_KEY_CUSTOM_ITEM_ID, "unknown");
       }
     }
     return null;
   }
 
   private static Integer getDyedColorFromStack(ItemStack stack) {
-    DyedColorComponent dyedColor = stack.get(DataComponentTypes.DYED_COLOR);
+    DyedItemColor dyedColor = stack.get(DataComponents.DYED_COLOR);
     return dyedColor != null ? dyedColor.rgb() : null;
   }
 
-  public static void savePreset(ServerPlayerEntity player, int slot, String cosmeticIds) {
+  public static void savePreset(ServerPlayer player, int slot, String cosmeticIds) {
     try {
-      PresetEntry existing = findPresetEntry(player.getUuidAsString(), slot);
+      PresetEntry existing = findPresetEntry(player.getStringUUID(), slot);
       if (existing != null) {
         existing.setCosmeticIds(cosmeticIds);
         presetsDao.update(existing);
       } else {
         PresetEntry entry = new PresetEntry();
-        entry.setUuid(player.getUuidAsString());
+        entry.setUuid(player.getStringUUID());
         entry.setSlot(slot);
         entry.setCosmeticIds(cosmeticIds);
         presetsDao.create(entry);
       }
     } catch (SQLException e) {
       ModInit.LOGGER.error(
-          "Error saving preset for player {} slot {}", player.getUuidAsString(), slot, e);
+          "Error saving preset for player {} slot {}", player.getStringUUID(), slot, e);
     }
   }
 
-  public static String loadPreset(ServerPlayerEntity player, int slot) {
+  public static String loadPreset(ServerPlayer player, int slot) {
     try {
-      PresetEntry entry = findPresetEntry(player.getUuidAsString(), slot);
+      PresetEntry entry = findPresetEntry(player.getStringUUID(), slot);
       return entry != null ? entry.getCosmeticIds() : null;
     } catch (SQLException e) {
       ModInit.LOGGER.error(
-          "Error loading preset for player {} slot {}", player.getUuidAsString(), slot, e);
+          "Error loading preset for player {} slot {}", player.getStringUUID(), slot, e);
       return null;
     }
   }
 
-  public static void deletePreset(ServerPlayerEntity player, int slot) {
+  public static void deletePreset(ServerPlayer player, int slot) {
     try {
-      PresetEntry entry = findPresetEntry(player.getUuidAsString(), slot);
+      PresetEntry entry = findPresetEntry(player.getStringUUID(), slot);
       if (entry != null) {
         presetsDao.delete(entry);
       }
     } catch (SQLException e) {
       ModInit.LOGGER.error(
-          "Error deleting preset for player {} slot {}", player.getUuidAsString(), slot, e);
+          "Error deleting preset for player {} slot {}", player.getStringUUID(), slot, e);
     }
   }
 
@@ -219,19 +210,19 @@ public class DatabaseManager {
     return presetsDao.queryForFieldValues(queryFields).stream().findFirst().orElse(null);
   }
 
-  public static void recordRecentCosmetic(ServerPlayerEntity player, String cosmeticId) {
+  public static void recordRecentCosmetic(ServerPlayer player, String cosmeticId) {
     if (cosmeticId == null || cosmeticId.isEmpty()) {
       return;
     }
     try {
-      RecentCosmeticEntry existing = findRecentEntry(player.getUuidAsString(), cosmeticId);
+      RecentCosmeticEntry existing = findRecentEntry(player.getStringUUID(), cosmeticId);
       long now = System.currentTimeMillis();
       if (existing != null) {
         existing.setLastUsed(now);
         recentDao.update(existing);
       } else {
         RecentCosmeticEntry entry = new RecentCosmeticEntry();
-        entry.setUuid(player.getUuidAsString());
+        entry.setUuid(player.getStringUUID());
         entry.setCosmeticId(cosmeticId);
         entry.setLastUsed(now);
         recentDao.create(entry);
@@ -239,16 +230,16 @@ public class DatabaseManager {
     } catch (SQLException e) {
       ModInit.LOGGER.error(
           "Error recording recent cosmetic for player {} id {}",
-          player.getUuidAsString(),
+          player.getStringUUID(),
           cosmeticId,
           e);
     }
   }
 
-  public static Map<String, Long> getRecentCosmetics(ServerPlayerEntity player) {
+  public static Map<String, Long> getRecentCosmetics(ServerPlayer player) {
     try {
       QueryBuilder<RecentCosmeticEntry, Integer> qb = recentDao.queryBuilder();
-      qb.where().eq("uuid", player.getUuidAsString());
+      qb.where().eq("uuid", player.getStringUUID());
       qb.orderBy("last_used", false);
       List<RecentCosmeticEntry> entries = recentDao.query(qb.prepare());
       Map<String, Long> recent = new LinkedHashMap<>();
@@ -258,7 +249,7 @@ public class DatabaseManager {
       return recent;
     } catch (SQLException e) {
       ModInit.LOGGER.error(
-          "Error loading recent cosmetics for player {}", player.getUuidAsString(), e);
+          "Error loading recent cosmetics for player {}", player.getStringUUID(), e);
       return Map.of();
     }
   }

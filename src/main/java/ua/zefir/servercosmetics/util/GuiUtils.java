@@ -2,8 +2,8 @@ package ua.zefir.servercosmetics.util;
 
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.SimpleGui;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.item.ItemStack;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.ItemStack;
 import ua.zefir.servercosmetics.config.ButtonConfig;
 
 public class GuiUtils {
@@ -16,14 +16,14 @@ public class GuiUtils {
     if (buttonConfig != null) {
       ItemStack itemStack = new ItemStack(buttonConfig.baseItem());
       if (buttonConfig.modelPath() != null) {
-        itemStack.set(DataComponentTypes.ITEM_MODEL, buttonConfig.modelPath());
+        itemStack.set(DataComponents.ITEM_MODEL, buttonConfig.modelPath());
       }
 
       GuiElementBuilder builder =
           new GuiElementBuilder(itemStack)
               .setName(buttonConfig.name())
               .setLore(buttonConfig.lore().stream().map(Utils::formatDisplayName).toList())
-              .setCallback((index, clickType, actionType) -> callback.run());
+              .setCallback((index, clickType, actionType, slotGui) -> callback.run());
 
       if (buttonConfig.modelPath() != null) {
         builder.model(buttonConfig.modelPath());

@@ -3,7 +3,7 @@ package ua.zefir.servercosmetics.config;
 import java.io.IOException;
 import java.nio.file.Path;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.simpleyaml.configuration.comments.format.YamlCommentFormat;
 import org.simpleyaml.configuration.file.YamlFile;
 import ua.zefir.servercosmetics.util.Utils;
@@ -16,8 +16,8 @@ public class MainConfig {
   private String configReloadPermission;
   private String itemSkinsReloadPermission;
   private String cosmeticsReloadPermission;
-  private Text successConfigReloadMessage;
-  private Text errorConfigReloadMessage;
+  private Component successConfigReloadMessage;
+  private Component errorConfigReloadMessage;
   private boolean legacyMode;
 
   public void load() {
@@ -84,11 +84,11 @@ public class MainConfig {
     return cosmeticsReloadPermission;
   }
 
-  public Text getSuccessConfigReloadMessage() {
+  public Component getSuccessConfigReloadMessage() {
     return successConfigReloadMessage;
   }
 
-  public Text getErrorConfigReloadMessage() {
+  public Component getErrorConfigReloadMessage() {
     return errorConfigReloadMessage;
   }
 

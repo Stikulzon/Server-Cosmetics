@@ -3,12 +3,12 @@ package ua.zefir.servercosmetics.cosmetic;
 import com.google.common.collect.Lists;
 import com.mojang.datafixers.util.Pair;
 import java.util.List;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.packet.s2c.play.EntityEquipmentUpdateS2CPacket;
-import net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
+import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import ua.zefir.servercosmetics.data.ItemType;
 import ua.zefir.servercosmetics.database.DatabaseManager;
@@ -16,13 +16,13 @@ import ua.zefir.servercosmetics.util.Utils;
 
 public class ArmorCosmetic implements Cosmetic {
 
-  private final ServerPlayerEntity player;
+  private final ServerPlayer player;
   private final ItemType slotType;
   private ItemType itemType;
   private ItemStack cosmeticItemStack = ItemStack.EMPTY;
   private final BodyCosmetic bodyCosmeticDelegate;
 
-  public ArmorCosmetic(ServerPlayerEntity player, ItemType itemType) {
+  public ArmorCosmetic(ServerPlayer player, ItemType itemType) {
     this.player = player;
     this.slotType = itemType;
     this.itemType = itemType;
@@ -104,7 +104,7 @@ public class ArmorCosmetic implements Cosmetic {
 
     EquipmentSlot slot = getEquipmentSlotFor(this.slotType);
     ItemStack cosmeticStack = this.cosmeticItemStack;
-    ItemStack realStack = player.getEquippedStack(slot);
+    ItemStack realStack = player.getItemBySlot(slot);
 
     ItemStack stackForDisplay =
         cosmeticStack.isEmpty()
@@ -116,10 +116,10 @@ public class ArmorCosmetic implements Cosmetic {
     List<Pair<EquipmentSlot, ItemStack>> equipmentList =
         Lists.newArrayList(Pair.of(slot, stackForDisplay.copy()));
     player
-        .getEntityWorld()
-        .getChunkManager()
-        .sendToNearbyPlayers(
-            player, new EntityEquipmentUpdateS2CPacket(player.getId(), equipmentList));
+        .level()
+        .getChunkSource()
+        .sendToTrackingPlayersAndSelf(
+            player, new ClientboundSetEquipmentPacket(player.getId(), equipmentList));
   }
 
   public static int getSlotFor(ItemType type) {
@@ -164,11 +164,11 @@ public class ArmorCosmetic implements Cosmetic {
   }
 
   public static void sendInventorySlotPacket(
-      ServerPlayerEntity player, int slot, ItemStack targetItemStack) {
-    player.networkHandler.sendPacket(
-        new ScreenHandlerSlotUpdateS2CPacket(
-            player.playerScreenHandler.syncId,
-            player.playerScreenHandler.nextRevision(),
+      ServerPlayer player, int slot, ItemStack targetItemStack) {
+    player.connection.send(
+        new ClientboundContainerSetSlotPacket(
+            player.inventoryMenu.containerId,
+            player.inventoryMenu.incrementStateId(),
             slot,
             targetItemStack));
   }

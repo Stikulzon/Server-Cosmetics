@@ -1,7 +1,7 @@
 package ua.zefir.servercosmetics.gui.paperdoll;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import ua.zefir.servercosmetics.data.ItemType;
 
 public class EquipmentSlotRenderer {

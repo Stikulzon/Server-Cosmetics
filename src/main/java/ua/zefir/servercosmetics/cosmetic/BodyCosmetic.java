@@ -7,21 +7,26 @@ import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
 import java.util.List;
 import java.util.Objects;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.decoration.ArmorStandEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.packet.s2c.play.*;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.EulerAngle;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.core.Rotations;
+import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
+import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
+import net.minecraft.network.protocol.game.ClientboundRotateHeadPacket;
+import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
+import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
+import net.minecraft.network.protocol.game.ClientboundSetPassengersPacket;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.decoration.ArmorStand;
+import net.minecraft.world.item.ItemStack;
 import ua.zefir.servercosmetics.data.BodyCosmeticsData;
 import ua.zefir.servercosmetics.data.ItemType;
 import ua.zefir.servercosmetics.database.DatabaseManager;
 
 public class BodyCosmetic implements Cosmetic {
-  private final ServerPlayerEntity player;
+  private final ServerPlayer player;
   private final ItemType itemType;
   private final Entity bodyCosmeticsModel;
   private ItemStack cosmeticItemStack = ItemStack.EMPTY;
@@ -30,8 +35,8 @@ public class BodyCosmetic implements Cosmetic {
   private boolean isHidden = false;
   private boolean isTilted = false;
 
-  public BodyCosmetic(ServerPlayerEntity player, ItemType itemType) {
-    this.bodyCosmeticsModel = new ArmorStandEntity(EntityType.ARMOR_STAND, player.getEntityWorld());
+  public BodyCosmetic(ServerPlayer player, ItemType itemType) {
+    this.bodyCosmeticsModel = new ArmorStand(EntityTypes.ARMOR_STAND, player.level());
     this.player = player;
     this.itemType = itemType;
   }
@@ -67,44 +72,45 @@ public class BodyCosmetic implements Cosmetic {
     }
 
     // Configure the ArmorStand
-    bodyCosmeticsModel.setPosition(player.getX(), player.getY(), player.getZ());
+    bodyCosmeticsModel.setPos(player.getX(), player.getY(), player.getZ());
     bodyCosmeticsModel.setInvulnerable(true);
     bodyCosmeticsModel.setNoGravity(true);
     bodyCosmeticsModel.setInvisible(true);
-    ((ArmorStandEntity) bodyCosmeticsModel).setHeadRotation(new EulerAngle(0.0F, 0f, 0f));
+    ((ArmorStand) bodyCosmeticsModel).setHeadPose(new Rotations(0.0F, 0f, 0f));
 
     // Send packets to spawn the new entity for all nearby players
     player
-        .getEntityWorld()
-        .getChunkManager()
-        .sendToNearbyPlayers(
+        .level()
+        .getChunkSource()
+        .sendToTrackingPlayersAndSelf(
             player,
-            new EntitySpawnS2CPacket(bodyCosmeticsModel, 1, bodyCosmeticsModel.getBlockPos()));
+            new ClientboundAddEntityPacket(
+                bodyCosmeticsModel, 1, bodyCosmeticsModel.blockPosition()));
     setItem(cosmeticItemStack);
     player
-        .getEntityWorld()
-        .getChunkManager()
-        .sendToNearbyPlayers(
+        .level()
+        .getChunkSource()
+        .sendToTrackingPlayersAndSelf(
             player,
-            new EntityTrackerUpdateS2CPacket(
-                bodyCosmeticsModel.getId(),
-                bodyCosmeticsModel.getDataTracker().getChangedEntries()));
+            new ClientboundSetEntityDataPacket(
+                bodyCosmeticsModel.getId(), bodyCosmeticsModel.getEntityData().packDirty()));
 
     // Set the cosmetic to ride the player
     bodyCosmeticsModel.startRiding(player, true, false);
     player
-        .getEntityWorld()
-        .getChunkManager()
-        .sendToNearbyPlayers(player, new EntityPassengersSetS2CPacket(player));
+        .level()
+        .getChunkSource()
+        .sendToTrackingPlayersAndSelf(player, new ClientboundSetPassengersPacket(player));
   }
 
   @Override
   public void onUnload() {
     if (!cosmeticItemStack.isEmpty()) {
       player
-          .getEntityWorld()
-          .getChunkManager()
-          .sendToNearbyPlayers(player, new EntitiesDestroyS2CPacket(bodyCosmeticsModel.getId()));
+          .level()
+          .getChunkSource()
+          .sendToTrackingPlayersAndSelf(
+              player, new ClientboundRemoveEntitiesPacket(bodyCosmeticsModel.getId()));
     }
   }
 
@@ -119,21 +125,21 @@ public class BodyCosmetic implements Cosmetic {
   }
 
   private void tickYaw() {
-    (bodyCosmeticsModel).setYaw(player.bodyYaw);
+    (bodyCosmeticsModel).setYRot(player.yBodyRot);
     player
-        .getEntityWorld()
-        .getChunkManager()
-        .sendToNearbyPlayers(
+        .level()
+        .getChunkSource()
+        .sendToTrackingPlayersAndSelf(
             player,
-            new EntitySetHeadYawS2CPacket(
+            new ClientboundRotateHeadPacket(
                 bodyCosmeticsModel,
-                (byte) MathHelper.floor(bodyCosmeticsModel.getYaw() * 256.0F / 360.0F)));
+                (byte) Mth.floor(bodyCosmeticsModel.getYRot() * 256.0F / 360.0F)));
   }
 
   private void tickIsHidden() {
     boolean shouldBeHidden =
         player.isSwimming()
-            || player.isCrawling()
+            || player.isVisuallyCrawling()
             || player.isSpectator()
             || player.isInvisible()
             || player.isSleeping();
@@ -149,10 +155,10 @@ public class BodyCosmetic implements Cosmetic {
 
   private void tickSneaking() {
     if (cosmeticData != null && cosmeticData.offsetWhenSneaking() && !isHidden) {
-      if (player.isSneaking() && !isTilted) {
+      if (player.isShiftKeyDown() && !isTilted) {
         setItem(cosmeticItemStackWhenSneaking);
         isTilted = true;
-      } else if (!player.isSneaking() && isTilted) {
+      } else if (!player.isShiftKeyDown() && isTilted) {
         setItem(cosmeticItemStack);
         isTilted = false;
       }
@@ -163,23 +169,24 @@ public class BodyCosmetic implements Cosmetic {
     List<Pair<EquipmentSlot, ItemStack>> equipmentList =
         ImmutableList.of(new Pair<>(EquipmentSlot.HEAD, itemStack));
     player
-        .getEntityWorld()
-        .getChunkManager()
-        .sendToNearbyPlayers(
-            player, new EntityEquipmentUpdateS2CPacket(bodyCosmeticsModel.getId(), equipmentList));
+        .level()
+        .getChunkSource()
+        .sendToTrackingPlayersAndSelf(
+            player, new ClientboundSetEquipmentPacket(bodyCosmeticsModel.getId(), equipmentList));
   }
 
   public void unequip() {
     if (!this.cosmeticItemStack.isEmpty()) {
       bodyCosmeticsModel.stopRiding();
       player
-          .getEntityWorld()
-          .getChunkManager()
-          .sendToNearbyPlayers(player, new EntitiesDestroyS2CPacket(bodyCosmeticsModel.getId()));
+          .level()
+          .getChunkSource()
+          .sendToTrackingPlayersAndSelf(
+              player, new ClientboundRemoveEntitiesPacket(bodyCosmeticsModel.getId()));
       player
-          .getEntityWorld()
-          .getChunkManager()
-          .sendToNearbyPlayers(player, new EntityPassengersSetS2CPacket(player));
+          .level()
+          .getChunkSource()
+          .sendToTrackingPlayersAndSelf(player, new ClientboundSetPassengersPacket(player));
     }
     this.cosmeticItemStack = ItemStack.EMPTY;
     this.cosmeticItemStackWhenSneaking = ItemStack.EMPTY;

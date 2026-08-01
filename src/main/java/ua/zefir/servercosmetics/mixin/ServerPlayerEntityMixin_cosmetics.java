@@ -2,8 +2,8 @@ package ua.zefir.servercosmetics.mixin;
 
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,7 +19,7 @@ import ua.zefir.servercosmetics.data.SortMode;
 import ua.zefir.servercosmetics.util.Utils;
 
 @SuppressWarnings("AddedMixinMembersNamePattern")
-@Mixin(ServerPlayerEntity.class)
+@Mixin(ServerPlayer.class)
 public abstract class ServerPlayerEntityMixin_cosmetics implements CosmeticHolder, GuiStateHolder {
   @Unique private final List<Cosmetic> cosmeticsList = new ArrayList<>();
 
@@ -31,7 +31,7 @@ public abstract class ServerPlayerEntityMixin_cosmetics implements CosmeticHolde
 
   @Inject(method = "<init>", at = @At("TAIL"))
   private void init(CallbackInfo ci) {
-    ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
+    ServerPlayer player = (ServerPlayer) (Object) this;
 
     cosmeticsList.addAll(
         List.of(
@@ -42,20 +42,20 @@ public abstract class ServerPlayerEntityMixin_cosmetics implements CosmeticHolde
             new ArmorCosmetic(player, ItemType.BOOTS)));
   }
 
-  @Inject(method = "playerTick", at = @At("TAIL"))
+  @Inject(method = "doTick", at = @At("TAIL"))
   private void sendBackpackCosmeticPacket(CallbackInfo ci) {
     tickArmor();
   }
 
-  @Inject(method = "copyFrom", at = @At("TAIL"))
-  private void onRespawn(ServerPlayerEntity oldPlayer, boolean alive, CallbackInfo ci) {
+  @Inject(method = "restoreFrom", at = @At("TAIL"))
+  private void onRespawn(ServerPlayer oldPlayer, boolean alive, CallbackInfo ci) {
     ((CosmeticHolder) oldPlayer).removeCosmetics();
 
     this.initCosmetics();
   }
 
-  @Inject(method = "worldChanged", at = @At("TAIL"))
-  private void onDimensionChange(ServerWorld origin, CallbackInfo ci) {
+  @Inject(method = "triggerDimensionChangeTriggers", at = @At("TAIL"))
+  private void onDimensionChange(ServerLevel origin, CallbackInfo ci) {
     this.initCosmetics();
   }
 
@@ -66,9 +66,9 @@ public abstract class ServerPlayerEntityMixin_cosmetics implements CosmeticHolde
 
   @Override
   public void initCosmetics() {
-    ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
-    if (player.getEntityWorld() != null) {
-      player.getEntityWorld().getServer().execute(() -> cosmeticsList.forEach(Cosmetic::init));
+    ServerPlayer player = (ServerPlayer) (Object) this;
+    if (player.level() != null) {
+      player.level().getServer().execute(() -> cosmeticsList.forEach(Cosmetic::init));
     } else {
       cosmeticsList.forEach(Cosmetic::init);
     }

@@ -1,6 +1,6 @@
 package ua.zefir.servercosmetics.command;
 
-import static net.minecraft.server.command.CommandManager.literal;
+import static net.minecraft.commands.Commands.literal;
 import static ua.zefir.servercosmetics.config.ConfigManager.*;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -8,9 +8,9 @@ import com.mojang.brigadier.context.CommandContext;
 import java.util.Objects;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
 import ua.zefir.servercosmetics.config.ConfigManager;
 import ua.zefir.servercosmetics.config.MainConfig;
 import ua.zefir.servercosmetics.gui.CosmeticsGui;
@@ -73,9 +73,9 @@ public class CosmeticCommands {
               literal("wearcosmetic")
                   .requires(Permissions.require("servercosmetics.wearcosmetic", 4))
                   .then(
-                      CommandManager.argument("player", EntityArgumentType.player())
+                      Commands.argument("player", EntityArgument.player())
                           .then(
-                              CommandManager.argument("cosmeticId", StringArgumentType.string())
+                              Commands.argument("cosmeticId", StringArgumentType.string())
                                   .executes(Utils::wearCosmeticById))));
           dispatcher.register(
               literal("is")
@@ -109,7 +109,7 @@ public class CosmeticCommands {
   public static boolean test = false;
 
   private static int debugCommand(
-      CommandContext<ServerCommandSource> serverCommandSourceCommandContext) {
+      CommandContext<CommandSourceStack> serverCommandSourceCommandContext) {
     test = !test;
     return 1;
   }

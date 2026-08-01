@@ -9,8 +9,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Stream;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
 import org.simpleyaml.configuration.file.YamlFile;
 import ua.zefir.servercosmetics.ModInit;
 import ua.zefir.servercosmetics.data.CustomItemRegistry;
@@ -18,12 +18,13 @@ import ua.zefir.servercosmetics.data.ItemType;
 
 public class ConfigGenerator {
 
-  public static int generateCosmeticDefinitions(CommandContext<ServerCommandSource> context) {
+  public static int generateCosmeticDefinitions(CommandContext<CommandSourceStack> context) {
     Path assetsDir = SERVER_COSMETICS_DIR.resolve("Assets");
     if (!Files.isDirectory(assetsDir)) {
       context
           .getSource()
-          .sendError(Text.literal("Assets directory not found at " + assetsDir.toAbsolutePath()));
+          .sendFailure(
+              Component.literal("Assets directory not found at " + assetsDir.toAbsolutePath()));
       return 0;
     }
 
@@ -41,16 +42,17 @@ public class ConfigGenerator {
       ModInit.LOGGER.error("Error walking assets directory for config generation", e);
       context
           .getSource()
-          .sendError(Text.literal("An error occurred while scanning models. Check console."));
+          .sendFailure(
+              Component.literal("An error occurred while scanning models. Check console."));
       return 0;
     }
 
     if (generatedCount > 0) {
       context
           .getSource()
-          .sendFeedback(
+          .sendSuccess(
               () ->
-                  Text.literal(
+                  Component.literal(
                       "Successfully generated "
                           + generatedCount
                           + " new cosmetic definitions in 'Cosmetics/generated'. Use '/sc reload' to load them."),
@@ -58,8 +60,8 @@ public class ConfigGenerator {
     } else {
       context
           .getSource()
-          .sendFeedback(
-              () -> Text.literal("No new models found to generate definitions for."), false);
+          .sendSuccess(
+              () -> Component.literal("No new models found to generate definitions for."), false);
     }
 
     return (int) generatedCount;

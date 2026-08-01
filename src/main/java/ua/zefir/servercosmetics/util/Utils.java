@@ -13,18 +13,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import me.lucko.fabric.api.permissions.v0.Permissions;
-import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.EquippableComponent;
-import net.minecraft.component.type.NbtComponent;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.Registries;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.equipment.Equippable;
 import ua.zefir.servercosmetics.ModInit;
 import ua.zefir.servercosmetics.data.CustomItemEntry;
 import ua.zefir.servercosmetics.data.CustomItemRegistry;
@@ -34,7 +34,7 @@ import ua.zefir.servercosmetics.gui.ColorPickerComponent;
 import ua.zefir.servercosmetics.gui.actions.EquipCosmeticAction;
 
 public class Utils {
-  public static Text formatDisplayName(String st) {
+  public static Component formatDisplayName(String st) {
     StringBuilder sb = new StringBuilder(st.length());
     // fixing unicodes
     for (int i = 0; i < st.length(); i++) {
@@ -54,18 +54,18 @@ public class Utils {
     return TextParser.format(sf);
   }
 
-  public static int wearCosmeticById(CommandContext<ServerCommandSource> context) {
-    final ServerPlayerEntity player;
+  public static int wearCosmeticById(CommandContext<CommandSourceStack> context) {
+    final ServerPlayer player;
     try {
-      player = EntityArgumentType.getPlayer(context, "player");
+      player = EntityArgument.getPlayer(context, "player");
     } catch (CommandSyntaxException e) {
-      context.getSource().sendError(Text.literal("Invalid player specified."));
+      context.getSource().sendFailure(Component.literal("Invalid player specified."));
       return 1;
     }
 
     String id = StringArgumentType.getString(context, "cosmeticId");
     if (id == null || id.isEmpty()) {
-      context.getSource().sendError(Text.literal("Invalid cosmetic ID."));
+      context.getSource().sendFailure(Component.literal("Invalid cosmetic ID."));
       return 1;
     }
 
@@ -74,32 +74,36 @@ public class Utils {
     if (entry == null) {
       context
           .getSource()
-          .sendFeedback(() -> Text.literal("Cosmetic not found with ID: " + id), false);
+          .sendSuccess(() -> Component.literal("Cosmetic not found with ID: " + id), false);
       return 1;
     }
 
     if (!Permissions.check(player, entry.permission(), 4)) {
       context
           .getSource()
-          .sendFeedback(
-              () -> Text.literal("Selected player does not have permission to use this cosmetic."),
+          .sendSuccess(
+              () ->
+                  Component.literal(
+                      "Selected player does not have permission to use this cosmetic."),
               false);
       return 1;
     }
 
     ItemStack cosmeticItem = entry.itemStack();
     if (cosmeticItem == null || cosmeticItem.isEmpty()) {
-      context.getSource().sendError(Text.literal("Cosmetic item definition is empty or invalid."));
+      context
+          .getSource()
+          .sendFailure(Component.literal("Cosmetic item definition is empty or invalid."));
       return 1;
     }
 
     boolean isColorable =
         Items.LEATHER_HORSE_ARMOR.equals(
-            Registries.ITEM.getEntry(Identifier.tryParse(entry.baseItemForModel())));
+            BuiltInRegistries.ITEM.get(Identifier.tryParse(entry.baseItemForModel())));
 
     if (isColorable) {
       ItemStack itemForColorPicker = cosmeticItem.copy();
-      itemForColorPicker.remove(DataComponentTypes.DYED_COLOR);
+      itemForColorPicker.remove(DataComponents.DYED_COLOR);
 
       new ColorPickerComponent(
               player,
@@ -109,9 +113,9 @@ public class Utils {
                 new EquipCosmeticAction().execute(player, coloredStack, entry.type());
                 context
                     .getSource()
-                    .sendFeedback(
+                    .sendSuccess(
                         () ->
-                            Text.literal(
+                            Component.literal(
                                 "Equipped colored cosmetic: " + entry.displayName().getString()),
                         false);
               },
@@ -122,8 +126,9 @@ public class Utils {
       new EquipCosmeticAction().execute(player, entry.itemStack(), entry.type());
       context
           .getSource()
-          .sendFeedback(
-              () -> Text.literal("Equipped cosmetic: " + entry.displayName().getString()), false);
+          .sendSuccess(
+              () -> Component.literal("Equipped cosmetic: " + entry.displayName().getString()),
+              false);
     }
     return 0;
   }
@@ -151,7 +156,7 @@ public class Utils {
 
   public static ItemStack getTiltedItemStack(ItemStack original, Identifier modelPath) {
     ItemStack itemStack = original.copy();
-    itemStack.set(DataComponentTypes.ITEM_MODEL, modelPath);
+    itemStack.set(DataComponents.ITEM_MODEL, modelPath);
     return itemStack;
   }
 
@@ -192,7 +197,7 @@ public class Utils {
     return actualPriority == 0 ? Integer.MAX_VALUE : actualPriority;
   }
 
-  public static ItemStack filterItemStack(ItemStack originalStack, ServerPlayerEntity player) {
+  public static ItemStack filterItemStack(ItemStack originalStack, ServerPlayer player) {
     ItemStack stack = originalStack.copy();
     NbtDataFixer.fixItemStackNbt(stack);
 
@@ -200,13 +205,13 @@ public class Utils {
       return stack;
     }
 
-    NbtComponent customDataComponent = stack.get(DataComponentTypes.CUSTOM_DATA);
+    CustomData customDataComponent = stack.get(DataComponents.CUSTOM_DATA);
 
     if (customDataComponent != null) {
-      NbtCompound nbt = customDataComponent.copyNbt();
+      CompoundTag nbt = customDataComponent.copyTag();
 
       if (nbt.contains(NEW_NBT_KEY_CUSTOM_ITEM_ID)) {
-        String itemSkinId = nbt.getString(NEW_NBT_KEY_CUSTOM_ITEM_ID, "unknown");
+        String itemSkinId = nbt.getStringOr(NEW_NBT_KEY_CUSTOM_ITEM_ID, "unknown");
 
         CustomItemEntry skinEntry = CustomItemRegistry.getCosmetic(itemSkinId);
         if (skinEntry == null) {
@@ -214,27 +219,26 @@ public class Utils {
         }
 
         if (skinEntry == null) {
-          stack.apply(
-              DataComponentTypes.CUSTOM_DATA,
-              NbtComponent.DEFAULT,
-              comp -> comp.apply(currentNbt -> currentNbt.remove(NEW_NBT_KEY_CUSTOM_ITEM_ID)));
+          stack.update(
+              DataComponents.CUSTOM_DATA,
+              CustomData.EMPTY,
+              comp -> comp.update(currentNbt -> currentNbt.remove(NEW_NBT_KEY_CUSTOM_ITEM_ID)));
           return stack;
         } else if (skinEntry.type() == ItemType.ITEM_SKIN) {
           if (player != null && !Permissions.check(player, skinEntry.permission(), 4)) {
-            originalStack.apply(
-                DataComponentTypes.CUSTOM_DATA,
-                NbtComponent.DEFAULT,
-                comp -> comp.apply(currentNbt -> currentNbt.remove(NEW_NBT_KEY_CUSTOM_ITEM_ID)));
-            return originalStack;
+            stack.update(
+                DataComponents.CUSTOM_DATA,
+                CustomData.EMPTY,
+                comp -> comp.update(currentNbt -> currentNbt.remove(NEW_NBT_KEY_CUSTOM_ITEM_ID)));
+            return stack;
           }
         }
 
-        Identifier expectedItemModel = skinEntry.itemStack().get(DataComponentTypes.ITEM_MODEL);
-        stack.set(DataComponentTypes.ITEM_MODEL, expectedItemModel);
+        Identifier expectedItemModel = skinEntry.itemStack().get(DataComponents.ITEM_MODEL);
+        stack.set(DataComponents.ITEM_MODEL, expectedItemModel);
 
-        EquippableComponent equippableComponent =
-            skinEntry.itemStack().get(DataComponentTypes.EQUIPPABLE);
-        stack.set(DataComponentTypes.EQUIPPABLE, equippableComponent);
+        Equippable equippableComponent = skinEntry.itemStack().get(DataComponents.EQUIPPABLE);
+        stack.set(DataComponents.EQUIPPABLE, equippableComponent);
 
         return stack;
       }
@@ -251,12 +255,12 @@ public class Utils {
       return displayStack;
     }
 
-    int realDamage = realStack.getDamage();
+    int realDamage = realStack.getDamageValue();
     int realMaxDamage = realStack.getMaxDamage();
 
     if (realDamage > 0 && realMaxDamage > 0) {
-      displayStack.set(DataComponentTypes.DAMAGE, realDamage);
-      displayStack.set(DataComponentTypes.MAX_DAMAGE, realMaxDamage);
+      displayStack.set(DataComponents.DAMAGE, realDamage);
+      displayStack.set(DataComponents.MAX_DAMAGE, realMaxDamage);
     }
 
     return displayStack;

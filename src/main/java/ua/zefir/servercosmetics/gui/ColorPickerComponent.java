@@ -8,17 +8,17 @@ import eu.pb4.sgui.api.gui.SimpleGui;
 import java.awt.Color;
 import java.util.List;
 import java.util.function.Consumer;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.DyedColorComponent;
-import net.minecraft.component.type.NbtComponent;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.Registries;
-import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.DyedItemColor;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.lang3.mutable.MutableFloat;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -32,14 +32,14 @@ import ua.zefir.servercosmetics.util.GuiUtils;
 // TODO: remove mutable variables, refactor
 public class ColorPickerComponent {
 
-  private final ServerPlayerEntity player;
+  private final ServerPlayer player;
   private final ItemStack itemToColor;
   private final ItemType targetType;
   private final Consumer<ItemStack> onColorSelectCallback;
   private final Runnable onCloseCallback;
 
   public ColorPickerComponent(
-      ServerPlayerEntity player,
+      ServerPlayer player,
       ItemStack itemToColor,
       ItemType targetType,
       Consumer<ItemStack> onColorSelectCallback,
@@ -55,13 +55,13 @@ public class ColorPickerComponent {
     try {
       new ColorPickerScreen(player, itemToColor, onColorSelectCallback, onCloseCallback).open();
     } catch (Exception e) {
-      player.sendMessage(Text.literal("Error opening color picker."), false);
+      player.sendSystemMessage(Component.literal("Error opening color picker."));
       ModInit.LOGGER.error("Failed to open ColorPickerComponent", e);
     }
   }
 
   private static class ColorPickerScreen extends SimpleGui {
-    private final ServerPlayerEntity player;
+    private final ServerPlayer player;
     private final ItemStack hatItemStack;
     private final Consumer<ItemStack> onColorSelectCallback;
     private final Runnable onCloseCallback;
@@ -73,11 +73,11 @@ public class ColorPickerComponent {
     private boolean initialGradientDrawn = false;
 
     public ColorPickerScreen(
-        ServerPlayerEntity player,
+        ServerPlayer player,
         ItemStack hatItemStack,
         Consumer<ItemStack> onColorSelectCallback,
         Runnable onCloseCallback) {
-      super(ScreenHandlerType.GENERIC_9X5, player, true);
+      super(MenuType.GENERIC_9x5, player, true);
       this.player = player;
       this.hatItemStack = hatItemStack.copy();
       this.onColorSelectCallback = onColorSelectCallback;
@@ -89,8 +89,8 @@ public class ColorPickerComponent {
     }
 
     @Override
-    public void onClose() {
-      super.onClose();
+    public void onManualClose() {
+      super.onManualClose();
       if (onCloseCallback != null) {
         onCloseCallback.run();
       }
@@ -114,11 +114,11 @@ public class ColorPickerComponent {
       if (usePaintBrushView.getValue() && colorPickerConfig.getPaintItemStack() != null) {
         templateStack = new ItemStack(Items.LEATHER_HORSE_ARMOR);
         templateStack.set(
-            DataComponentTypes.ITEM_MODEL,
-            colorPickerConfig.getPaintItemStack().get(DataComponentTypes.ITEM_MODEL));
+            DataComponents.ITEM_MODEL,
+            colorPickerConfig.getPaintItemStack().get(DataComponents.ITEM_MODEL));
       } else {
         templateStack = hatItemStack.copy();
-        templateStack.remove(DataComponentTypes.DYED_COLOR);
+        templateStack.remove(DataComponents.DYED_COLOR);
       }
 
       int[] baseColorDisplaySlots = colorPickerConfig.getColorSlots();
@@ -128,19 +128,18 @@ public class ColorPickerComponent {
         ItemStack displayColorStack = templateStack.copy();
         try {
           int decimalColor = Integer.parseInt(colorHexValues[i], 16);
-          displayColorStack.set(
-              DataComponentTypes.DYED_COLOR, new DyedColorComponent(decimalColor));
+          displayColorStack.set(DataComponents.DYED_COLOR, new DyedItemColor(decimalColor));
 
-          NbtCompound nbt = new NbtCompound();
+          CompoundTag nbt = new CompoundTag();
           nbt.putInt("baseColorHexIndex", i);
-          displayColorStack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+          displayColorStack.set(DataComponents.CUSTOM_DATA, CustomData.of(nbt));
 
           final int finalI = i;
           this.setSlot(
               baseColorDisplaySlots[i],
               GuiElementBuilder.from(displayColorStack)
                   .setCallback(
-                      (clickIndex, clickType, actionType) -> {
+                      (clickIndex, clickType, actionType, gui) -> {
                         selectedBaseColorSlotIndex.setValue(finalI);
                         drawGradientSlots();
                       }));
@@ -174,8 +173,8 @@ public class ColorPickerComponent {
       if (usePaintBrushView.getValue()) {
         gradientItem = new ItemStack(Items.LEATHER_HORSE_ARMOR);
         gradientItem.set(
-            DataComponentTypes.ITEM_MODEL,
-            colorPickerConfig.getPaintItemStack().get(DataComponentTypes.ITEM_MODEL));
+            DataComponents.ITEM_MODEL,
+            colorPickerConfig.getPaintItemStack().get(DataComponents.ITEM_MODEL));
       } else {
         gradientItem = hatItemStack.copy();
       }
@@ -195,7 +194,7 @@ public class ColorPickerComponent {
                 : new Color(Color.HSBtoRGB(hsv[0], saturation.getValue() / 100F, brightnessFactor));
 
         int stepColorRgb = gradientStepColor.getRGB();
-        gradientItem.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(stepColorRgb));
+        gradientItem.set(DataComponents.DYED_COLOR, new DyedItemColor(stepColorRgb));
 
         this.setSlot(
             gradientDisplaySlots[j],
@@ -204,12 +203,12 @@ public class ColorPickerComponent {
                     () -> {
                       ItemStack finalColoredHat = hatItemStack.copy();
                       finalColoredHat.set(
-                          DataComponentTypes.DYED_COLOR, new DyedColorComponent(stepColorRgb));
+                          DataComponents.DYED_COLOR, new DyedItemColor(stepColorRgb));
 
                       this.setSlot(
                           colorPickerConfig.getColorOutputSlot(),
                           GuiElementBuilder.from(finalColoredHat.copy())
-                              .setName(Text.literal("Click to Confirm"))
+                              .setName(Component.literal("Click to Confirm"))
                               .setCallback(
                                   () -> {
                                     this.close();
@@ -263,24 +262,23 @@ public class ColorPickerComponent {
     private final ColorPickerConfig colorPickerConfig;
 
     public ColorInputSign(
-        ServerPlayerEntity player,
-        ItemStack itemToColor,
-        Consumer<ItemStack> onColorSelectCallback) {
+        ServerPlayer player, ItemStack itemToColor, Consumer<ItemStack> onColorSelectCallback) {
       super(player);
       this.itemToColor = itemToColor;
       this.onColorSelectCallback = onColorSelectCallback;
       this.colorPickerConfig = ((CosmeticsGuiConfig) COSMETICS_GUI_CONFIG).getColorPickerConfig();
 
-      this.setSignType(Registries.BLOCK.get(Identifier.of(colorPickerConfig.getSignType())));
+      this.setSignType(
+          BuiltInRegistries.BLOCK.getValue(Identifier.parse(colorPickerConfig.getSignType())));
       this.setColor(colorPickerConfig.getSignColor());
       List<String> lines = colorPickerConfig.getTextLines();
       for (int i = 0; i < lines.size() && i < 4; i++) {
-        this.setLine(i, Text.literal(lines.get(i)));
+        this.setLine(i, Component.literal(lines.get(i)));
       }
     }
 
     @Override
-    public void onClose() {
+    public void onManualClose() {
       String colorString = this.getLine(0).getString().trim();
 
       if (colorString.isEmpty()) {
@@ -294,14 +292,14 @@ public class ColorPickerComponent {
         Color color = Color.decode(colorString);
 
         ItemStack coloredStack = itemToColor.copy();
-        coloredStack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(color.getRGB()));
+        coloredStack.set(DataComponents.DYED_COLOR, new DyedItemColor(color.getRGB()));
 
-        this.player.sendMessage(colorPickerConfig.getSuccessColorChangeMessage(), false);
+        this.player.sendSystemMessage(colorPickerConfig.getSuccessColorChangeMessage());
 
         onColorSelectCallback.accept(coloredStack);
 
       } catch (NumberFormatException e) {
-        this.player.sendMessage(colorPickerConfig.getErrorColorChangeMessage(), false);
+        this.player.sendSystemMessage(colorPickerConfig.getErrorColorChangeMessage());
       }
     }
   }

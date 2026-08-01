@@ -1,6 +1,6 @@
 package ua.zefir.servercosmetics.cosmetic;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 import ua.zefir.servercosmetics.data.ItemType;
 
 public interface Cosmetic {

@@ -3,11 +3,11 @@ package ua.zefir.servercosmetics.gui.paperdoll;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import java.util.List;
 import me.lucko.fabric.api.permissions.v0.Permissions;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.NbtComponent;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.CustomData;
 import ua.zefir.servercosmetics.config.CosmeticsGuiConfig;
 import ua.zefir.servercosmetics.cosmetic.CosmeticHolder;
 import ua.zefir.servercosmetics.data.CustomItemEntry;
@@ -19,7 +19,7 @@ import ua.zefir.servercosmetics.datafixer.NbtDataFixer;
 public class PresetSlotHandler {
 
   public static String savePreset(
-      ServerPlayerEntity player, int presetIndex, List<EquipmentSlotConfig> equipmentSlots) {
+      ServerPlayer player, int presetIndex, List<EquipmentSlotConfig> equipmentSlots) {
     CosmeticHolder holder = (CosmeticHolder) player;
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < equipmentSlots.size(); i++) {
@@ -29,9 +29,9 @@ public class PresetSlotHandler {
       EquipmentSlotConfig slot = equipmentSlots.get(i);
       ItemStack equipped = holder.getCosmeticFor(slot.type()).getCosmeticItemStack();
       if (equipped != null && !equipped.isEmpty()) {
-        NbtComponent customData = equipped.get(DataComponentTypes.CUSTOM_DATA);
+        CustomData customData = equipped.get(DataComponents.CUSTOM_DATA);
         if (customData != null) {
-          String id = customData.copyNbt().getString(NbtDataFixer.NEW_NBT_KEY_CUSTOM_ITEM_ID, "");
+          String id = customData.copyTag().getStringOr(NbtDataFixer.NEW_NBT_KEY_CUSTOM_ITEM_ID, "");
           sb.append(id.isEmpty() ? "" : id);
         }
       }
@@ -41,7 +41,7 @@ public class PresetSlotHandler {
   }
 
   public static void loadPreset(
-      ServerPlayerEntity player, int presetIndex, List<EquipmentSlotConfig> equipmentSlots) {
+      ServerPlayer player, int presetIndex, List<EquipmentSlotConfig> equipmentSlots) {
     String presetData = DatabaseManager.loadPreset(player, presetIndex);
     if (presetData == null || presetData.isEmpty()) {
       return;

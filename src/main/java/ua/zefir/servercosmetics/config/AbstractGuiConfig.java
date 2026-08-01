@@ -5,12 +5,12 @@ import static ua.zefir.servercosmetics.ModInit.id;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
-import net.minecraft.item.Item;
-import net.minecraft.registry.Registries;
-import net.minecraft.screen.GenericContainerScreenHandler;
-import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.inventory.ChestMenu;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.item.Item;
 import org.simpleyaml.configuration.ConfigurationSection;
 import org.simpleyaml.configuration.comments.format.YamlCommentFormat;
 import org.simpleyaml.configuration.file.YamlFile;
@@ -78,7 +78,7 @@ public abstract class AbstractGuiConfig {
   protected boolean pageIndicatorEnabled;
   protected boolean replaceInventory;
   protected List<String> disabledFilters;
-  protected ScreenHandlerType<GenericContainerScreenHandler> screenHandlerType;
+  protected MenuType<ChestMenu> screenHandlerType;
 
   protected final Map<String, ButtonConfig> navigationButtons = new HashMap<>();
 
@@ -165,12 +165,12 @@ public abstract class AbstractGuiConfig {
     }
     this.screenHandlerType =
         switch (guiRows) {
-          case 1 -> ScreenHandlerType.GENERIC_9X1;
-          case 2 -> ScreenHandlerType.GENERIC_9X2;
-          case 3 -> ScreenHandlerType.GENERIC_9X3;
-          case 4 -> ScreenHandlerType.GENERIC_9X4;
-          case 5 -> ScreenHandlerType.GENERIC_9X5;
-          default -> ScreenHandlerType.GENERIC_9X6;
+          case 1 -> MenuType.GENERIC_9x1;
+          case 2 -> MenuType.GENERIC_9x2;
+          case 3 -> MenuType.GENERIC_9x3;
+          case 4 -> MenuType.GENERIC_9x4;
+          case 5 -> MenuType.GENERIC_9x5;
+          default -> MenuType.GENERIC_9x6;
         };
   }
 
@@ -231,7 +231,7 @@ public abstract class AbstractGuiConfig {
     String formattedItemString =
         baseItemString.contains(":") ? baseItemString : "minecraft:" + baseItemString.toLowerCase();
 
-    Item item = Registries.ITEM.get(Identifier.of(formattedItemString));
+    Item item = BuiltInRegistries.ITEM.getValue(Identifier.parse(formattedItemString));
 
     Identifier modelPath = null;
     if (yamlFile.isSet(basePath + ".textureName")) {
@@ -264,15 +264,15 @@ public abstract class AbstractGuiConfig {
             loreStrings));
   }
 
-  public Text getGuiName() {
+  public Component getGuiName() {
     return Utils.formatDisplayName(this.guiNameString);
   }
 
-  public Text getMessageUnlocked() {
+  public Component getMessageUnlocked() {
     return Utils.formatDisplayName(this.messageUnlockedString);
   }
 
-  public Text getMessageLocked() {
+  public Component getMessageLocked() {
     return Utils.formatDisplayName(this.messageLockedString);
   }
 
@@ -284,8 +284,8 @@ public abstract class AbstractGuiConfig {
           buttonKey,
           this.configFilePath.getFileName());
       return new ButtonConfig(
-          Text.literal("Error"),
-          Registries.ITEM.get(Identifier.of("minecraft:barrier")),
+          Component.literal("Error"),
+          BuiltInRegistries.ITEM.getValue(Identifier.parse("minecraft:barrier")),
           null,
           0,
           Collections.emptyList());
@@ -309,7 +309,7 @@ public abstract class AbstractGuiConfig {
     return disabledFilters;
   }
 
-  public ScreenHandlerType<GenericContainerScreenHandler> getScreenHandlerType() {
+  public MenuType<ChestMenu> getScreenHandlerType() {
     return screenHandlerType;
   }
 

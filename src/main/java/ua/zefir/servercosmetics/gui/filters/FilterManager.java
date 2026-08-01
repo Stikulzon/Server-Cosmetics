@@ -70,7 +70,8 @@ public class FilterManager {
       String lowerTerm = searchTerm.toLowerCase();
       basePredicate =
           basePredicate.and(
-              entry -> entry.itemStack().getName().getString().toLowerCase().contains(lowerTerm));
+              entry ->
+                  entry.itemStack().getHoverName().getString().toLowerCase().contains(lowerTerm));
     }
 
     return basePredicate;

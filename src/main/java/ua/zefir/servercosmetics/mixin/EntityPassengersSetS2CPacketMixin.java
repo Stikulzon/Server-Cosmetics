@@ -4,9 +4,9 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.packet.s2c.play.EntityPassengersSetS2CPacket;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.network.protocol.game.ClientboundSetPassengersPacket;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import ua.zefir.servercosmetics.cosmetic.ArmorCosmetic;
@@ -15,18 +15,18 @@ import ua.zefir.servercosmetics.cosmetic.Cosmetic;
 import ua.zefir.servercosmetics.cosmetic.CosmeticHolder;
 import ua.zefir.servercosmetics.data.ItemType;
 
-@Mixin(EntityPassengersSetS2CPacket.class)
+@Mixin(ClientboundSetPassengersPacket.class)
 public class EntityPassengersSetS2CPacketMixin {
   @WrapOperation(
-      method = "<init>(Lnet/minecraft/entity/Entity;)V",
+      method = "<init>(Lnet/minecraft/world/entity/Entity;)V",
       at =
           @At(
               value = "INVOKE",
-              target = "Lnet/minecraft/entity/Entity;getPassengerList()Ljava/util/List;"))
+              target = "Lnet/minecraft/world/entity/Entity;getPassengers()Ljava/util/List;"))
   private List<Entity> modifyPassengers(Entity instance, Operation<List<Entity>> original) {
     List<Entity> modifiedList = new ArrayList<>(original.call(instance));
 
-    if (instance instanceof ServerPlayerEntity player) {
+    if (instance instanceof ServerPlayer player) {
       CosmeticHolder cosmetics = (CosmeticHolder) player;
 
       Cosmetic body = cosmetics.getCosmeticFor(ItemType.BODY_COSMETIC);

@@ -9,13 +9,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import me.lucko.fabric.api.permissions.v0.Permissions;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import ua.zefir.servercosmetics.ModInit;
 import ua.zefir.servercosmetics.config.ConfigManager;
 import ua.zefir.servercosmetics.config.CosmeticsGuiConfig;
@@ -36,11 +36,11 @@ import ua.zefir.servercosmetics.util.Utils;
 
 public class CosmeticsGui extends SimpleGui {
 
-  public static int openGui(CommandContext<ServerCommandSource> ctx) {
-    ServerPlayerEntity player = ctx.getSource().getPlayer();
+  public static int openGui(CommandContext<CommandSourceStack> ctx) {
+    ServerPlayer player = ctx.getSource().getPlayer();
     if (player == null) {
       ctx.getSource()
-          .sendFeedback(() -> Text.literal("This command can only be run by a player."), false);
+          .sendSuccess(() -> Component.literal("This command can only be run by a player."), false);
       return 1;
     }
 
@@ -50,8 +50,8 @@ public class CosmeticsGui extends SimpleGui {
       gui.openAndPopulate();
     } catch (Exception e) {
       ctx.getSource()
-          .sendError(
-              Text.literal(
+          .sendFailure(
+              Component.literal(
                   "An error occurred opening the Cosmetics GUI. See console for details."));
       ModInit.LOGGER.error(
           "Failed to open cosmetics GUI for player {}", player.getName().getString(), e);
@@ -69,8 +69,8 @@ public class CosmeticsGui extends SimpleGui {
   private boolean availableOnly = true;
   private Map<String, Long> recentCosmetics = Map.of();
 
-  public CosmeticsGui(ServerPlayerEntity player, CosmeticsGuiConfig config) {
-    super(ScreenHandlerType.GENERIC_9X6, player, config.isReplaceInventory());
+  public CosmeticsGui(ServerPlayer player, CosmeticsGuiConfig config) {
+    super(MenuType.GENERIC_9x6, player, config.isReplaceInventory());
     this.config = config;
     this.state = (GuiStateHolder) player;
     this.visibleEquipmentSlots =
@@ -165,7 +165,7 @@ public class CosmeticsGui extends SimpleGui {
       }
 
       builder.setCallback(
-          (clickIndex, clickType, actionType) -> {
+          (clickIndex, clickType, actionType, gui) -> {
             selectSlot(slotConfig);
             populateGui();
           });
@@ -183,7 +183,7 @@ public class CosmeticsGui extends SimpleGui {
 
       if (presetData != null && !presetData.isEmpty()) {
         ItemStack presetItem = PresetSlotHandler.getPresetDisplayItem(presetData);
-        presetItem.set(DataComponentTypes.ITEM_NAME, Text.literal("Preset " + (presetIndex + 1)));
+        presetItem.set(DataComponents.ITEM_NAME, Component.literal("Preset " + (presetIndex + 1)));
         GuiElementBuilder builder =
             new GuiElementBuilder(presetItem)
                 .addLoreLine(config.getMessagePresetLoad())
@@ -191,7 +191,7 @@ public class CosmeticsGui extends SimpleGui {
                 .addLoreLine(config.getMessagePresetOverwrite());
         PresetSlotHandler.appendPresetLore(builder, presetData, config.getEquipmentSlots(), config);
         builder.setCallback(
-            (clickIndex, clickType, actionType) -> {
+            (clickIndex, clickType, actionType, gui) -> {
               if (clickType.shift && clickType.isLeft) {
                 DatabaseManager.deletePreset(player, presetIndex);
                 populateGui();
@@ -208,11 +208,11 @@ public class CosmeticsGui extends SimpleGui {
       } else {
         ItemStack emptyPresetItem = new ItemStack(Items.PAPER);
         emptyPresetItem.set(
-            DataComponentTypes.ITEM_NAME, Text.literal("Preset " + (presetIndex + 1)));
+            DataComponents.ITEM_NAME, Component.literal("Preset " + (presetIndex + 1)));
         GuiElementBuilder builder =
             new GuiElementBuilder(emptyPresetItem).addLoreLine(config.getMessagePresetSave());
         builder.setCallback(
-            (clickIndex, clickType, actionType) -> {
+            (clickIndex, clickType, actionType, gui) -> {
               if (clickType.isRight) {
                 PresetSlotHandler.savePreset(player, presetIndex, config.getEquipmentSlots());
                 populateGui();
@@ -233,7 +233,7 @@ public class CosmeticsGui extends SimpleGui {
         new GuiElementBuilder(indicatorStack)
             .setName(config.getMessageSelectedSlot(selectedSlot.displayName()));
     builder.setCallback(
-        (clickIndex, clickType, actionType) -> {
+        (clickIndex, clickType, actionType, gui) -> {
           selectedSlot = null;
           state.setGuiSelectedSlotKey(null);
           currentPage = 0;
@@ -259,7 +259,7 @@ public class CosmeticsGui extends SimpleGui {
             .setName(config.getMessageRemoveCosmetic())
             .addLoreLine(config.getMessageRemoveCosmeticLore(selectedSlot.displayName()));
     builder.setCallback(
-        (clickIndex, clickType, actionType) -> {
+        (clickIndex, clickType, actionType, gui) -> {
           new EquipCosmeticAction().execute(player, ItemStack.EMPTY, selectedSlot.type());
           populateGui();
         });
@@ -288,7 +288,7 @@ public class CosmeticsGui extends SimpleGui {
             .setName(config.getMessageUnequipAll())
             .addLoreLine(config.getMessageUnequipAllLore());
     builder.setCallback(
-        (clickIndex, clickType, actionType) -> {
+        (clickIndex, clickType, actionType, gui) -> {
           for (EquipmentSlotConfig slot : config.getEquipmentSlots()) {
             new EquipCosmeticAction().execute(player, ItemStack.EMPTY, slot.type());
           }
@@ -316,14 +316,14 @@ public class CosmeticsGui extends SimpleGui {
     }
     int slotIndex = config.getTypeFilterButtonIndex();
     ItemStack item = new ItemStack(Items.HOPPER);
-    Text name =
+    Component name =
         typeFilter == null
             ? config.getMessageTypeFilterAll()
             : config.getMessageTypeFilterSpecific(config.getTypeDisplayName(typeFilter));
     GuiElementBuilder builder =
         new GuiElementBuilder(item).setName(name).addLoreLine(config.getMessageTypeFilterLore());
     builder.setCallback(
-        (clickIndex, clickType, actionType) -> {
+        (clickIndex, clickType, actionType, gui) -> {
           List<ItemType> currentOptions = getTypeFilterOptions();
           int currentIdx = typeFilter == null ? -1 : currentOptions.indexOf(typeFilter);
           int nextIdx = (currentIdx + 1) % (currentOptions.size() + 1);
@@ -342,13 +342,13 @@ public class CosmeticsGui extends SimpleGui {
     }
     int slotIndex = config.getAvailableFilterButtonIndex();
     ItemStack item = new ItemStack(Items.EMERALD);
-    Text name =
+    Component name =
         availableOnly
             ? config.getMessageAvailableOnlyEnabled()
             : config.getMessageAvailableOnlyDisabled();
     GuiElementBuilder builder = new GuiElementBuilder(item).setName(name);
     builder.setCallback(
-        (clickIndex, clickType, actionType) -> {
+        (clickIndex, clickType, actionType, gui) -> {
           availableOnly = !availableOnly;
           state.setGuiAvailableOnly(availableOnly);
           currentPage = 0;
@@ -364,7 +364,7 @@ public class CosmeticsGui extends SimpleGui {
     }
     int slotIndex = config.getSortByButtonIndex();
     ItemStack item = new ItemStack(Items.NETHER_STAR);
-    Text name =
+    Component name =
         switch (sortMode) {
           case DEFAULT -> config.getMessageSortByDefault();
           case NAME -> config.getMessageSortByName();
@@ -372,7 +372,7 @@ public class CosmeticsGui extends SimpleGui {
         };
     GuiElementBuilder builder = new GuiElementBuilder(item).setName(name);
     builder.setCallback(
-        (clickIndex, clickType, actionType) -> {
+        (clickIndex, clickType, actionType, gui) -> {
           sortMode = sortMode.next();
           state.setGuiSortMode(sortMode);
           populateGui();
@@ -412,7 +412,7 @@ public class CosmeticsGui extends SimpleGui {
     int[] gridSlots = config.getGridSlots();
     if (selectedSlot == null) {
       ItemStack promptItem = new ItemStack(Items.PAPER);
-      promptItem.set(DataComponentTypes.ITEM_NAME, config.getMessageSelectSlotPrompt());
+      promptItem.set(DataComponents.ITEM_NAME, config.getMessageSelectSlotPrompt());
       if (gridSlots.length > 0) {
         setSlot(gridSlots[0], new GuiElementBuilder(promptItem));
       }
@@ -438,7 +438,7 @@ public class CosmeticsGui extends SimpleGui {
         if (entry.dyeable()) {
           OpenColorPickerAction colorPickerAction = new OpenColorPickerAction(selectedSlot.type());
           element.setCallback(
-              (clickIndex, clickType, actionType) -> {
+              (clickIndex, clickType, actionType, gui) -> {
                 colorPickerAction.execute(player, entry, this);
                 refreshRecentCosmetics();
                 populateGui();
@@ -446,7 +446,7 @@ public class CosmeticsGui extends SimpleGui {
         } else {
           EquipCosmeticAction equipAction = new EquipCosmeticAction();
           element.setCallback(
-              (clickIndex, clickType, actionType) -> {
+              (clickIndex, clickType, actionType, gui) -> {
                 equipAction.execute(player, entry.itemStack().copy(), selectedSlot.type());
                 refreshRecentCosmetics();
                 populateGui();
@@ -474,7 +474,7 @@ public class CosmeticsGui extends SimpleGui {
       GuiElementBuilder prevBuilder =
           new GuiElementBuilder(prevItem).setName(config.getMessagePreviousPage());
       prevBuilder.setCallback(
-          (clickIndex, clickType, actionType) -> {
+          (clickIndex, clickType, actionType, gui) -> {
             currentPage--;
             state.setGuiCurrentPage(currentPage);
             populateGui();
@@ -489,7 +489,7 @@ public class CosmeticsGui extends SimpleGui {
       GuiElementBuilder nextBuilder =
           new GuiElementBuilder(nextItem).setName(config.getMessageNextPage());
       nextBuilder.setCallback(
-          (clickIndex, clickType, actionType) -> {
+          (clickIndex, clickType, actionType, gui) -> {
             currentPage++;
             state.setGuiCurrentPage(currentPage);
             populateGui();

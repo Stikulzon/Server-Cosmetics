@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version "${loom_version}"
+    id 'net.fabricmc.fabric-loom' version "${loom_version}"
     id "com.modrinth.minotaur" version "2.+"
     id 'maven-publish'
     id 'com.diffplug.spotless' version '8.+'
@@ -45,15 +45,13 @@ loom {
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.5.0")))
-    include(implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.3.7-beta.1")))
-
-    include(modImplementation("eu.pb4:sgui:${project.sgui_version}"))
-    include(modImplementation("me.lucko:fabric-permissions-api:${project.fabric_permissions_api_version}"))
+    include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.5.4")))
+    include(implementation(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.3.7-beta.3")))
+    include(implementation("eu.pb4:sgui:${project.sgui_version}"))
+    include(implementation("me.lucko:fabric-permissions-api:${project.fabric_permissions_api_version}"))
 
     include(implementation 'com.github.Carleslc.Simple-YAML:Simple-Yaml:1.8.4')
 
@@ -61,13 +59,13 @@ dependencies {
     include(implementation 'com.j256.ormlite:ormlite-jdbc:6.1')
     include(implementation 'com.j256.ormlite:ormlite-core:6.1')
 
-    modImplementation("eu.pb4:polymer-core:[${polymer_version}]")
-    modImplementation("eu.pb4:polymer-blocks:[${polymer_version}]")
-    modImplementation("eu.pb4:polymer-resource-pack:[${polymer_version}]")
-    modImplementation("eu.pb4:polymer-virtual-entity:[${polymer_version}]")
-    modImplementation("eu.pb4:polymer-autohost:${polymer_version}")
+    implementation("eu.pb4:polymer-core:${polymer_version}")
+    implementation("eu.pb4:polymer-blocks:${polymer_version}")
+    implementation("eu.pb4:polymer-resource-pack:${polymer_version}")
+    implementation("eu.pb4:polymer-virtual-entity:${polymer_version}")
+    implementation("eu.pb4:polymer-autohost:${polymer_version}")
 
-    modImplementation(include("eu.pb4:placeholder-api:${placeholder_api_version}"))
+    implementation(include("eu.pb4:placeholder-api:${placeholder_api_version}"))
 }
 
 processResources {
@@ -78,13 +76,13 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    it.options.release = 21
+    it.options.release = 25
 }
 
 java {
     withSourcesJar()
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 
 jar {
@@ -124,7 +122,7 @@ if (System.getenv("MODRINTH_TOKEN")) {
         projectId = 'rpTNWjZH'// This can be the project ID or the slug
         versionNumber = "${project.version}"
         versionType = "release" // This is the default -- can also be `beta` or `alpha`
-        uploadFile = remapJar
+        uploadFile = jar
         gameVersions = [((String) project.minecraft_version)]
         changelog = System.getenv("CHANGELOG")
         loaders = ["fabric"]
@@ -136,7 +134,7 @@ if (System.getenv("MODRINTH_TOKEN")) {
         syncBodyFrom = rootProject.file("README.md").text
         tasks.modrinth.dependsOn(tasks.modrinthSyncBody)
     }
-    remapJar {
+    jar {
         finalizedBy project.tasks.modrinth
     }
 }

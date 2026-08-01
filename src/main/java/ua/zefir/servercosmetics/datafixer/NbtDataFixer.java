@@ -1,10 +1,10 @@
 package ua.zefir.servercosmetics.datafixer;
 
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.CustomModelDataComponent;
-import net.minecraft.component.type.NbtComponent;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.CustomModelData;
 
 public class NbtDataFixer {
   private static final String OLD_NBT_KEY_ITEM_SKIN_ID = "itemSkinsID";
@@ -15,30 +15,27 @@ public class NbtDataFixer {
       return;
     }
 
-    NbtComponent customDataComponent = stack.get(DataComponentTypes.CUSTOM_DATA);
+    CustomData customDataComponent = stack.get(DataComponents.CUSTOM_DATA);
 
     if (customDataComponent != null) {
-      NbtCompound nbt = customDataComponent.copyNbt();
+      CompoundTag nbt = customDataComponent.copyTag();
 
       if (nbt.contains(OLD_NBT_KEY_ITEM_SKIN_ID)) {
         if (!nbt.contains(NEW_NBT_KEY_CUSTOM_ITEM_ID)) {
-          String idValue = nbt.getString(OLD_NBT_KEY_ITEM_SKIN_ID, "unknown");
+          String idValue = nbt.getStringOr(OLD_NBT_KEY_ITEM_SKIN_ID, "unknown");
           nbt.putString(NEW_NBT_KEY_CUSTOM_ITEM_ID, idValue);
         }
         nbt.remove(OLD_NBT_KEY_ITEM_SKIN_ID);
 
-        final NbtCompound finalNbt = nbt.copy();
-        stack.apply(
-            DataComponentTypes.CUSTOM_DATA,
-            NbtComponent.DEFAULT,
-            existing -> NbtComponent.of(finalNbt));
+        final CompoundTag finalNbt = nbt.copy();
+        stack.update(
+            DataComponents.CUSTOM_DATA, CustomData.EMPTY, existing -> CustomData.of(finalNbt));
       }
 
       if (nbt.contains(NbtDataFixer.NEW_NBT_KEY_CUSTOM_ITEM_ID)) {
-        CustomModelDataComponent expectedModelData =
-            stack.get(DataComponentTypes.CUSTOM_MODEL_DATA);
+        CustomModelData expectedModelData = stack.get(DataComponents.CUSTOM_MODEL_DATA);
         if (expectedModelData != null) {
-          stack.remove(DataComponentTypes.CUSTOM_MODEL_DATA);
+          stack.remove(DataComponents.CUSTOM_MODEL_DATA);
         }
       }
     }

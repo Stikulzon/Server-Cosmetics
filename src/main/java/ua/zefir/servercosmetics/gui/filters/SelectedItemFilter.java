@@ -1,7 +1,7 @@
 package ua.zefir.servercosmetics.gui.filters;
 
 import java.util.function.Predicate;
-import net.minecraft.item.Item;
+import net.minecraft.world.item.Item;
 import ua.zefir.servercosmetics.data.CustomItemEntry;
 
 public class SelectedItemFilter implements Predicate<CustomItemEntry> {

@@ -3,7 +3,7 @@ package ua.zefir.servercosmetics.config;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.simpleyaml.configuration.ConfigurationSection;
 import org.simpleyaml.configuration.file.YamlFile;
 import ua.zefir.servercosmetics.data.EquipmentSlotConfig;
@@ -288,7 +288,7 @@ public class CosmeticsGuiConfig extends AbstractGuiConfig {
   }
 
   @Override
-  public Text getGuiName() {
+  public Component getGuiName() {
     return GuiTextures.COSMETICS_MENU.apply(Utils.formatDisplayName(this.guiNameString));
   }
 
@@ -328,68 +328,69 @@ public class CosmeticsGuiConfig extends AbstractGuiConfig {
     return nextPageSlot;
   }
 
-  public Text getMessageSelected() {
+  public Component getMessageSelected() {
     return Utils.formatDisplayName(messageSelected);
   }
 
-  public Text getMessagePresetLoad() {
+  public Component getMessagePresetLoad() {
     return Utils.formatDisplayName(messagePresetLoad);
   }
 
-  public Text getMessagePresetReset() {
+  public Component getMessagePresetReset() {
     return Utils.formatDisplayName(messagePresetReset);
   }
 
-  public Text getMessagePresetOverwrite() {
+  public Component getMessagePresetOverwrite() {
     return Utils.formatDisplayName(messagePresetOverwrite);
   }
 
-  public Text getMessagePresetSave() {
+  public Component getMessagePresetSave() {
     return Utils.formatDisplayName(messagePresetSave);
   }
 
-  public Text getMessageSelectedSlot(String slotDisplayName) {
+  public Component getMessageSelectedSlot(String slotDisplayName) {
     return Utils.formatDisplayName(String.format(messageSelectedSlot, slotDisplayName));
   }
 
-  public Text getMessageRemoveCosmetic() {
+  public Component getMessageRemoveCosmetic() {
     return Utils.formatDisplayName(messageRemoveCosmetic);
   }
 
-  public Text getMessageRemoveCosmeticLore(String slotDisplayName) {
+  public Component getMessageRemoveCosmeticLore(String slotDisplayName) {
     return Utils.formatDisplayName(String.format(messageRemoveCosmeticLore, slotDisplayName));
   }
 
-  public Text getMessageUnequipAll() {
+  public Component getMessageUnequipAll() {
     return Utils.formatDisplayName(messageUnequipAll);
   }
 
-  public Text getMessageUnequipAllLore() {
+  public Component getMessageUnequipAllLore() {
     return Utils.formatDisplayName(messageUnequipAllLore);
   }
 
-  public Text getMessageSelectSlotPrompt() {
+  public Component getMessageSelectSlotPrompt() {
     return Utils.formatDisplayName(messageSelectSlotPrompt);
   }
 
-  public Text getMessagePreviousPage() {
+  public Component getMessagePreviousPage() {
     return Utils.formatDisplayName(messagePreviousPage);
   }
 
-  public Text getMessageNextPage() {
+  public Component getMessageNextPage() {
     return Utils.formatDisplayName(messageNextPage);
   }
 
-  public Text getMessagePresetSlotNone(String slotDisplayName) {
+  public Component getMessagePresetSlotNone(String slotDisplayName) {
     return Utils.formatDisplayName(String.format(messagePresetSlotNone, slotDisplayName));
   }
 
-  public Text getMessagePresetSlotCosmetic(String slotDisplayName, String cosmeticDisplayName) {
+  public Component getMessagePresetSlotCosmetic(
+      String slotDisplayName, String cosmeticDisplayName) {
     return Utils.formatDisplayName(
         String.format(messagePresetSlotCosmetic, slotDisplayName, cosmeticDisplayName));
   }
 
-  public Text getMessagePresetSlotUnknown(String slotDisplayName) {
+  public Component getMessagePresetSlotUnknown(String slotDisplayName) {
     return Utils.formatDisplayName(String.format(messagePresetSlotUnknown, slotDisplayName));
   }
 
@@ -409,35 +410,35 @@ public class CosmeticsGuiConfig extends AbstractGuiConfig {
     return typeDisplayNames.getOrDefault(type, type.name());
   }
 
-  public Text getMessageTypeFilterAll() {
+  public Component getMessageTypeFilterAll() {
     return Utils.formatDisplayName(messageTypeFilterAll);
   }
 
-  public Text getMessageTypeFilterSpecific(String typeName) {
+  public Component getMessageTypeFilterSpecific(String typeName) {
     return Utils.formatDisplayName(String.format(messageTypeFilterSpecific, typeName));
   }
 
-  public Text getMessageTypeFilterLore() {
+  public Component getMessageTypeFilterLore() {
     return Utils.formatDisplayName(messageTypeFilterLore);
   }
 
-  public Text getMessageAvailableOnlyEnabled() {
+  public Component getMessageAvailableOnlyEnabled() {
     return Utils.formatDisplayName(messageAvailableOnlyEnabled);
   }
 
-  public Text getMessageAvailableOnlyDisabled() {
+  public Component getMessageAvailableOnlyDisabled() {
     return Utils.formatDisplayName(messageAvailableOnlyDisabled);
   }
 
-  public Text getMessageSortByDefault() {
+  public Component getMessageSortByDefault() {
     return Utils.formatDisplayName(messageSortByDefault);
   }
 
-  public Text getMessageSortByName() {
+  public Component getMessageSortByName() {
     return Utils.formatDisplayName(messageSortByName);
   }
 
-  public Text getMessageSortByRecent() {
+  public Component getMessageSortByRecent() {
     return Utils.formatDisplayName(messageSortByRecent);
   }
 }
