@@ -67,7 +67,6 @@ public class CustomItemModelGenerator {
         "assets/servercosmetics/models/item/" + modelName + ".json",
         baseModelJson.toString().getBytes(StandardCharsets.UTF_8));
 
-
     JsonObject itemDefinition = createSimpleModelDefinition(modelName);
     generatedModels.put(
         "assets/servercosmetics/items/" + modelName + ".json",
@@ -103,7 +102,7 @@ public class CustomItemModelGenerator {
   }
 
   private static JsonObject createSimpleModelDefinition(String modelId) {
-      String modelLocation = ModInit.MOD_ID + ":item/" + modelId;
+    String modelLocation = ModInit.MOD_ID + ":item/" + modelId;
     JsonObject root = new JsonObject();
     JsonObject model = new JsonObject();
     model.addProperty("type", "minecraft:model");
@@ -147,5 +146,4 @@ public class CustomItemModelGenerator {
       default -> throw new IllegalStateException("Unsupported armor type: " + slot);
     };
   }
-
 }
