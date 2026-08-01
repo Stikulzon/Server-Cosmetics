@@ -114,7 +114,12 @@ public class DatabaseManager {
         return ItemStack.EMPTY;
       }
 
-      return cosmeticDefinition.itemStack().copy();
+      ItemStack cosmeticStack = cosmeticDefinition.itemStack().copy();
+      if (cosmeticData.getDyedColor() != null) {
+        cosmeticStack.set(
+            DataComponents.DYED_COLOR, new DyedItemColor(cosmeticData.getDyedColor()));
+      }
+      return cosmeticStack;
     } catch (SQLException e) {
       ModInit.LOGGER.error(
           "Error loading cosmetic data for player {} and type {}", player.getStringUUID(), type, e);
